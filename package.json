@@ -1,6 +1,5 @@
 {
   "name": "student-manager-client",
-  "private": true,
   "type": "module",
   "scripts": {
     "build": "run-s build:icons build:react-router",
