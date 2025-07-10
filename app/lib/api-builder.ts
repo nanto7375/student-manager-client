@@ -1,16 +1,5 @@
-import { UNSTABLE_NETWORK_ERROR_CODE } from "~/constants/error";
-
-type ErrorWithMessage = {
-  message: string;
-};
-function hasErrorMessage(error: unknown): error is ErrorWithMessage {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "message" in error &&
-    typeof (error as Record<string, unknown>).message === "string"
-  );
-}
+import { FETCH_JSON_ERROR_CODE, UNSTABLE_NETWORK_ERROR_CODE, hasErrorMessage } from '~/lib/error';
+import { Deferred, type DeferredType } from '~/utils/deferred';
 
 type BuildApiParams = {
   url: string;
@@ -23,33 +12,57 @@ type ApiParams = {
   headers?: Record<string, string>;
 };
 
-const baseUrl = import.meta.env.VITE_API_URL + "/store-service/v1";
-const defaultToken = import.meta.env.VITE_DEFAULT_TOKEN;
+const baseUrl = import.meta.env.VITE_API_URL + '/v1';
+const refreshUrl = import.meta.env.VITE_REFRESH_PATH;
+const expiredTokenCode = import.meta.env.VITE_TOKEN_EXPIRATION_CODE;
 
-let _baseHeaders = {
-  Authorization: `Bearer ${defaultToken}`,
-};
+let _baseHeaders = { 'Content-Type': 'application/json' };
 export const setBaseHeaders = (headers: Record<string, string>) => {
-  _baseHeaders = {
-    Authorization: `Bearer ${defaultToken}`,
-    ...headers,
-  };
+  _baseHeaders = { ..._baseHeaders, ...headers };
+};
+
+type PendingRequest<T> = {
+  deferred: DeferredType;
+  api: () => Promise<T>;
+};
+const refreshProcessor = {
+  isRefreshing: false,
+  isRefreshSuccess: true,
+  pendingRequests: [] as PendingRequest<unknown>[],
+  processRequests: async () => {
+    for (const request of refreshProcessor.pendingRequests) {
+      if (refreshProcessor.isRefreshSuccess) {
+        try {
+          const result = await request.api();
+          request.deferred.resolve(result);
+        } catch (error) {
+          request.deferred.reject(error);
+        }
+      } else {
+        request.deferred.reject({
+          status: 401,
+          code: 401,
+          message: 'token expired',
+        });
+      }
+    }
+    refreshProcessor.pendingRequests = [];
+  },
+};
+
+const refreshTokenApi = async () => {
+  const response = await fetch(new URL(baseUrl + refreshUrl), { method: 'POST', headers: _baseHeaders });
+  const result = await response.json();
+  if (!response.ok) throw { status: response.status, message: result.message, code: result.code };
+  return result.message;
 };
 
 export const buildApi = <T = unknown>({ url, method }: BuildApiParams) => {
-  const api = async ({
-    params,
-    query,
-    body,
-    headers,
-  }: ApiParams = {}): Promise<T> => {
+  const api = async ({ params, query, body, headers }: ApiParams = {}): Promise<T> => {
     const apiEndpoint = new URL(baseUrl + url);
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        apiEndpoint.pathname = apiEndpoint.pathname.replace(
-          `:${key}`,
-          String(value)
-        );
+        apiEndpoint.pathname = apiEndpoint.pathname.replace(`:${key}`, String(value));
       });
     }
     if (query) {
@@ -62,51 +75,61 @@ export const buildApi = <T = unknown>({ url, method }: BuildApiParams) => {
     try {
       response = await fetch(apiEndpoint, {
         method,
-        headers: {
-          "Content-Type": "application/json",
-          ..._baseHeaders,
-          ...(headers && headers),
-        },
+        headers: { ..._baseHeaders, ...(headers && headers) },
         ...(body && { body: JSON.stringify(body) }),
       });
     } catch (error) {
       throw {
         url,
         method,
-        status: 500,
-        errorCode: UNSTABLE_NETWORK_ERROR_CODE,
-        message:
-          "fetch error: " +
-          (hasErrorMessage(error) ? error.message : JSON.stringify(error)),
+        status: 400,
+        code: UNSTABLE_NETWORK_ERROR_CODE,
+        message: 'fetch error: ' + (hasErrorMessage(error) ? error.message : JSON.stringify(error)),
       };
     }
 
-    let data: { resultCode: number; resultMessage: T };
+    let data: { code: number; message: T };
     try {
       data = await response.json();
     } catch (error) {
       throw {
         url,
         method,
-        status: 500,
-        errorCode: 502,
-        message:
-          "response json error: " +
-          (hasErrorMessage(error) ? error.message : JSON.stringify(error)),
+        status: 400,
+        code: FETCH_JSON_ERROR_CODE,
+        message: 'response json error: ' + (hasErrorMessage(error) ? error.message : JSON.stringify(error)),
       };
     }
 
     if (!response.ok) {
-      throw {
-        url,
-        method,
-        status: response.status,
-        message: data.resultMessage,
-        errorCode: data.resultCode,
-      };
+      if (data.code === expiredTokenCode) {
+        if (refreshProcessor.isRefreshing) {
+          const deferred = Deferred();
+          refreshProcessor.pendingRequests.push({
+            deferred,
+            api: () => api({ params, query, body, headers }),
+          });
+          return deferred.promise as Promise<T>;
+        }
+
+        refreshProcessor.isRefreshing = true;
+        try {
+          await refreshTokenApi();
+          refreshProcessor.isRefreshSuccess = true;
+        } catch (error: any) {
+          refreshProcessor.isRefreshSuccess = false;
+          throw { status: error.status || 400, code: error.code || 400, message: error.message };
+        } finally {
+          refreshProcessor.isRefreshing = false;
+          refreshProcessor.processRequests();
+        }
+        return await api({ params, query, body, headers });
+      }
+
+      throw { url, method, status: response.status, message: data.message, code: data.code };
     }
 
-    return data.resultMessage;
+    return data.message;
   };
 
   return api;
