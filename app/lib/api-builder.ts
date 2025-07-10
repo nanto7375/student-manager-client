@@ -35,25 +35,23 @@ const refreshProcessor = {
         try {
           const result = await request.api();
           request.deferred.resolve(result);
-        } catch (error) {
-          request.deferred.reject(error);
+        } catch (error: any) {
+          request.deferred.reject({ status: error.status || 400, code: error.code || 400, message: error.message });
         }
       } else {
-        request.deferred.reject({
-          status: 401,
-          code: 401,
-          message: 'token expired',
-        });
+        request.deferred.reject({ status: 401, code: 401, message: 'token expired' });
       }
     }
     refreshProcessor.pendingRequests = [];
+    refreshProcessor.isRefreshing = false;
   },
 };
 
 const refreshTokenApi = async () => {
-  const response = await fetch(new URL(baseUrl + refreshUrl), { method: 'POST', headers: _baseHeaders });
+  const refreshEndpoint = new URL(baseUrl + refreshUrl);
+  const response = await fetch(refreshEndpoint, { method: 'POST', headers: _baseHeaders });
   const result = await response.json();
-  if (!response.ok) throw { status: response.status, message: result.message, code: result.code };
+  if (!response.ok) throw { url: refreshEndpoint.toString(), method: 'POST', status: response.status, message: result.message, code: result.code };
   return result.message;
 };
 
@@ -116,14 +114,13 @@ export const buildApi = <T = unknown>({ url, method }: BuildApiParams) => {
         try {
           await refreshTokenApi();
           refreshProcessor.isRefreshSuccess = true;
+          return await api({ params, query, body, headers });
         } catch (error: any) {
           refreshProcessor.isRefreshSuccess = false;
-          throw { status: error.status || 400, code: error.code || 400, message: error.message };
+          throw { status: error.status || 400, code: error.code || 400, message: error.message || 'token expired' };
         } finally {
-          refreshProcessor.isRefreshing = false;
           refreshProcessor.processRequests();
         }
-        return await api({ params, query, body, headers });
       }
 
       throw { url, method, status: response.status, message: data.message, code: data.code };
