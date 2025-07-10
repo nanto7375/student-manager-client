@@ -12,7 +12,7 @@ function hasErrorMessage(error: unknown): error is ErrorWithMessage {
   );
 }
 
-type CreateApiClientParams = {
+type BuildApiParams = {
   url: string;
   method: string;
 };
@@ -36,10 +36,7 @@ export const setBaseHeaders = (headers: Record<string, string>) => {
   };
 };
 
-export const createApiClient = <T = unknown>({
-  url,
-  method,
-}: CreateApiClientParams) => {
+export const buildApi = <T = unknown>({ url, method }: BuildApiParams) => {
   const api = async ({
     params,
     query,
