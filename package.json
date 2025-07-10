@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-	  "build": "run-s build:icons build:react-router",
-	  "build:icons": "tsx ./svg-icons/build-icons.ts",
+    "build": "run-s build:icons build:react-router",
+    "build:icons": "tsx ./svg-icons/build-icons.ts",
     "build:react-router": "react-router build",
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
