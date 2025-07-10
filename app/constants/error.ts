@@ -1,0 +1,1 @@
+export const UNSTABLE_NETWORK_ERROR_CODE = 1000;
