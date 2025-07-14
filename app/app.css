@@ -1,8 +1,52 @@
 @import "tailwindcss";
 
 @theme {
-  /* --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; */
+	/* --breakpoint-*: initial;
+	--breakpoint-sm: 560px;
+	--breakpoint-md: 768px;
+	--breakpoint-lg: 1020px; */
+
+	--animate-progress: progress 2s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+
+	--shadow: 0 10px 30px 0 rgba(132, 140, 155, 0.3);
+	--shadow-tooltip: 0 10px 30px 0 rgba(132, 140, 155, 0.3);
+	--shadow-toast: 0 0 30px 0 rgba(0, 0, 0, 0.3);
+	/* --shadow-profile-menu: 0 5px 20px 0 rgba(0, 0, 0, 0.15);
+	--shadow-product-menu: 0 2px 10px 0 rgba(0, 0, 0, 0.3);
+	--shadow-share-menu: 0 2px 10px 0 rgba(0, 0, 0, 0.3);
+	--shadow-product-card: 0 10px 20px 0 rgba(0, 0, 0, 0.2); */
+
+	/* --padding-min: 16px;
+	--padding-sm: 24px;
+	--padding-md: 40px;
+	--padding-lg: 36px; */
+
+	@keyframes progress {
+		0% {
+			background-position: right;
+		}
+		100% {
+			background-position: left;
+		}
+	}
+}
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+	*,
+	::after,
+	::before,
+	::backdrop,
+	::file-selector-button {
+		border-color: var(--color-gray-200, currentColor);
+	}
 }
 
 @layer base {
@@ -11,4 +55,19 @@
 		font-optical-sizing: auto;
 		font-style: normal;
 	}
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+address {
+	font-style: normal;
+}
+
+button:not(:disabled) {
+	cursor: pointer;
 }
