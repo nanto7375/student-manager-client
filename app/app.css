@@ -55,6 +55,22 @@
 		font-optical-sizing: auto;
 		font-style: normal;
 	}
+  .leo-green-bg {
+    @apply bg-green-800 text-white;
+  }
+  .leo-green-text {
+    @apply text-green-800;
+  }
+  .leo-brown-bg {
+    @apply bg-[#532915] text-white;
+  }
+  .leo-brown-text {
+    @apply text-[#532915];
+  }
+  
+  label {
+    user-select: none;
+  }
 }
 
 /* Chrome, Safari, Edge, Opera */

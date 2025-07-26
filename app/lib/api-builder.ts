@@ -49,7 +49,7 @@ const refreshProcessor = {
 
 const refreshTokenApi = async () => {
   const refreshEndpoint = new URL(baseUrl + refreshUrl);
-  const response = await fetch(refreshEndpoint, { method: 'POST', headers: _baseHeaders });
+  const response = await fetch(refreshEndpoint, { method: 'POST', headers: _baseHeaders, credentials: 'include' });
   const result = await response.json();
   if (!response.ok) throw { url: refreshEndpoint.toString(), method: 'POST', status: response.status, message: result.message, code: result.code };
   return result.message;
@@ -74,6 +74,7 @@ export const buildApi = <T = unknown>({ url, method }: BuildApiParams) => {
       response = await fetch(apiEndpoint, {
         method,
         headers: { ..._baseHeaders, ...(headers && headers) },
+        credentials: 'include',
         ...(body && { body: JSON.stringify(body) }),
       });
     } catch (error) {

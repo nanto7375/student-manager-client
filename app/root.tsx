@@ -5,6 +5,7 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useNavigate,
 } from "react-router";
 import type { LinksFunction } from "react-router";
 import sonnerStyles from 'sonner/dist/styles.css?url';
@@ -12,6 +13,8 @@ import sonnerStyles from 'sonner/dist/styles.css?url';
 import "./app.css";
 import QueryProvider from "./providers/query-client";
 import { Toaster } from "./components/toast";
+import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from "./constants/local-storage-key";
+import React from "react";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -50,6 +53,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const navigate = useNavigate();
+  const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
+
+  React.useEffect(() => {
+    if (!accessToken) navigate('/signin');
+  }, [accessToken]);
+
   return <Outlet />;
 }
 
