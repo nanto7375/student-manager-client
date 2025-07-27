@@ -1,4 +1,4 @@
-import { FETCH_JSON_ERROR_CODE, UNSTABLE_NETWORK_ERROR_CODE, hasErrorMessage } from '~/lib/error';
+import { FETCH_JSON_ERROR_CODE, TOKEN_EXPIRED_ERROR_CODE, UNSTABLE_NETWORK_ERROR_CODE, hasErrorMessage } from '~/lib/error';
 import { Deferred, type DeferredType } from '~/utils/deferred';
 
 type BuildApiParams = {
@@ -13,12 +13,11 @@ type ApiParams = {
 };
 
 const baseUrl = import.meta.env.VITE_API_URL + '/v1';
-const refreshUrl = import.meta.env.VITE_REFRESH_PATH;
-const expiredTokenCode = import.meta.env.VITE_TOKEN_EXPIRATION_CODE;
+const refreshUrl = '/auth/refresh';
 
-let _baseHeaders = { 'Content-Type': 'application/json' };
-export const setBaseHeaders = (headers: Record<string, string>) => {
-  _baseHeaders = { ..._baseHeaders, ...headers };
+let _baseHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+export const setAccessToken = (accessToken: string) => {
+  _baseHeaders = { ..._baseHeaders, Authorization: `Bearer ${accessToken}` };
 };
 
 type PendingRequest<T> = {
@@ -74,7 +73,6 @@ export const buildApi = <T = unknown>({ url, method }: BuildApiParams) => {
       response = await fetch(apiEndpoint, {
         method,
         headers: { ..._baseHeaders, ...(headers && headers) },
-        credentials: 'include',
         ...(body && { body: JSON.stringify(body) }),
       });
     } catch (error) {
@@ -101,7 +99,7 @@ export const buildApi = <T = unknown>({ url, method }: BuildApiParams) => {
     }
 
     if (!response.ok) {
-      if (data.code === expiredTokenCode) {
+      if (data.code === TOKEN_EXPIRED_ERROR_CODE) {
         if (refreshProcessor.isRefreshing) {
           const deferred = Deferred();
           refreshProcessor.pendingRequests.push({
@@ -113,7 +111,8 @@ export const buildApi = <T = unknown>({ url, method }: BuildApiParams) => {
 
         refreshProcessor.isRefreshing = true;
         try {
-          await refreshTokenApi();
+          const accessToken = await refreshTokenApi();
+          setAccessToken(accessToken);
           refreshProcessor.isRefreshSuccess = true;
           return await api({ params, query, body, headers });
         } catch (error: any) {

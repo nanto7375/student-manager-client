@@ -1,10 +1,19 @@
 import { useMutation } from "@tanstack/react-query";
 import React from "react";
-import { SAVED_ID_KEY } from "~/constants/local-storage-key";
-import { buildApi } from "~/lib/api-builder";
+import { ADMIN_NAME_KEY, ADMIN_ROLE_KEY, SAVED_EMAIL_KEY } from "~/constants/storage-key";
+import { buildApi, setAccessToken } from "~/lib/api-builder";
 import { convertKoreanToEnglish, emailRegex, removeSpace } from "~/utils/string-util";
+import { AdminRoleType } from "~/common/type";
+import { useNavigate } from "react-router";
+import { ROUTES } from "~/constants";
+import { UNAUTHORIZED_ERRROR_CODE } from "~/lib/error";
 
-const AUTHENTICATION_FAILED_CODE = 4012;
+const FAILED_CODES = {
+  authenticationFailed: {
+    code: UNAUTHORIZED_ERRROR_CODE,
+    message: '아이디 또는 비밀번호가 올바르지 않습니다.',
+  },
+};
 
 const INPUT_STYLE = 'border border-gray-300 p-2 w-60';
 
@@ -12,23 +21,40 @@ const validateEmail = (value: string) => emailRegex.test(value);
 const validatePassword = (value: string) => value.length >= 4 && value.length <= 16;
 const validateInput = (id: string, password: string) => validateEmail(id) && validatePassword(password);
 
-const signinApi = buildApi({ url: '/auth/signin', method: 'POST' });
+type SigninResponse = {
+  admin: {
+    email: string;
+    name: string;
+    role: AdminRoleType;
+  };
+  accessToken: string;
+};
+const signinApi = buildApi<SigninResponse>({ url: '/auth/signin', method: 'POST' });
 
 export default function SignIn() {
-  const savedId = localStorage.getItem(SAVED_ID_KEY);
-  const [email, setEmail] = React.useState(savedId || '');
-  const [password, setPassword] = React.useState('');
-  const [isSaveEmail, setIsSaveEmail] = React.useState(savedId !== null);
-  const [inputError, setInputError] = React.useState({hasError: false, message: ''});
-  const [signinButtonActive, setSigninButtonActive] = React.useState(false);
-
+  const navigate = useNavigate();
   const signin = useMutation({ mutationFn: (body: { email: string; password: string }) => signinApi({ body }) });
+
+  const savedEmail = localStorage.getItem(SAVED_EMAIL_KEY);
+  const [email, setEmail] = React.useState(savedEmail || '');
+  const [password, setPassword] = React.useState('');
+  const [isSaveEmail, setIsSaveEmail] = React.useState(savedEmail !== null);
+  const [signinButtonActive, setSigninButtonActive] = React.useState(false);
+  const [inputError, setInputError] = React.useState({hasError: false, message: ''});
+
+  React.useEffect(() => {
+    return () => {
+      inputError.hasError && setInputError({ hasError: false, message: '' });
+      setSigninButtonActive(false);
+      setPassword('');
+    }
+  }, [])
 
   const handleEmailChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const _email = removeSpace(e.target.value);
     setEmail(_email);
     setSigninButtonActive(validateInput(_email, password));
-    if (isSaveEmail) localStorage.setItem(SAVED_ID_KEY, _email);
+    if (isSaveEmail) localStorage.setItem(SAVED_EMAIL_KEY, _email);
   }, [password, isSaveEmail]);
 
   const handlePasswordChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,18 +67,23 @@ export default function SignIn() {
     if (!validateEmail(email) || !validatePassword(password)) return;
     try {
       const result = await signin.mutateAsync({ email, password });
-      inputError.hasError && setInputError({ hasError: false, message: '' });
+      
+      sessionStorage.setItem(ADMIN_NAME_KEY, result.admin.name);
+      sessionStorage.setItem(ADMIN_ROLE_KEY, result.admin.role);
+      setAccessToken(result.accessToken);
+      
+      navigate(ROUTES.HOME);
     } catch (error: any) {
-      if (error.code === AUTHENTICATION_FAILED_CODE) {
-        setInputError({ hasError: true, message: '아이디 또는 비밀번호가 올바르지 않습니다.' });
+      if (error.code === FAILED_CODES.authenticationFailed.code) {
+        setInputError({ hasError: true, message: FAILED_CODES.authenticationFailed.message });
       }
     }
   }, [email, password]);
 
   const handleSaveEmail = React.useCallback((saved: boolean) => {
-    if (saved) localStorage.setItem(SAVED_ID_KEY, email); 
-    else localStorage.removeItem(SAVED_ID_KEY);
-    setIsSaveEmail(saved);
+    if (saved) localStorage.setItem(SAVED_EMAIL_KEY, email); 
+    else localStorage.removeItem(SAVED_EMAIL_KEY);
+    setIsSaveEmail(saved);  
   }, [email]);
 
   return (

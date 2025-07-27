@@ -67,7 +67,14 @@
   .leo-brown-text {
     @apply text-[#532915];
   }
-  
+
+  input[type="checkbox"] {
+    accent-color: var(--color-green-800);
+    border-color: var(--color-green-800);
+  }
+  input[type="checkbox"]:checked {
+    background-color: var(--color-green-800);
+  }
   label {
     user-select: none;
   }

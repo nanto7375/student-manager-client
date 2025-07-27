@@ -13,8 +13,9 @@ import sonnerStyles from 'sonner/dist/styles.css?url';
 import "./app.css";
 import QueryProvider from "./providers/query-client";
 import { Toaster } from "./components/toast";
-import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from "./constants/local-storage-key";
+import { ADMIN_NAME_KEY, ADMIN_ROLE_KEY } from "./constants/storage-key";
 import React from "react";
+import { ROUTES } from "./constants";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -54,11 +55,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const navigate = useNavigate();
-  const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
+  const adminName = sessionStorage.getItem(ADMIN_NAME_KEY);
+  const adminRole = sessionStorage.getItem(ADMIN_ROLE_KEY);
 
   React.useEffect(() => {
-    if (!accessToken) navigate('/signin');
-  }, [accessToken]);
+    if (!adminName || !adminRole) navigate(ROUTES.SIGNIN);
+  }, [adminName, adminRole]);
 
   return <Outlet />;
 }
