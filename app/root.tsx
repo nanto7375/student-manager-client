@@ -16,6 +16,7 @@ import { Toaster } from "./components/toast";
 import { ADMIN_NAME_KEY, ADMIN_ROLE_KEY } from "./constants/storage-key";
 import React from "react";
 import { ROUTES } from "./constants";
+import { AuthProvider } from "./providers/use-auth";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -44,7 +45,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </QueryProvider>
         <ScrollRestoration />
         <Toaster />
         <Scripts />

@@ -1,12 +1,10 @@
-import { useMutation } from "@tanstack/react-query";
 import React from "react";
-import { ADMIN_NAME_KEY, ADMIN_ROLE_KEY, SAVED_EMAIL_KEY } from "~/constants/storage-key";
-import { buildApi, setAccessToken } from "~/lib/api-builder";
+import { SAVED_EMAIL_KEY } from "~/constants/storage-key";
 import { convertKoreanToEnglish, emailRegex, removeSpace } from "~/utils/string-util";
-import { AdminRoleType } from "~/common/type";
 import { useNavigate } from "react-router";
 import { ROUTES } from "~/constants";
 import { UNAUTHORIZED_ERRROR_CODE } from "~/lib/error";
+import { useAuth } from "~/providers/use-auth";
 
 const FAILED_CODES = {
   authenticationFailed: {
@@ -21,19 +19,9 @@ const validateEmail = (value: string) => emailRegex.test(value);
 const validatePassword = (value: string) => value.length >= 4 && value.length <= 16;
 const validateInput = (id: string, password: string) => validateEmail(id) && validatePassword(password);
 
-type SigninResponse = {
-  admin: {
-    email: string;
-    name: string;
-    role: AdminRoleType;
-  };
-  accessToken: string;
-};
-const signinApi = buildApi<SigninResponse>({ url: '/auth/signin', method: 'POST' });
-
 export default function SignIn() {
   const navigate = useNavigate();
-  const signin = useMutation({ mutationFn: (body: { email: string; password: string }) => signinApi({ body }) });
+  const { signin } = useAuth();
 
   const savedEmail = localStorage.getItem(SAVED_EMAIL_KEY);
   const [email, setEmail] = React.useState(savedEmail || '');
@@ -66,12 +54,7 @@ export default function SignIn() {
   const handleSignIn = React.useCallback(async () => {
     if (!validateEmail(email) || !validatePassword(password)) return;
     try {
-      const result = await signin.mutateAsync({ email, password });
-      
-      sessionStorage.setItem(ADMIN_NAME_KEY, result.admin.name);
-      sessionStorage.setItem(ADMIN_ROLE_KEY, result.admin.role);
-      setAccessToken(result.accessToken);
-      
+      await signin(email, password);
       navigate(ROUTES.HOME);
     } catch (error: any) {
       if (error.code === FAILED_CODES.authenticationFailed.code) {

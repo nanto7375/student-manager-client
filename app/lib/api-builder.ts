@@ -1,9 +1,10 @@
-import { FETCH_JSON_ERROR_CODE, TOKEN_EXPIRED_ERROR_CODE, UNSTABLE_NETWORK_ERROR_CODE, hasErrorMessage } from '~/lib/error';
-import { Deferred, type DeferredType } from '~/utils/deferred';
+import { FETCH_JSON_ERROR_CODE, TOKEN_EXPIRED_ERROR_CODE, TOKEN_NOT_FOUND_ERROR_CODE, UNSTABLE_NETWORK_ERROR_CODE, hasErrorMessage } from '~/lib/error';
+import { RefreshProcessor, tokenManager } from './token-manger';
 
 type BuildApiParams = {
   url: string;
   method: string;
+  credentials?: RequestCredentials;
 };
 type ApiParams = {
   params?: Record<string, unknown>;
@@ -13,48 +14,10 @@ type ApiParams = {
 };
 
 const baseUrl = import.meta.env.VITE_API_URL + '/v1';
-const refreshUrl = '/auth/refresh';
-
 let _baseHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
-export const setAccessToken = (accessToken: string) => {
-  _baseHeaders = { ..._baseHeaders, Authorization: `Bearer ${accessToken}` };
-};
+const processOriginRequest = RefreshProcessor();
 
-type PendingRequest<T> = {
-  deferred: DeferredType;
-  api: () => Promise<T>;
-};
-const refreshProcessor = {
-  isRefreshing: false,
-  isRefreshSuccess: true,
-  pendingRequests: [] as PendingRequest<unknown>[],
-  processRequests: async () => {
-    for (const request of refreshProcessor.pendingRequests) {
-      if (refreshProcessor.isRefreshSuccess) {
-        try {
-          const result = await request.api();
-          request.deferred.resolve(result);
-        } catch (error: any) {
-          request.deferred.reject({ status: error.status || 400, code: error.code || 400, message: error.message });
-        }
-      } else {
-        request.deferred.reject({ status: 401, code: 401, message: 'token expired' });
-      }
-    }
-    refreshProcessor.pendingRequests = [];
-    refreshProcessor.isRefreshing = false;
-  },
-};
-
-const refreshTokenApi = async () => {
-  const refreshEndpoint = new URL(baseUrl + refreshUrl);
-  const response = await fetch(refreshEndpoint, { method: 'POST', headers: _baseHeaders, credentials: 'include' });
-  const result = await response.json();
-  if (!response.ok) throw { url: refreshEndpoint.toString(), method: 'POST', status: response.status, message: result.message, code: result.code };
-  return result.message;
-};
-
-export const buildApi = <T = unknown>({ url, method }: BuildApiParams) => {
+export const buildApi = <T = unknown>({ url, method, credentials }: BuildApiParams) => {
   const api = async ({ params, query, body, headers }: ApiParams = {}): Promise<T> => {
     const apiEndpoint = new URL(baseUrl + url);
     if (params) {
@@ -72,7 +35,12 @@ export const buildApi = <T = unknown>({ url, method }: BuildApiParams) => {
     try {
       response = await fetch(apiEndpoint, {
         method,
-        headers: { ..._baseHeaders, ...(headers && headers) },
+        credentials: credentials || 'omit',
+        headers: {
+          ..._baseHeaders,
+          ...(headers && headers),
+          ...(tokenManager.getAccessToken() && { Authorization: `Bearer ${tokenManager.getAccessToken()}` }),
+        },
         ...(body && { body: JSON.stringify(body) }),
       });
     } catch (error) {
@@ -99,30 +67,9 @@ export const buildApi = <T = unknown>({ url, method }: BuildApiParams) => {
     }
 
     if (!response.ok) {
-      if (data.code === TOKEN_EXPIRED_ERROR_CODE) {
-        if (refreshProcessor.isRefreshing) {
-          const deferred = Deferred();
-          refreshProcessor.pendingRequests.push({
-            deferred,
-            api: () => api({ params, query, body, headers }),
-          });
-          return deferred.promise as Promise<T>;
-        }
-
-        refreshProcessor.isRefreshing = true;
-        try {
-          const accessToken = await refreshTokenApi();
-          setAccessToken(accessToken);
-          refreshProcessor.isRefreshSuccess = true;
-          return await api({ params, query, body, headers });
-        } catch (error: any) {
-          refreshProcessor.isRefreshSuccess = false;
-          throw { status: error.status || 400, code: error.code || 400, message: error.message || 'token expired' };
-        } finally {
-          refreshProcessor.processRequests();
-        }
+      if (data.code === TOKEN_EXPIRED_ERROR_CODE || data.code === TOKEN_NOT_FOUND_ERROR_CODE) {
+        return processOriginRequest(() => api({ params, query, body, headers })) as Promise<T>;
       }
-
       throw { url, method, status: response.status, message: data.message, code: data.code };
     }
 
