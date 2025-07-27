@@ -1,7 +1,7 @@
 import React from "react";
-import { SAVED_EMAIL_KEY } from "~/constants/storage-key";
+import { STORAGE_KEYS } from "~/constants";
 import { convertKoreanToEnglish, emailRegex, removeSpace } from "~/utils/string-util";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { ROUTES } from "~/constants";
 import { UNAUTHORIZED_ERRROR_CODE } from "~/lib/error";
 import { useAuth } from "~/providers/use-auth";
@@ -21,9 +21,15 @@ const validateInput = (id: string, password: string) => validateEmail(id) && val
 
 export default function SignIn() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirect = React.useMemo(() => {
+    const _redirect = new URLSearchParams(location.search).get('redirect');
+    return _redirect ? decodeURIComponent(_redirect) : '';
+  }, [location.search]);
+
   const { signin } = useAuth();
 
-  const savedEmail = localStorage.getItem(SAVED_EMAIL_KEY);
+  const savedEmail = React.useMemo(() => localStorage.getItem(STORAGE_KEYS.SAVED_EMAIL), []);
   const [email, setEmail] = React.useState(savedEmail || '');
   const [password, setPassword] = React.useState('');
   const [isSaveEmail, setIsSaveEmail] = React.useState(savedEmail !== null);
@@ -42,7 +48,7 @@ export default function SignIn() {
     const _email = removeSpace(e.target.value);
     setEmail(_email);
     setSigninButtonActive(validateInput(_email, password));
-    if (isSaveEmail) localStorage.setItem(SAVED_EMAIL_KEY, _email);
+    if (isSaveEmail) localStorage.setItem(STORAGE_KEYS.SAVED_EMAIL, _email);
   }, [password, isSaveEmail]);
 
   const handlePasswordChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,7 +61,7 @@ export default function SignIn() {
     if (!validateEmail(email) || !validatePassword(password)) return;
     try {
       await signin(email, password);
-      navigate(ROUTES.HOME);
+      navigate(redirect || ROUTES.HOME);
     } catch (error: any) {
       if (error.code === FAILED_CODES.authenticationFailed.code) {
         setInputError({ hasError: true, message: FAILED_CODES.authenticationFailed.message });
@@ -64,8 +70,8 @@ export default function SignIn() {
   }, [email, password]);
 
   const handleSaveEmail = React.useCallback((saved: boolean) => {
-    if (saved) localStorage.setItem(SAVED_EMAIL_KEY, email); 
-    else localStorage.removeItem(SAVED_EMAIL_KEY);
+    if (saved) localStorage.setItem(STORAGE_KEYS.SAVED_EMAIL, email); 
+    else localStorage.removeItem(STORAGE_KEYS.SAVED_EMAIL);
     setIsSaveEmail(saved);  
   }, [email]);
 

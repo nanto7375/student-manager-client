@@ -1,3 +1,4 @@
+import React from "react";
 import {
   isRouteErrorResponse,
   Links,
@@ -5,18 +6,15 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-  useNavigate,
+  useRouteError,
 } from "react-router";
 import type { LinksFunction } from "react-router";
-import sonnerStyles from 'sonner/dist/styles.css?url';
 
 import "./app.css";
 import QueryProvider from "./providers/query-client";
-import { Toaster } from "./components/toast";
-import { ADMIN_NAME_KEY, ADMIN_ROLE_KEY } from "./constants/storage-key";
-import React from "react";
-import { ROUTES } from "./constants";
 import { AuthProvider } from "./providers/use-auth";
+import { ToastProvider } from "./providers/toast-provider";
+import NotFound from "./not-found";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -31,7 +29,7 @@ export const links: LinksFunction = () => [
   },
   {
     rel: "stylesheet",
-    href: sonnerStyles,
+    href: "https://rsms.me/inter/inter.css",
   },
 ];
 
@@ -46,12 +44,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <QueryProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          <ToastProvider>
+            <AuthProvider>
+              <div className="max-w-[1920px] min-w-[960px] h-screen border-1 border-red-300">
+                {children}
+              </div>
+            </AuthProvider>
+          </ToastProvider>
         </QueryProvider>
         <ScrollRestoration />
-        <Toaster />
         <Scripts />
       </body>
     </html>
@@ -59,42 +60,39 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  const navigate = useNavigate();
-  const adminName = sessionStorage.getItem(ADMIN_NAME_KEY);
-  const adminRole = sessionStorage.getItem(ADMIN_ROLE_KEY);
-
-  React.useEffect(() => {
-    if (!adminName || !adminRole) navigate(ROUTES.SIGNIN);
-  }, [adminName, adminRole]);
-
   return <Outlet />;
 }
 
-// export function ErrorBoundary({ error }: ErrorBoundaryProps) {
-//   let message = "Oops!";
-//   let details = "An unexpected error occurred.";
-//   let stack: string | undefined;
-
-//   if (isRouteErrorResponse(error)) {
-//     message = error.status === 404 ? "404" : "Error";
-//     details =
-//       error.status === 404
-//         ? "The requested page could not be found."
-//         : error.statusText || details;
-//   } else if (import.meta.env.DEV && error && error instanceof Error) {
-//     details = error.message;
-//     stack = error.stack;
-//   }
-
-//   return (
-//     <main className="pt-16 p-4 container mx-auto">
-//       <h1>{message}</h1>
-//       <p>{details}</p>
-//       {stack && (
-//         <pre className="w-full p-4 overflow-x-auto">
-//           <code>{stack}</code>
-//         </pre>
-//       )}
-//     </main>
-//   );
-// }
+export function ErrorBoundary() {
+  const error = useRouteError();
+  
+  if (isRouteErrorResponse(error) && error.status === 404) {
+    return <NotFound />;
+  }
+  
+  // 다른 에러들에 대한 기본 처리
+  return (
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <Meta />
+        <Links />
+      </head>
+      <body>
+        <div className="grid min-h-full place-items-center bg-white px-6 py-24 sm:py-32 lg:px-8">
+          <div className="text-center">
+            <p className="text-base font-semibold text-red-600">Error</p>
+            <h1 className="mt-4 text-5xl font-semibold tracking-tight text-balance text-gray-900 sm:text-7xl">
+              {isRouteErrorResponse(error) ? error.status : 'Something went wrong'}
+            </h1>
+            <p className="mt-6 text-lg font-medium text-pretty text-gray-500 sm:text-xl/8">
+              {isRouteErrorResponse(error) ? error.statusText : 'An unexpected error occurred.'}
+            </p>
+          </div>
+        </div>
+        <Scripts />
+      </body>
+    </html>
+  );
+}

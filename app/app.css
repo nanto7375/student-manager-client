@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 @theme {
+  --font-sans: Inter, sans-serif;
+  
 	/* --breakpoint-*: initial;
 	--breakpoint-sm: 560px;
 	--breakpoint-md: 768px;

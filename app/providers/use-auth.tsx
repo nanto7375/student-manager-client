@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { tokenManager } from '~/lib/token-manger';
-import { buildApi } from '~/lib/api-builder';
 import { useLocation, useNavigate } from 'react-router';
 import { ROUTES } from '~/constants';
+import { tokenManager } from '~/lib/token-manger';
+import { buildApi } from '~/lib/api-builder';
 import type { AdminRoleType } from '~/lib/types';
+import { TOAST_TYPE, useToast } from './toast-provider';
 
 type User = {
   email: string;
@@ -28,6 +29,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const { showToast } = useToast();
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -44,8 +46,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       tokenManager.clearAccessToken();
       setIsAuthenticated(false);
       setUser(null);
-      navigate(ROUTES.SIGNIN);
-      // TODO: pathname 에 따라 로그인 후 navigate 처리
+      if (pathname !== ROUTES.SIGNIN) {
+        navigate(ROUTES.SIGNIN + '?redirect=' + encodeURIComponent(pathname));
+        showToast('로그인이 만료됐습니다.', TOAST_TYPE.WARNING);
+      }
     }
   }, [tokenManager]);
 
@@ -53,21 +57,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkAuth();
   }, []);
 
-  const signin = async (email: string, password: string) => {
+  const signin = React.useCallback(async (email: string, password: string) => {
     const result = await signinApi({ body: { email, password } });
     tokenManager.setAccessToken(result.accessToken);
     setUser(result.admin);
     setIsAuthenticated(true);
-  };
+  }, [tokenManager]);
 
-  const signout = async () => {
+  const signout = React.useCallback(async () => {
     await signoutApi();
     setUser(null);
     setIsAuthenticated(false);
     navigate(ROUTES.SIGNIN);
-  };
+  }, [tokenManager]);
 
-  return <AuthContext.Provider value={{ isAuthenticated, user, signin, signout }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ isAuthenticated, user, signin, signout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {

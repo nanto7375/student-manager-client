@@ -6,6 +6,7 @@ export default function QueryProvider({ children }: { children: React.ReactNode 
   const [queryClient] = useState(() => new QueryClient({ 
     defaultOptions: { 
       queries: { 
+        refetchOnWindowFocus: false,
         retry: (failureCount, error) => {
           if (
             error.code === 401 ||
