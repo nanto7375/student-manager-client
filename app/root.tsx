@@ -6,6 +6,7 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLocation,
   useRouteError,
 } from "react-router";
 import type { LinksFunction } from "react-router";
@@ -15,6 +16,8 @@ import QueryProvider from "./providers/query-client";
 import { AuthProvider } from "./providers/use-auth";
 import { ToastProvider } from "./providers/toast-provider";
 import NotFound from "./not-found";
+import SideBar from "./side-bar";
+import { ROUTES } from "./constants";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -26,10 +29,6 @@ export const links: LinksFunction = () => [
   {
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
-  },
-  {
-    rel: "stylesheet",
-    href: "https://rsms.me/inter/inter.css",
   },
 ];
 
@@ -46,7 +45,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <QueryProvider>
           <ToastProvider>
             <AuthProvider>
-              <div className="max-w-[1920px] min-w-[960px] h-screen border-1 border-red-300">
+              <div className="max-w-[1920px] min-w-[960px] h-screen">
                 {children}
               </div>
             </AuthProvider>
@@ -60,7 +59,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  const {pathname} = useLocation();
+  
+  return (
+    <div className="flex w-full h-full bor">
+      {pathname !== ROUTES.SIGNIN && <SideBar />}
+      <Outlet />
+    </div>);
 }
 
 export function ErrorBoundary() {

@@ -1,8 +1,9 @@
 import { FETCH_JSON_ERROR_CODE, TOKEN_EXPIRED_ERROR_CODE, TOKEN_NOT_FOUND_ERROR_CODE, UNSTABLE_NETWORK_ERROR_CODE, hasErrorMessage } from '~/lib/error';
 import { RefreshProcessor, tokenManager } from './token-manger';
+import { BASE_URL } from '~/constants';
 
 type BuildApiParams = {
-  url: string;
+  path: string;
   method: string;
   credentials?: RequestCredentials;
 };
@@ -13,13 +14,12 @@ type ApiParams = {
   headers?: Record<string, string>;
 };
 
-const baseUrl = import.meta.env.VITE_API_URL + '/v1';
 let _baseHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
 const processRequestWithRefresh = RefreshProcessor();
 
-export const buildApi = <T = unknown>({ url, method, credentials }: BuildApiParams) => {
+export const buildApi = <T = unknown>({ path, method, credentials }: BuildApiParams) => {
   const api = async ({ params, query, body, headers }: ApiParams = {}): Promise<T> => {
-    const apiEndpoint = new URL(baseUrl + url);
+    const apiEndpoint = new URL(BASE_URL + path);
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         apiEndpoint.pathname = apiEndpoint.pathname.replace(`:${key}`, String(value));
@@ -45,7 +45,7 @@ export const buildApi = <T = unknown>({ url, method, credentials }: BuildApiPara
       });
     } catch (error) {
       throw {
-        url,
+        path,
         method,
         status: 400,
         code: UNSTABLE_NETWORK_ERROR_CODE,
@@ -58,7 +58,7 @@ export const buildApi = <T = unknown>({ url, method, credentials }: BuildApiPara
       data = await response.json();
     } catch (error) {
       throw {
-        url,
+        path,
         method,
         status: 400,
         code: FETCH_JSON_ERROR_CODE,
@@ -70,7 +70,7 @@ export const buildApi = <T = unknown>({ url, method, credentials }: BuildApiPara
       if (data.code === TOKEN_EXPIRED_ERROR_CODE || data.code === TOKEN_NOT_FOUND_ERROR_CODE) {
         return processRequestWithRefresh(() => api({ params, query, body, headers })) as Promise<T>;
       }
-      throw { url, method, status: response.status, message: data.message, code: data.code };
+      throw { path, method, status: response.status, message: data.message, code: data.code };
     }
 
     return data.message;

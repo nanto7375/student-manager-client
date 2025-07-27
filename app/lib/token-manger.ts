@@ -1,7 +1,7 @@
+import { BASE_URL } from '~/constants';
 import { Deferred, type DeferredType } from '~/utils/deferred';
 
-const baseUrl = import.meta.env.VITE_API_URL + '/v1';
-const refreshUrl = '/auth/refresh';
+const refreshPath = '/auth/refresh';
 
 class TokenManager {
   private accessToken: string = '';
@@ -19,7 +19,7 @@ class TokenManager {
   }
 
   async refreshAccessToken(): Promise<void> {
-    const response = await fetch(new URL(baseUrl + refreshUrl), {
+    const response = await fetch(new URL(BASE_URL + refreshPath), {
       method: 'POST',
       credentials: 'include',
       headers: {

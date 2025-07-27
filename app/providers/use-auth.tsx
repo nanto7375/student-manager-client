@@ -13,9 +13,9 @@ type User = {
   isActive: boolean;
 };
 
-const meApi = buildApi<User>({ url: '/admins/me', method: 'GET' });
-const signinApi = buildApi<{ admin: User; accessToken: string }>({ url: '/auth/signin', method: 'POST', credentials: 'include' });
-const signoutApi = buildApi({ url: '/auth/signout', method: 'POST', credentials: 'include' });
+const meApi = buildApi<User>({ path: '/admins/me', method: 'GET' });
+const signinApi = buildApi<{ admin: User; accessToken: string }>({ path: '/auth/signin', method: 'POST', credentials: 'include' });
+const signoutApi = buildApi({ path: '/auth/signout', method: 'POST', credentials: 'include' });
 
 interface AuthContextType {
   isAuthenticated: boolean;

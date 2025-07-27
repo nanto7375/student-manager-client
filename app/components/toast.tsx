@@ -14,7 +14,6 @@ interface ToastProps {
 }
 
 export default function Toast({ message, type, onClose, isExiting = false }: ToastProps) {
-  const [isOpen, setIsOpen] = React.useState(true);
   const [isVisible, setIsVisible] = React.useState(false);
   const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const isMountedRef = React.useRef(true);
@@ -52,17 +51,9 @@ export default function Toast({ message, type, onClose, isExiting = false }: Toa
     if (!isMountedRef.current) return;
     
     setIsVisible(false);
-    // 슬라이드 아웃 애니메이션 후 컴포넌트 제거
-    const timer = setTimeout(() => {
-      if (isMountedRef.current) {
-        setIsOpen(false);
-        onClose?.();
-      }
-    }, 300);
-    timeoutRef.current = timer;
+    onClose?.();
   }, [onClose]);
 
-  if (!isOpen) return null;
   return (  
     <div 
       className={`pr-2 pl-2 max-w-xs text-sm text-white rounded-md shadow-lg ${colorMap[type]} transition-all duration-300 ease-in-out transform ${

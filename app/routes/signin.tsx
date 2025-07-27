@@ -1,5 +1,5 @@
 import React from "react";
-import { STORAGE_KEYS } from "~/constants";
+import { STORAGE_KEYS, TITLE } from "~/constants";
 import { convertKoreanToEnglish, emailRegex, removeSpace } from "~/utils/string-util";
 import { useLocation, useNavigate } from "react-router";
 import { ROUTES } from "~/constants";
@@ -78,8 +78,8 @@ export default function SignIn() {
   return (
     <div className="signin-container flex flex-col h-screen w-screen items-center justify-center gap-6">
       <div className="signin-header text-2xl font-bold flex items-center">
-        <span className="leo-green-text">레오의&nbsp;서재</span>
-        <span className="leo-brown-text">&nbsp;Leo's&nbsp;Study</span>
+        <span className="leo-green-text">{TITLE.kor}</span>
+        <span className="leo-brown-text">&nbsp;{TITLE.eng}</span>
       </div>
 
       <div className="signin-form flex flex-col items-center justify-center rounded-lg border border-gray-300 pt-8 pb-8 pl-12 pr-12 gap-6">
