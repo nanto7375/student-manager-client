@@ -15,7 +15,7 @@ type ApiParams = {
 
 const baseUrl = import.meta.env.VITE_API_URL + '/v1';
 let _baseHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
-const processOriginRequest = RefreshProcessor();
+const processRequestWithRefresh = RefreshProcessor();
 
 export const buildApi = <T = unknown>({ url, method, credentials }: BuildApiParams) => {
   const api = async ({ params, query, body, headers }: ApiParams = {}): Promise<T> => {
@@ -68,7 +68,7 @@ export const buildApi = <T = unknown>({ url, method, credentials }: BuildApiPara
 
     if (!response.ok) {
       if (data.code === TOKEN_EXPIRED_ERROR_CODE || data.code === TOKEN_NOT_FOUND_ERROR_CODE) {
-        return processOriginRequest(() => api({ params, query, body, headers })) as Promise<T>;
+        return processRequestWithRefresh(() => api({ params, query, body, headers })) as Promise<T>;
       }
       throw { url, method, status: response.status, message: data.message, code: data.code };
     }
