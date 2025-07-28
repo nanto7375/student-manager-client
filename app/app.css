@@ -1,85 +1,140 @@
-@import 'tailwindcss';
-@layer theme, base, mui, components, utilities;
-
-@theme {
-  --font-sans: 'Inter', sans-serif;
-
-	/* --breakpoint-*: initial;
-	--breakpoint-sm: 560px;
-	--breakpoint-md: 768px;
-	--breakpoint-lg: 1020px; */
-
-	@keyframes progress {
-		0% {
-			background-position: right;
-		}
-		100% {
-			background-position: left;
-		}
-	}
+@font-face {
+  font-family: 'AppleSDGothicNeo-EB';
+  src: url('/fonts/AppleSDGothicNeoEB.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0020-007E, U+AC00-D7A3; 
 }
 
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
-@layer base {
-	*,
-	::after,
-	::before,
-	::backdrop,
-	::file-selector-button {
-		border-color: var(--color-gray-200, currentColor);
-	}
+@font-face {
+  font-family: 'AppleSDGothicNeo-B';
+  src: url('/fonts/AppleSDGothicNeoB.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0020-007E, U+AC00-D7A3; 
 }
 
-@layer base {
-	html {
-		font-family: sans-serif;
-		font-optical-sizing: auto;
-		font-style: normal;
-	}
-  .leo-green-bg {
-    @apply bg-green-800 text-white;
-  }
-  .leo-green-text {
-    @apply text-green-800;
-  }
-  .leo-brown-bg {
-    @apply bg-[#532915] text-white;
-  }
-  .leo-brown-text {
-    @apply text-[#532915];
-  }
+@font-face {
+  font-family: 'AppleSDGothicNeo-M';
+  src: url('/fonts/AppleSDGothicNeoM.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0020-007E, U+AC00-D7A3; 
+}
 
-  input[type="checkbox"] {
-    accent-color: var(--color-green-800);
-    border-color: var(--color-green-800);
+@font-face {
+  font-family: 'AppleSDGothicNeo-R';
+  src: url('/fonts/AppleSDGothicNeoR.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0020-007E, U+AC00-D7A3; 
+}
+
+body {
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  -ms-user-select:none;
+  user-select:none;
+  /* iOS 웹뷰에서 폰트 렌더링 개선 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* 모든 텍스트 요소에 폰트 렌더링 최적화 적용 */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+img {
+  -webkit-user-drag:none;
+}
+
+.draggable {
+  -webkit-user-select:text;
+  -moz-user-select:text;
+  -ms-user-select:text;
+  user-select:text;
+}
+
+::placeholder {
+  color: #c8c8c8;
+}
+
+input {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+textarea {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+@keyframes slide-down {
+  from {
+    transform: translate(-50%, -20px);
+    opacity: 0;
   }
-  input[type="checkbox"]:checked {
-    background-color: var(--color-green-800);
-  }
-  
-  label {
-    user-select: none;
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
   }
 }
 
-/* Chrome, Safari, Edge, Opera */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-	-webkit-appearance: none;
-	margin: 0;
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+} 
+
+.page-transition {
+  will-change: opacity, transform;
+  animation: fadeIn 0.3s ease-in-out;
 }
 
-address {
-	font-style: normal;
+.page-exit {
+  will-change: opacity, transform;
+  animation: fadeOut 0.5s ease-out forwards;
 }
 
-button:not(:disabled) {
-	cursor: pointer;
+a {
+  text-decoration: none;
 }
+
+/* 
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}  */

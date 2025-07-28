@@ -10,14 +10,20 @@ import {
   useRouteError,
 } from "react-router";
 import type { LinksFunction } from "react-router";
+import { ThemeProvider } from "@emotion/react";
+import CssBaseline from "@mui/material/CssBaseline";
+import InitColorSchemeScript from "@mui/system/InitColorSchemeScript";
 
 import "./app.css";
+import theme from "./theme";
+import { FlexBox, FlexContainer } from "./components/styled-elements";
+
 import QueryProvider from "./providers/query-client";
 import { AuthProvider } from "./providers/use-auth";
 import { ToastProvider } from "./providers/toast-provider";
+import { ROUTES } from "./constants";
 import NotFound from "./not-found";
 import SideBar from "./side-bar";
-import { ROUTES } from "./constants";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -34,23 +40,24 @@ export const links: LinksFunction = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <Meta />
-        <Links />
+        {/* <Meta /> */}
       </head>
       <body>
-        <QueryProvider>
-          <ToastProvider>
-            <AuthProvider>
-              <div className="max-w-[1920px] min-w-[960px] h-screen">
+        <InitColorSchemeScript attribute="class" />
+        <ThemeProvider theme={theme}>
+          <CssBaseline enableColorScheme />
+          <QueryProvider>
+            <ToastProvider>
+              <AuthProvider>
                 {children}
-              </div>
-            </AuthProvider>
-          </ToastProvider>
-        </QueryProvider>
+              </AuthProvider>
+            </ToastProvider>
+          </QueryProvider>
+        </ThemeProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -62,10 +69,11 @@ export default function App() {
   const {pathname} = useLocation();
   
   return (
-    <div className="flex w-full h-full bor">
+    <FlexContainer style={{maxWidth: '1920px', minWidth: '960px', height: '100vh'}}>
       {pathname !== ROUTES.SIGNIN && <SideBar />}
       <Outlet />
-    </div>);
+    </FlexContainer>
+  );
 }
 
 export function ErrorBoundary() {
@@ -85,17 +93,17 @@ export function ErrorBoundary() {
         <Links />
       </head>
       <body>
-        <div className="grid min-h-full place-items-center bg-white px-6 py-24 sm:py-32 lg:px-8">
-          <div className="text-center">
-            <p className="text-base font-semibold text-red-600">Error</p>
-            <h1 className="mt-4 text-5xl font-semibold tracking-tight text-balance text-gray-900 sm:text-7xl">
+        <FlexContainer center style={{maxWidth: '1920px', minWidth: '960px', height: '100vh'}}>
+          <FlexBox center>
+            <p>Error</p>
+            <h1>
               {isRouteErrorResponse(error) ? error.status : 'Something went wrong'}
             </h1>
-            <p className="mt-6 text-lg font-medium text-pretty text-gray-500 sm:text-xl/8">
+            <p>
               {isRouteErrorResponse(error) ? error.statusText : 'An unexpected error occurred.'}
             </p>
-          </div>
-        </div>
+          </FlexBox>
+        </FlexContainer>
         <Scripts />
       </body>
     </html>

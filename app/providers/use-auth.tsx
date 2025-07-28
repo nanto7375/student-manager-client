@@ -4,7 +4,7 @@ import { ROUTES } from '~/constants';
 import { tokenManager } from '~/lib/token-manger';
 import { buildApi } from '~/lib/api-builder';
 import type { AdminRoleType } from '~/lib/types';
-import { TOAST_TYPE, useToast } from './toast-provider';
+import { useGlobalToast } from '~/providers/toast-provider';
 
 type User = {
   email: string;
@@ -29,8 +29,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { showToast } = useToast();
-
+  const { warning } = useGlobalToast(); 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
@@ -48,10 +47,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       if (pathname !== ROUTES.SIGNIN) {
         navigate(ROUTES.SIGNIN + '?redirect=' + encodeURIComponent(pathname));
-        showToast('로그인이 만료됐습니다.', TOAST_TYPE.WARNING);
+        warning('로그인이 만료됐습니다.');
       }
     }
-  }, [tokenManager]);
+  }, [tokenManager, warning,pathname]);
 
   useEffect(() => {
     checkAuth();

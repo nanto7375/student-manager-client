@@ -1,11 +1,11 @@
 import { reactRouter } from '@react-router/dev/vite';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
-import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
+  plugins: [reactRouter(), tsconfigPaths()],
+  publicDir: 'public', // Ensure public directory is copied to build
   build: {
-    target: 'ES2022',
+    assetsInlineLimit: 0, // Don't inline any assets
   },
 });

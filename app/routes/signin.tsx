@@ -1,10 +1,16 @@
 import React from "react";
+import { useLocation, useNavigate } from "react-router";
+import { Box } from "@mui/system";
+import { grey } from "@mui/material/colors";
+import { Button, Checkbox, TextField } from "@mui/material";
+
+import { ROUTES } from "~/constants";
 import { STORAGE_KEYS, TITLE } from "~/constants";
 import { convertKoreanToEnglish, emailRegex, removeSpace } from "~/utils/string-util";
-import { useLocation, useNavigate } from "react-router";
-import { ROUTES } from "~/constants";
 import { UNAUTHORIZED_ERRROR_CODE } from "~/lib/error";
 import { useAuth } from "~/providers/use-auth";
+import { useGlobalToast } from "~/providers/toast-provider";
+import { FlexBox, FlexContainer } from "~/components/styled-elements";
 
 const FAILED_CODES = {
   authenticationFailed: {
@@ -13,7 +19,7 @@ const FAILED_CODES = {
   },
 };
 
-const INPUT_STYLE = 'border border-gray-300 p-2 w-60';
+const SIGNIN_INPUT_FIELD_WIDTH = '18rem';
 
 const validateEmail = (value: string) => emailRegex.test(value);
 const validatePassword = (value: string) => value.length >= 4 && value.length <= 16;
@@ -28,6 +34,7 @@ export default function SignIn() {
   }, [location.search]);
 
   const { signin } = useAuth();
+  const { warning, success, error, info } = useGlobalToast();
 
   const savedEmail = React.useMemo(() => localStorage.getItem(STORAGE_KEYS.SAVED_EMAIL), []);
   const [email, setEmail] = React.useState(savedEmail || '');
@@ -37,6 +44,13 @@ export default function SignIn() {
   const [inputError, setInputError] = React.useState({hasError: false, message: ''});
 
   React.useEffect(() => {
+    if (!!redirect) {
+      warning('로그인 후 이용해주세요.');
+      success('로그인 후 이용해주세요.');
+      error('로그인 후 이용해주세요.');
+      info('로그인 후 이용해주세요.');
+    }
+    console.log(1)
     return () => {
       inputError.hasError && setInputError({ hasError: false, message: '' });
       setSigninButtonActive(false);
@@ -76,53 +90,107 @@ export default function SignIn() {
   }, [email]);
 
   return (
-    <div className="signin-container flex flex-col h-screen w-screen items-center justify-center gap-6">
-      <div className="signin-header text-2xl font-bold flex items-center">
-        <span className="leo-green-text">{TITLE.kor}</span>
-        <span className="leo-brown-text">&nbsp;{TITLE.eng}</span>
-      </div>
+    <FlexContainer center fullWidth fullHeight>
+      <FlexBox
+        className="outliner"
+        center
+        shadowOn
+        sx={{
+          flexDirection: 'column',
+          width: '30rem',
+          height: '25rem',
+          border: `1px solid ${grey[300]}`,
+          borderRadius: '1rem',
+        }}
+      >
+        <Box
+          className="title"
+          sx={{
+            marginBottom: '2.5rem',
+            textAlign: 'center',
+            cursor: 'pointer',
+            display: 'inline-block',
+            lineHeight: 1,
+          }}
+          onClick={() => navigate(ROUTES.HOME)}
+        >
+          <h1 style={{ margin: 0 }}>
+            <Box component="span" sx={{ color: 'primary.main' }}>
+              {TITLE.kor}
+            </Box>
+          </h1>
+        </Box>
 
-      <div className="signin-form flex flex-col items-center justify-center rounded-lg border border-gray-300 pt-8 pb-8 pl-12 pr-12 gap-6">
-        <div className="input-wrapper flex flex-col">
-          <input 
-            id="email" 
-            type="text" 
-            className={`${INPUT_STYLE} rounded-t-md rounded-b-none`} 
-            value={email} 
-            onChange={handleEmailChange} 
-            placeholder="이메일"
-          />
-          <input 
-            id="password" 
-            type="password" 
-            className={`${INPUT_STYLE} -mt-px rounded-t-none rounded-b-md`} 
-            value={password} 
-            onChange={handlePasswordChange} 
-            placeholder="비밀번호"
-          />
+        <Box className="input-wrapper">
+          <FlexBox>
+            <TextField
+              id="email"
+              placeholder="Email"
+              value={email}
+              onChange={handleEmailChange}
+              sx={{ 
+                width: SIGNIN_INPUT_FIELD_WIDTH,
+                '& .MuiOutlinedInput-root': {
+                  borderBottomLeftRadius: 0,
+                  borderBottomRightRadius: 0,
+                }
+              }}
+              variant="outlined"
+            />
+          </FlexBox>
+          <FlexBox center>
+            <TextField
+              id="password"
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={handlePasswordChange}
+              sx={{ 
+                width: SIGNIN_INPUT_FIELD_WIDTH,
+                marginTop: '-1px',
+                '& .MuiOutlinedInput-root': {
+                  borderTopLeftRadius: 0,
+                  borderTopRightRadius: 0,
+                }
+              }}
+              variant="outlined"
+            />
+          </FlexBox>
+          <FlexBox
+            className="save-email-checkbox-wrapper"
+            justifyContent="flex-start"
+            alignItems="center"
+            sx={{ width: SIGNIN_INPUT_FIELD_WIDTH, cursor: 'pointer' }}
+            onClick={() => handleSaveEmail(!isSaveEmail)}
+          >
+            <Checkbox checked={isSaveEmail} />
+            <Box component="span" sx={{ fontSize: '0.9rem', color: grey[600] }}>
+              Email 저장
+            </Box>
+          </FlexBox>
+        </Box>
 
-          <div className="save-id-wrapper mt-4 flex items-center gap-2">
-            <input type="checkbox" id="save-email" className="w-4 h-4 border border-gray-300 rounded-md align-middle -mt-1" checked={isSaveEmail} onChange={() => handleSaveEmail(!isSaveEmail)} />
-            <label htmlFor="save-email" className="text-sm text-gray-500 cursor-pointer align-middle">이메일 저장</label>
-          </div>
-        </div>
-
-        <div className="signin-button-wrapper flex flex-col items-center justify-center gap-3">
+        <Box className="signin-button-wrapper">
           {inputError.hasError && (
-            <div className="">
-              <span className="text-red-500 text-sm">{inputError.message}</span>
-            </div>
+            <FlexBox
+              className="authentication-error"
+              sx={{ color: 'red', fontSize: '0.8rem', marginTop: '0.25rem', paddingLeft: '0.5rem' }}
+            >
+              {inputError.message}
+            </FlexBox>
           )}
-
-          <button 
-            className={`leo-green-bg p-2 rounded-md w-60 ${signinButtonActive ? 'opacity-100' : 'opacity-50'}`} 
+          <Button
+            className="signin-button" //
+            variant="contained"
+            color="secondary"
             disabled={!signinButtonActive}
+            sx={{ marginTop: '1rem', width: SIGNIN_INPUT_FIELD_WIDTH }}
             onClick={handleSignIn}
           >
-            <span className="text-white">로그인</span>
-          </button>
-        </div>
-      </div>
-    </div>
+            로그인
+          </Button>
+        </Box>
+      </FlexBox>
+    </FlexContainer>
   );
 }
