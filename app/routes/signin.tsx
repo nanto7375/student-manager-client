@@ -9,7 +9,6 @@ import { STORAGE_KEYS, TITLE } from "~/constants";
 import { convertKoreanToEnglish, emailRegex, removeSpace } from "~/utils/string-util";
 import { UNAUTHORIZED_ERRROR_CODE } from "~/lib/error";
 import { useAuth } from "~/providers/use-auth";
-import { useGlobalToast } from "~/providers/toast-provider";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 
 const FAILED_CODES = {
@@ -34,7 +33,6 @@ export default function SignIn() {
   }, [location.search]);
 
   const { signin } = useAuth();
-  const { warning, success, error, info } = useGlobalToast();
 
   const savedEmail = React.useMemo(() => localStorage.getItem(STORAGE_KEYS.SAVED_EMAIL), []);
   const [email, setEmail] = React.useState(savedEmail || '');
@@ -44,13 +42,6 @@ export default function SignIn() {
   const [inputError, setInputError] = React.useState({hasError: false, message: ''});
 
   React.useEffect(() => {
-    if (!!redirect) {
-      warning('로그인 후 이용해주세요.');
-      success('로그인 후 이용해주세요.');
-      error('로그인 후 이용해주세요.');
-      info('로그인 후 이용해주세요.');
-    }
-    console.log(1)
     return () => {
       inputError.hasError && setInputError({ hasError: false, message: '' });
       setSigninButtonActive(false);
@@ -62,7 +53,6 @@ export default function SignIn() {
     const _email = removeSpace(e.target.value);
     setEmail(_email);
     setSigninButtonActive(validateInput(_email, password));
-    if (isSaveEmail) localStorage.setItem(STORAGE_KEYS.SAVED_EMAIL, _email);
   }, [password, isSaveEmail]);
 
   const handlePasswordChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,6 +62,7 @@ export default function SignIn() {
   }, [email]);
 
   const handleSignIn = React.useCallback(async () => {
+    if (isSaveEmail) localStorage.setItem(STORAGE_KEYS.SAVED_EMAIL, email);
     if (!validateEmail(email) || !validatePassword(password)) return;
     try {
       await signin(email, password);

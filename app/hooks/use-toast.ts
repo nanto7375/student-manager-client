@@ -12,16 +12,10 @@ export interface ToastMessage {
 export default function useToast() {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  const showToast = useCallback((type: ToastType, message: string, autoHideDuration = 2.5) => {
+  const showToast = useCallback((type: ToastType, message: string, autoHideDuration = 3) => {
     const _autoHideDuration = autoHideDuration * 1000;
     const id = Date.now().toString() + Math.random().toString();
-    const newToast: ToastMessage = {
-      id,
-      message,
-      type,
-      autoHideDuration: _autoHideDuration,
-    };
-
+    const newToast: ToastMessage = { id, message, type, autoHideDuration: _autoHideDuration };
     setToasts((prev) => [...prev, newToast]);
 
     // 자동으로 토스트 제거

@@ -45,9 +45,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       tokenManager.clearAccessToken();
       setIsAuthenticated(false);
       setUser(null);
+
       if (pathname !== ROUTES.SIGNIN) {
+        warning('로그인이 만료됐습니다. 다시 로그인해주세요.');
         navigate(ROUTES.SIGNIN + '?redirect=' + encodeURIComponent(pathname));
-        warning('로그인이 만료됐습니다.');
       }
     }
   }, [tokenManager, warning,pathname]);
