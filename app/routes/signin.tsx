@@ -5,20 +5,20 @@ import { grey } from "@mui/material/colors";
 import { Button, Checkbox, TextField } from "@mui/material";
 
 import { ROUTES } from "~/constants";
-import { STORAGE_KEYS, TITLE } from "~/constants";
+import { LEO_TITLE } from "~/constants";
 import { convertKoreanToEnglish, emailRegex, removeSpace } from "~/utils/string-util";
 import { UNAUTHORIZED_ERRROR_CODE } from "~/lib/error";
 import { useAuth } from "~/providers/use-auth";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 
-const FAILED_CODES = {
+const SIGNIN_INPUT_FIELD_WIDTH = '18rem';
+const SAVED_EMAIL_KEY = 'saved-email';
+const SIGNIN_ERROR_CASES = {
   authenticationFailed: {
     code: UNAUTHORIZED_ERRROR_CODE,
     message: '아이디 또는 비밀번호가 올바르지 않습니다.',
   },
 };
-
-const SIGNIN_INPUT_FIELD_WIDTH = '18rem';
 
 const validateEmail = (value: string) => emailRegex.test(value);
 const validatePassword = (value: string) => value.length >= 4 && value.length <= 16;
@@ -34,13 +34,22 @@ export default function SignIn() {
 
   const { signin } = useAuth();
 
-  const savedEmail = React.useMemo(() => localStorage.getItem(STORAGE_KEYS.SAVED_EMAIL), []);
-  const [email, setEmail] = React.useState(savedEmail || '');
+  const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
-  const [isSaveEmail, setIsSaveEmail] = React.useState(savedEmail !== null);
+  const [isSaveEmail, setIsSaveEmail] = React.useState(false);
   const [signinButtonActive, setSigninButtonActive] = React.useState(false);
   const [inputError, setInputError] = React.useState({hasError: false, message: ''});
 
+  // 이메일 저장 정보 불러오기
+  React.useEffect(() => {
+    const savedEmail = localStorage.getItem(SAVED_EMAIL_KEY);
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setIsSaveEmail(true);
+    }
+  }, []);
+
+  // 페이지 벗어날 때, 필드 초기화
   React.useEffect(() => {
     return () => {
       inputError.hasError && setInputError({ hasError: false, message: '' });
@@ -62,23 +71,23 @@ export default function SignIn() {
   }, [email]);
 
   const handleSignIn = React.useCallback(async () => {
-    if (isSaveEmail) localStorage.setItem(STORAGE_KEYS.SAVED_EMAIL, email);
+    if (isSaveEmail) localStorage.setItem(SAVED_EMAIL_KEY, email);
     if (!validateEmail(email) || !validatePassword(password)) return;
     try {
       await signin(email, password);
       navigate(redirect || ROUTES.HOME);
     } catch (error: any) {
-      if (error.code === FAILED_CODES.authenticationFailed.code) {
-        setInputError({ hasError: true, message: FAILED_CODES.authenticationFailed.message });
+      if (error.code === SIGNIN_ERROR_CASES.authenticationFailed.code) {
+        setInputError({ hasError: true, message: SIGNIN_ERROR_CASES.authenticationFailed.message });
       }
     }
-  }, [email, password]);
+  }, [email, password, isSaveEmail, redirect]);
 
-  const handleSaveEmail = React.useCallback((saved: boolean) => {
-    if (saved) localStorage.setItem(STORAGE_KEYS.SAVED_EMAIL, email); 
-    else localStorage.removeItem(STORAGE_KEYS.SAVED_EMAIL);
-    setIsSaveEmail(saved);  
-  }, [email]);
+  const handleSaveEmail = React.useCallback((isSave: boolean) => {
+    if (!isSave) localStorage.removeItem(SAVED_EMAIL_KEY);
+    // 스토리지에 이메일 저장은 확인 버튼 누를 때 동작
+    setIsSaveEmail(isSave);  
+  }, []);
 
   return (
     <FlexContainer center fullWidth fullHeight>
@@ -107,7 +116,7 @@ export default function SignIn() {
         >
           <h1 style={{ margin: 0 }}>
             <Box component="span" sx={{ color: 'primary.main' }}>
-              {TITLE.kor}
+              {LEO_TITLE.kor}
             </Box>
           </h1>
         </Box>

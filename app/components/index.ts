@@ -1,6 +1,3 @@
-export { FlexContainer } from './flex-container';
-export { FlexBox } from './flex-box';
-
 export const colors = {
   red: '#f15f5f',
   blue: '#3399ff',

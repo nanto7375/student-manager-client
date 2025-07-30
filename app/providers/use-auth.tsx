@@ -42,6 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(userInfo);
       setIsAuthenticated(true);
     } catch (error) {
+      console.log(error?.message || error)
       tokenManager.clearAccessToken();
       setIsAuthenticated(false);
       setUser(null);
@@ -51,25 +52,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         navigate(ROUTES.SIGNIN + '?redirect=' + encodeURIComponent(pathname));
       }
     }
-  }, [tokenManager, warning,pathname]);
+  }, [pathname, navigate, warning]);
 
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, []); // 컴포넌트 마운트 시에만 실행
 
   const signin = React.useCallback(async (email: string, password: string) => {
     const result = await signinApi({ body: { email, password } });
     tokenManager.setAccessToken(result.accessToken);
     setUser(result.admin);
     setIsAuthenticated(true);
-  }, [tokenManager]);
+  }, []); // 의존성 제거
 
   const signout = React.useCallback(async () => {
     await signoutApi();
     setUser(null);
     setIsAuthenticated(false);
     navigate(ROUTES.SIGNIN);
-  }, [tokenManager]);
+  }, [navigate]);
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, user, signin, signout }}>

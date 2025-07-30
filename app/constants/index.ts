@@ -9,11 +9,7 @@ export const ROUTES = {
   ADMIN: '/admin',
 };
 
-export const STORAGE_KEYS = {
-  SAVED_EMAIL: 'saved-email',
-};
-
-export const TITLE = {
+export const LEO_TITLE = {
   kor: '레오의 서재',
   eng: "Leo's Library",
 };

@@ -12,7 +12,6 @@ import {
 import type { LinksFunction } from "react-router";
 import { ThemeProvider } from "@emotion/react";
 import CssBaseline from "@mui/material/CssBaseline";
-import InitColorSchemeScript from "@mui/system/InitColorSchemeScript";
 
 import "./app.css";
 import theme from "./theme";
@@ -40,16 +39,16 @@ export const links: LinksFunction = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        {/* <Meta /> */}
+        <Meta />
+        <Links />
       </head>
       <body>
-        <InitColorSchemeScript attribute="class" />
         <ThemeProvider theme={theme}>
-          <CssBaseline enableColorScheme />
+          <CssBaseline />
           <QueryProvider>
             <ToastProvider>
               <AuthProvider>
@@ -74,6 +73,11 @@ export default function App() {
       <Outlet />
     </FlexContainer>
   );
+}
+
+
+export function HydrateFallback() {
+	return null
 }
 
 export function ErrorBoundary() {

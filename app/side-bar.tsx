@@ -1,11 +1,27 @@
-import { Link, useLocation } from "react-router";
-import { ROUTES, TITLE } from "./constants";
+import { Link, useLocation, useNavigate } from "react-router";
+import { ROUTES, LEO_TITLE } from "./constants";
 import { useState } from "react";
 import { useAuth } from "./providers/use-auth";
 import { AdminRoleType } from "./common/type";
 import React from "react";
+import { FlexBox, FlexContainer } from "./components/styled-elements";
+import { styled } from "@mui/material";
+import { AppleTg } from "./components/typography";
+import { ConfirmModal } from "./components/confirm-modal";
 
-const BUTTON_STYLE = "w-full h-12 flex items-center justify-center transition-all duration-300 hover:shadow-[0_4px_8px_rgba(0,0,0,0.2)] hover:transform hover:scale-100 rounded";
+const LinkFullSize = styled(Link)({
+  width: '100%',
+  height: '100%',
+});
+
+const buttonHoverEffect = {
+  transition: 'all',
+  borderRadius: '0.25rem',
+  '&:hover': {
+    boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+    transform: 'scale(1)',
+  }
+}
 
 const MENU_LIST = [
   {
@@ -24,9 +40,15 @@ const MENU_LIST = [
     path: ROUTES.PAYMENT,
   },
 ];
+const ADMIN_PAGE = {
+  name: "admin",
+  label: "관리자 페이지",
+  path: ROUTES.ADMIN,
+}
 
 export default function SideBar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [selectedMenu, setSelectedMenu] = useState<string>(location.pathname.split("/")[1]);
   const { user, signout } = useAuth();
   const [isSignoutOpen, setIsSignoutOpen] = useState(false);
@@ -38,11 +60,6 @@ export default function SideBar() {
     setSelectedMenu(location.pathname.split("/")[1]);
   }, [location.pathname]);
 
-  // const handleMenuClick = React.useCallback((menuName: string) => {
-  //   setSelectedMenu(menuName);
-  // }, []);
-
-
   const handleSignoutClick = React.useCallback(() => {
     setIsSignoutOpen(true);
   }, []);
@@ -51,48 +68,52 @@ export default function SideBar() {
     try {
       await signout();
       setIsSignoutOpen(false);
+      navigate(ROUTES.SIGNIN);
     } catch (error) {
       console.error(error);
     }
   }, [signout]);
 
   return (
-    <div className="w-40 h-full border-r border-gray-200 flex flex-col items-center justify-between shadow-[2px_0_8px_rgba(0,0,0,0.1)]">
-      <div className="side-top-wrapper w-full flex flex-col items-center">
-        <div className="side-bar-header mb-1 border-b border-gray-200">
-            <button className="flex items-center justify-center h-12 w-full">
-              <Link to={ROUTES.HOME}><span className="text-xl font-apple-b leo-green-text">{TITLE.kor}</span></Link>
-            </button>
-        </div>
-        <div className="side-bar-body w-full">
-          {MENU_LIST.map((menu) => (
-            <Link to={menu.path} key={menu.name}>
-              <button 
-                className={`${BUTTON_STYLE} ${
-                  selectedMenu === menu.name 
-                    ? "text-black bg-gray-100" 
-                    : "text-gray-500 hover:bg-gray-50"
-                }`}
-              >
-                <span>{menu.label}</span>
-              </button>
-            </Link>
-          ))}
-        </div>
-      </div>
-      <div className="side-bar-footer w-full mb-1 flex flex-col items-center justify-center">
-        <div className="text-sm leo-brown-text">{user?.email.split("@")[0]}</div>
-        {isAdmin && 
-          <Link to={ROUTES.ADMIN}>
-            <button className={BUTTON_STYLE}>
-              <span className="text-gray-500">관리자 페이지</span>
-            </button>
+    <FlexContainer width="10rem" fullHeight flexDirection="column" justifyContent="space-between" alignItems="center" sx={{boxShadow: '2px 0 8px rgba(0,0,0,0.1)'}}>
+
+      <FlexBox fullWidth flexDirection="column" center>
+        <FlexBox fullWidth height="3rem" center sx={{marginBottom: '0.5rem', boxShadow: '0 4px 8px rgba(0,0,0,0.1)'}}>
+          <Link to={ROUTES.HOME} style={{cursor: 'pointer'}}>
+            <AppleTg sx={{fontSize: '1.1rem', color: 'primary.main', fontWeight: '600'}}>{LEO_TITLE.kor}</AppleTg>
           </Link>
-        }
-        <button className={BUTTON_STYLE} onClick={handleSignoutClick}>
-          <span className="text-gray-500">로그아웃</span>
-        </button>
-      </div>
-    </div>
+        </FlexBox>
+        <FlexBox flexDirection="column" fullWidth center>
+          {MENU_LIST.map((menu) => (<LinkFullSize to={menu.path} key={menu.name}>
+            <FlexBox width="100%" height="3rem" center cursor sx={{...buttonHoverEffect, backgroundColor: selectedMenu === menu.name ? '#e9e9e9' : 'white'}}>
+              <AppleTg  sx={{fontSize: '1rem', color: selectedMenu === menu.name ? 'black' : 'gray'}}>{menu.label}</AppleTg>
+            </FlexBox>
+          </LinkFullSize>))}
+        </FlexBox>
+      </FlexBox>
+
+      <FlexBox flexDirection="column" fullWidth center sx={{marginBottom: '0.5rem'}}>
+        <FlexBox sx={{marginBottom: '0.2rem'}}>
+          <AppleTg  color="secondary.main" sx={{fontSize: '0.9rem', fontWeight: '600'}}>
+            {user?.email.split("@")[0]}
+          </AppleTg>
+        </FlexBox>
+        {isAdmin && <LinkFullSize to={ADMIN_PAGE.path}>
+          <FlexBox width="100%" height="3rem" center cursor sx={{...buttonHoverEffect, backgroundColor: selectedMenu === ADMIN_PAGE.name ? '#e9e9e9' : 'white'}}>
+              <AppleTg  sx={{fontSize: '1rem', color: selectedMenu === ADMIN_PAGE.name ? 'black' : 'gray'}}>{ADMIN_PAGE.label}</AppleTg>
+          </FlexBox>
+        </LinkFullSize>}
+        <FlexBox fullWidth height="3rem" center cursor sx={buttonHoverEffect} onClick={handleSignoutClick}>
+          <AppleTg  sx={{fontSize: '1rem', color: 'gray'}}>로그아웃</AppleTg>
+        </FlexBox>
+      </FlexBox>
+
+      <ConfirmModal 
+        open={isSignoutOpen} 
+        bodyText="로그아웃 하시겠습니까?" 
+        onConfirm={handleSignout} 
+        onCancel={() => setIsSignoutOpen(false)} 
+        onClose={() => setIsSignoutOpen(false)} />
+    </FlexContainer>
   );
 }

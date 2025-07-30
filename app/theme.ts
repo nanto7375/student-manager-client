@@ -66,10 +66,6 @@ const appleSDGothicNeoR = {
 };
 
 const theme = createTheme({
-  colorSchemes: { light: true },
-  cssVariables: {
-    colorSchemeSelector: 'class',
-  },
   breakpoints: {
     values: {
       xs: 3000,

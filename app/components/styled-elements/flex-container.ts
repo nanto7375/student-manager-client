@@ -12,14 +12,16 @@ export interface FlexContainerProps extends ContainerProps {
   fullWidth?: boolean;
   flexDirection?: FlexDirection;
   fullHeight?: boolean;
+  width?: string;
+  height?: string;
   justifyContent?: JustifyContent;
   alignItems?: AlignItems;
   gap?: number;
 }
 
 export const FlexContainer = styled(Container, {
-  shouldForwardProp: (prop) => prop !== 'center' && prop !== 'fullWidth' && prop !== 'flexDirection' && prop !== 'fullHeight' && prop !== 'justifyContent' && prop !== 'alignItems' && prop !== 'gap',
-})<FlexContainerProps>(({ center = false, fullWidth = false, flexDirection = 'row', fullHeight = false, justifyContent, alignItems, gap }) => ({
+  shouldForwardProp: (prop) => prop !== 'center' && prop !== 'fullWidth' && prop !== 'flexDirection' && prop !== 'fullHeight' && prop !== 'justifyContent' && prop !== 'alignItems' && prop !== 'gap' && prop !== 'width' && prop !== 'height',
+})<FlexContainerProps>(({ center = false, fullWidth = false, flexDirection = 'row', fullHeight = false, justifyContent, alignItems, gap, width, height }) => ({
   display: 'flex',
   flexDirection,
   ...(center && { alignItems: 'center' }),
@@ -28,6 +30,8 @@ export const FlexContainer = styled(Container, {
   ...(justifyContent && { justifyContent }),
   ...(fullWidth && { width: '100%' }),
   ...(fullHeight && { height: '100%' }),
+  ...(width && { width }),
+  ...(height && { height }),
   padding: '0',
   margin: '0',
   ...(gap && { gap: `${gap}rem` }),
