@@ -1,21 +1,11 @@
 import React from "react";
 import dayjs from "dayjs";
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 
 import type { ScheduleType } from "./const";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import { AppleTg } from "~/components/typography";
-
-// HHMM -> HH:MM
-// Convert from 24-hour to 12-hour format
-const transformTime = (time: string) => {
-  const hour = parseInt(time.substring(0, 2));
-  const minute = time.substring(2, 4);
-  
-  let displayHour = hour;
-  if (hour > 12) displayHour = hour - 12;
-  
-  return `${displayHour}:${minute}`;
-};
+import { formatTime12Hour } from "~/utils/time.util";
 
 type ScheduleSidebarProps = {
   todaySchedule: ScheduleType[];
@@ -30,19 +20,14 @@ export default function ScheduleSidebar({
   selectSchedule, 
   selectedSchedule
 }: ScheduleSidebarProps) {
-  const handleScheduleClick = React.useCallback((schedule: ScheduleType) => {
+  const handleScheduleClick = (schedule: ScheduleType) => {
+    if (selectedSchedule?.id === schedule.id) return foldSidebar();
     selectSchedule(schedule);
-  }, [selectSchedule]);
+  };
 
   return (
-    <FlexContainer width="9rem" sx={{borderRight: '0.5px solid #e0e0e0'}} flexDirection="column" alignItems="center">
-      <FlexBox 
-        button 
-        height="2.5rem" 
-        center 
-        sx={{margin: '1rem 0', padding: '0 1.1rem'}} 
-        onClick={foldSidebar}
-      >
+    <FlexContainer width="9.5rem" sx={{borderRight: '0.5px solid #e0e0e0'}} flexDirection="column" alignItems="center">
+      <FlexBox height="2.5rem" center sx={{margin: '1rem 0', padding: '0 1.1rem'}}>
         <AppleTg>{dayjs().format('M. D')}</AppleTg>
       </FlexBox>
 
@@ -51,18 +36,22 @@ export default function ScheduleSidebar({
           <FlexBox 
             key={schedule.id} 
             height="2.8rem" 
-            center 
+            alignItems="center"
+            justifyContent="flex-start" 
             button 
+            sx={{paddingLeft: '1.35rem', lineHeight: '1.2rem'}}
             onClick={() => handleScheduleClick(schedule)}
           >
             <AppleTg 
               sx={{
                 color: selectedSchedule?.id === schedule.id ? 'secondary.main' : 'gray', 
-                fontWeight: selectedSchedule?.id === schedule.id ? '600' : '500'
+                fontWeight: selectedSchedule?.id === schedule.id ? '600' : '500',
+                paddingBottom: '0.2rem'
               }}
             >
-              {transformTime(schedule.startTime)} - {transformTime(schedule.endTime)}
+              {formatTime12Hour(schedule.startTime)} - {formatTime12Hour(schedule.endTime)}
             </AppleTg>
+            {selectedSchedule?.id === schedule.id && <ArrowForwardIosIcon sx={{fontSize: '0.9rem', color: 'secondary.main', marginLeft: '0.2rem'}} />}
           </FlexBox>
         ))}
       </FlexBox>

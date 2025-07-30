@@ -6,7 +6,7 @@ import { Button, Checkbox, TextField } from "@mui/material";
 
 import { ROUTES } from "~/constants";
 import { LEO_TITLE } from "~/constants";
-import { convertKoreanToEnglish, emailRegex, removeSpace } from "~/utils/string-util";
+import { convertKoreanToEnglish, emailRegex, removeSpace } from "~/utils/string.util";
 import { UNAUTHORIZED_ERRROR_CODE } from "~/lib/error";
 import { useAuth } from "~/providers/use-auth";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
