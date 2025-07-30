@@ -1,11 +1,13 @@
-import { Link, useLocation, useNavigate } from "react-router";
-import { ROUTES, LEO_TITLE } from "./constants";
-import { useState } from "react";
-import { useAuth } from "./providers/use-auth";
-import { AdminRoleType } from "./common/type";
 import React from "react";
-import { FlexBox, FlexContainer } from "./components/styled-elements";
+import { Link, useLocation, useNavigate } from "react-router";
 import { styled } from "@mui/material";
+
+import { ROUTES, LEO_TITLE } from "./constants";
+import { AdminRoleType } from "./common/type";
+import { tokenManager } from "./lib/token-manger";
+import { useAuth } from "./providers/use-auth";
+
+import { FlexBox, FlexContainer } from "./components/styled-elements";
 import { AppleTg } from "./components/typography";
 import { ConfirmModal } from "./components/confirm-modal";
 
@@ -23,7 +25,7 @@ const buttonHoverEffect = {
   }
 }
 
-const MENU_LIST = [
+const MENU_PAGE_LIST = [
   {
     name: "schedule",
     label: "스케쥴",
@@ -49,9 +51,9 @@ const ADMIN_PAGE = {
 export default function SideBar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [selectedMenu, setSelectedMenu] = useState<string>(location.pathname.split("/")[1]);
+  const [selectedMenu, setSelectedMenu] = React.useState<string>(location.pathname.split("/")[1]);
   const { user, signout } = useAuth();
-  const [isSignoutOpen, setIsSignoutOpen] = useState(false);
+  const [isSignoutOpen, setIsSignoutOpen] = React.useState(false);
   const isAdmin = React.useMemo(() => {
     return user?.role === AdminRoleType.SUPER_ADMIN || user?.role === AdminRoleType.ADMIN;
   }, [user]);
@@ -68,24 +70,35 @@ export default function SideBar() {
     try {
       await signout();
       setIsSignoutOpen(false);
-      navigate(ROUTES.SIGNIN);
     } catch (error) {
       console.error(error);
+      tokenManager.clearAccessToken();
+    } finally {
+      navigate(ROUTES.SIGNIN);
     }
   }, [signout]);
 
   return (
-    <FlexContainer width="10rem" fullHeight flexDirection="column" justifyContent="space-between" alignItems="center" sx={{boxShadow: '2px 0 8px rgba(0,0,0,0.1)'}}>
+    <FlexContainer 
+      width="9.5rem" 
+      fullHeight 
+      flexDirection="column" 
+      justifyContent="space-between" 
+      alignItems="center" 
+      sx={{
+        boxShadow: '2px 0 6px rgba(0,0,0,0.1)',
+      }}
+    >
 
       <FlexBox fullWidth flexDirection="column" center>
         <FlexBox fullWidth height="3rem" center sx={{marginBottom: '0.5rem', boxShadow: '0 4px 8px rgba(0,0,0,0.1)'}}>
           <Link to={ROUTES.HOME} style={{cursor: 'pointer'}}>
-            <AppleTg sx={{fontSize: '1.1rem', color: 'primary.main', fontWeight: '600'}}>{LEO_TITLE.kor}</AppleTg>
+            <AppleTg sx={{fontSize: '0.9rem', color: 'primary.main', fontWeight: '600'}}>{LEO_TITLE.kor}</AppleTg>
           </Link>
         </FlexBox>
         <FlexBox flexDirection="column" fullWidth center>
-          {MENU_LIST.map((menu) => (<LinkFullSize to={menu.path} key={menu.name}>
-            <FlexBox width="100%" height="3rem" center cursor sx={{...buttonHoverEffect, backgroundColor: selectedMenu === menu.name ? '#e9e9e9' : 'white'}}>
+          {MENU_PAGE_LIST.map((menu) => (<LinkFullSize to={menu.path} key={menu.name}>
+            <FlexBox width="100%" height="3rem" center button sx={{...buttonHoverEffect, backgroundColor: selectedMenu === menu.name ? '#e9e9e9' : 'white'}}>
               <AppleTg  sx={{fontSize: '1rem', color: selectedMenu === menu.name ? 'black' : 'gray'}}>{menu.label}</AppleTg>
             </FlexBox>
           </LinkFullSize>))}
@@ -99,12 +112,12 @@ export default function SideBar() {
           </AppleTg>
         </FlexBox>
         {isAdmin && <LinkFullSize to={ADMIN_PAGE.path}>
-          <FlexBox width="100%" height="3rem" center cursor sx={{...buttonHoverEffect, backgroundColor: selectedMenu === ADMIN_PAGE.name ? '#e9e9e9' : 'white'}}>
-              <AppleTg  sx={{fontSize: '1rem', color: selectedMenu === ADMIN_PAGE.name ? 'black' : 'gray'}}>{ADMIN_PAGE.label}</AppleTg>
+          <FlexBox width="100%" height="2.5rem" center button sx={{...buttonHoverEffect, backgroundColor: selectedMenu === ADMIN_PAGE.name ? '#e9e9e9' : 'white'}}>
+              <AppleTg  sx={{fontSize: '0.9rem', color: selectedMenu === ADMIN_PAGE.name ? 'black' : 'gray'}}>{ADMIN_PAGE.label}</AppleTg>
           </FlexBox>
         </LinkFullSize>}
-        <FlexBox fullWidth height="3rem" center cursor sx={buttonHoverEffect} onClick={handleSignoutClick}>
-          <AppleTg  sx={{fontSize: '1rem', color: 'gray'}}>로그아웃</AppleTg>
+        <FlexBox fullWidth height="2.5rem" center button sx={buttonHoverEffect} onClick={handleSignoutClick}>
+          <AppleTg  sx={{fontSize: '0.9rem', color: 'gray'}}>로그아웃</AppleTg>
         </FlexBox>
       </FlexBox>
 

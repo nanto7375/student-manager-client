@@ -11,7 +11,7 @@ export interface FlexBoxProps extends BoxProps {
   height?: string | number;
   width?: string | number;
   gap?: number;
-  cursor?: boolean;
+  button?: boolean;
   fullWidth?: boolean;
   fullHeight?: boolean;
 }
@@ -26,10 +26,10 @@ export const FlexBox = styled(Box, {
     prop !== 'height' &&
     prop !== 'width' &&
     prop !== 'gap' &&
-    prop !== 'cursor' &&
+    prop !== 'button' &&
     prop !== 'fullWidth' &&
     prop !== 'fullHeight',
-})<FlexBoxProps>(({ shadowOn = false, center = false, flexDirection = 'row', alignItems, justifyContent, height, width, gap, cursor, fullWidth, fullHeight }) => ({
+})<FlexBoxProps>(({ shadowOn = false, center = false, flexDirection = 'row', alignItems, justifyContent, height, width, gap, button, fullWidth, fullHeight }) => ({
   display: 'flex',
   flexDirection,
   ...(center && { alignItems: 'center' }),
@@ -45,7 +45,7 @@ export const FlexBox = styled(Box, {
     padding: '0.5rem 1rem',
   }),
   ...(gap && { gap: `${gap}rem` }),
-  ...(cursor && { cursor: 'pointer' }),
+  ...(button && { cursor: 'pointer' }),
   ...(fullWidth && { width: '100%' }),
   ...(fullHeight && { height: '100%' }),
 }));

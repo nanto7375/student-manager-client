@@ -22,7 +22,7 @@ import { AuthProvider } from "./providers/use-auth";
 import { ToastProvider } from "./providers/toast-provider";
 import { ROUTES } from "./constants";
 import NotFound from "./not-found";
-import SideBar from "./side-bar";
+import SideBar from "./sidebar";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
