@@ -50,15 +50,22 @@ export default function Schedule() {
       
       <FlexContainer flexDirection="column"> 
         {sidebarFolded && 
-          <FlexBox justifyContent="center"  width={selectedSchedule ? "7.5rem" : "3.5rem"} button sx={{ padding: '0.5rem 0'}} onClick={() => setSidebarFolded(false)}>
+          <FlexBox 
+            justifyContent="center" 
+            width={selectedSchedule ? "8.5rem" : "3.5rem"} 
+            button 
+            sx={{ padding: '0.5rem 0' }} 
+            onClick={() => setSidebarFolded(false)}
+          >
             <FlexBox height="2rem" alignItems="center">
               <ArrowDropDownIcon sx={{fontSize: '1.2rem', color: 'gray', cursor: 'pointer', marginRight: '0.35rem'}} />
               {selectedSchedule && <AppleTg color='secondary.main' sx={{fontSize: '0.9rem', fontWeight: '600'}}>
-                {formatTime12Hour(selectedSchedule.startTime)} - {formatTime12Hour(selectedSchedule.endTime)}
+                {mapNumberToDay(dayjs().day()) + ' ' + formatTime12Hour(selectedSchedule.startTime)} - {formatTime12Hour(selectedSchedule.endTime)}
               </AppleTg>}
             </FlexBox>
           </FlexBox>
         }
+
         <FlexBox width="100%" height="100%" sx={{border: '1px solid blue'}}>
           Schedule
         </FlexBox>

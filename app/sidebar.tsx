@@ -21,7 +21,7 @@ const buttonHoverEffect = {
   borderRadius: '0.25rem',
   '&:hover': {
     boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-    transform: 'scale(1)',
+    transform: 'scale(1.02)',
   }
 }
 
