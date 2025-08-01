@@ -8,7 +8,7 @@ import { mapNumberToDay } from "~/constants";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import ScheduleSidebar from "./sidebar";
 import { type ScheduleType } from "./const";
-import { formatTime12Hour } from "~/utils/time.util";
+import { formatTime12Hour, getDayOfWeekInKor } from "~/utils/time.util";
 import { AppleTg } from "~/components/typography";
 
 const getScheduleListApi = buildApi<ScheduleType[]>({ path: '/schedules', method: 'GET' });
@@ -60,7 +60,7 @@ export default function Schedule() {
             <FlexBox height="2rem" alignItems="center">
               <ArrowDropDownIcon sx={{fontSize: '1.2rem', color: 'gray', cursor: 'pointer', marginRight: '0.35rem'}} />
               {selectedSchedule && <AppleTg color='secondary.main' sx={{fontSize: '0.9rem', fontWeight: '600'}}>
-                {mapNumberToDay(dayjs().day()) + ' ' + formatTime12Hour(selectedSchedule.startTime)} - {formatTime12Hour(selectedSchedule.endTime)}
+                {getDayOfWeekInKor() + ' ' + formatTime12Hour(selectedSchedule.startTime)} - {formatTime12Hour(selectedSchedule.endTime)}
               </AppleTg>}
             </FlexBox>
           </FlexBox>

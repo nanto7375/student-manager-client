@@ -16,12 +16,12 @@ const LinkFullSize = styled(Link)({
   height: '100%',
 });
 
-const buttonHoverEffect = {
+export const buttonHoverEffect = {
   transition: 'all',
   borderRadius: '0.25rem',
   '&:hover': {
     boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-    transform: 'scale(1.02)',
+    transform: 'scale(1)',
   }
 }
 
@@ -98,8 +98,13 @@ export default function SideBar() {
         </FlexBox>
         <FlexBox flexDirection="column" fullWidth center>
           {MENU_PAGE_LIST.map((menu) => (<LinkFullSize to={menu.path} key={menu.name}>
-            <FlexBox width="100%" height="3rem" center button sx={{...buttonHoverEffect, backgroundColor: selectedMenu === menu.name ? '#e9e9e9' : 'white'}}>
-              <AppleTg  sx={{fontSize: '1rem', color: selectedMenu === menu.name ? 'black' : 'gray'}}>{menu.label}</AppleTg>
+            <FlexBox width="100%" height="3rem" center button sx={buttonHoverEffect}>
+              <AppleTg 
+                variant={selectedMenu === menu.name ? 'appleSDGothicNeoB' : 'appleSDGothicNeoM'} 
+                sx={{fontSize: '1rem', color: selectedMenu === menu.name ? 'black' : 'gray'}}
+              >
+                {menu.label}
+              </AppleTg>
             </FlexBox>
           </LinkFullSize>))}
         </FlexBox>

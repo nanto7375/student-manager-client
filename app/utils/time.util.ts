@@ -1,3 +1,6 @@
+import dayjs from 'dayjs';
+import { mapNumberToDay } from '~/constants';
+
 // HHMM -> HH:MM
 // Convert from 24-hour to 12-hour format
 export const formatTime12Hour = (time: string) => {
@@ -9,3 +12,5 @@ export const formatTime12Hour = (time: string) => {
 
   return `${displayHour}:${minute}`;
 };
+
+export const getDayOfWeekInKor = (day = dayjs().day()) => mapNumberToDay(day);
