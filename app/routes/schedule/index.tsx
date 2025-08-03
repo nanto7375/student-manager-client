@@ -4,25 +4,26 @@ import dayjs from "dayjs";
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
 import { buildApi } from "~/lib/api-builder";
-import { mapNumberToDay } from "~/constants";
+import { mapNumberToDay, ROUTES } from "~/constants";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import ScheduleSidebar from "./sidebar";
 import { type ScheduleType } from "./const";
 import { formatTime12Hour, getDayOfWeekInKor } from "~/utils/time.util";
 import { AppleTg } from "~/components/typography";
+import { Outlet, useLocation } from "react-router";
 
 const getScheduleListApi = buildApi<ScheduleType[]>({ path: '/schedules', method: 'GET' });
 
 export default function Schedule() {
+  const pathname = useLocation().pathname;
+  const selectedScheduleId = React.useMemo(() => {
+    const id = pathname.split(ROUTES.SCHEDULE).pop()?.split('/').pop();
+    return Number(id) || null;
+  }, [pathname]);
   const { data: scheduleList, error: scheduleListError, isLoading: scheduleListLoading } = useQuery({ queryKey: ['schedule-list'], queryFn: () => getScheduleListApi(), staleTime: Infinity });
-  const [sidebarFolded, setSidebarFolded] = React.useState(false);
-  const [selectedSchedule, setSelectedSchedule] = React.useState<ScheduleType | null>(null);
 
-  const day = React.useMemo(() => mapNumberToDay(dayjs().day()), []);
-  const todaySchedule = React.useMemo(() => scheduleList
-    ?.filter((schedule) => schedule.dayOfWeek === day)
-    .sort((a, b) => a.startTime.localeCompare(b.startTime)), 
-  [scheduleList, day]);
+  const [selectedSchedule, setSelectedSchedule] = React.useState<ScheduleType | null>(null);
+  const [sidebarFolded, setSidebarFolded] = React.useState(false);
 
   if (scheduleListLoading || scheduleListError) {
     return (
@@ -32,20 +33,10 @@ export default function Schedule() {
     );
   }
 
-  const handleFoldSidebar = () => {
-    if (!selectedSchedule) return;
-    setSidebarFolded(true);
-  }
-
   return (
     <FlexContainer fullHeight fullWidth>
       {!sidebarFolded && 
-        <ScheduleSidebar 
-          todaySchedule={todaySchedule} 
-          selectedSchedule={selectedSchedule}
-          selectSchedule={setSelectedSchedule}
-          foldSidebar={handleFoldSidebar}
-        />  
+        <ScheduleSidebar scheduleList={scheduleList} selectedScheduleId={selectedScheduleId} setSelectedSchedule={setSelectedSchedule} foldSidebar={() => setSidebarFolded(true)} />  
       }
       
       <FlexContainer flexDirection="column"> 
@@ -67,7 +58,7 @@ export default function Schedule() {
         }
 
         <FlexBox width="100%" height="100%" sx={{border: '1px solid blue'}}>
-          Schedule
+          <Outlet />
         </FlexBox>
       </FlexContainer>
     </FlexContainer>

@@ -20,6 +20,9 @@ import { FlexBox, FlexContainer } from "./components/styled-elements";
 import QueryProvider from "./providers/query-client";
 import { AuthProvider } from "./providers/use-auth";
 import { ToastProvider } from "./providers/toast-provider";
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+
 import { ROUTES } from "./constants";
 import NotFound from "./not-found";
 import SideBar from "./sidebar";
@@ -52,7 +55,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <QueryProvider>
             <ToastProvider>
               <AuthProvider>
-                {children}
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  {children}
+                </LocalizationProvider>
               </AuthProvider>
             </ToastProvider>
           </QueryProvider>
