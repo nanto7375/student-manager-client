@@ -18,7 +18,7 @@ import theme from "./theme";
 import { FlexBox, FlexContainer } from "./components/styled-elements";
 
 import QueryProvider from "./providers/query-client";
-import { AuthProvider } from "./providers/use-auth";
+import { AuthProvider } from "./providers/auth-provider";
 import { ToastProvider } from "./providers/toast-provider";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';

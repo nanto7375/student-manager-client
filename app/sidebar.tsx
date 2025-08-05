@@ -1,11 +1,11 @@
 import React from "react";
-import { Link, useLocation, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router";
 import { styled } from "@mui/material";
 
 import { ROUTES, LEO_TITLE } from "./constants";
-import { AdminRoleType } from "./common/type";
+import { AdminRoleType } from "./constants/type";
 import { tokenManager } from "./lib/token-manger";
-import { useAuth } from "./providers/use-auth";
+import { useAuth } from "./providers/auth-provider";
 
 import { FlexBox, FlexContainer } from "./components/styled-elements";
 import { AppleTg } from "./components/typography";
@@ -49,14 +49,15 @@ const ADMIN_PAGE = {
 }
 
 export default function SideBar() {
+  const { user, signout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [selectedMenu, setSelectedMenu] = React.useState<string>(location.pathname.split("/")[1]);
-  const { user, signout } = useAuth();
+  const [searchParams] = useSearchParams();
+  const pathname = location.pathname;
+
+  const [selectedMenu, setSelectedMenu] = React.useState<string>(pathname.split("/")[1]);
   const [isSignoutOpen, setIsSignoutOpen] = React.useState(false);
-  const isAdmin = React.useMemo(() => {
-    return user?.role === AdminRoleType.SUPER_ADMIN || user?.role === AdminRoleType.ADMIN;
-  }, [user]);
+  const isAdmin = React.useMemo(() => user?.role === AdminRoleType.SUPER_ADMIN || user?.role === AdminRoleType.ADMIN, [user]);
 
   React.useEffect(() => {
     setSelectedMenu(location.pathname.split("/")[1]);
@@ -97,7 +98,13 @@ export default function SideBar() {
           </Link>
         </FlexBox>
         <FlexBox flexDirection="column" fullWidth center>
-          {MENU_PAGE_LIST.map((menu) => (<LinkFullSize to={menu.path} key={menu.name}>
+          {MENU_PAGE_LIST.map((menu) => (<LinkFullSize 
+            to={{
+              pathname: pathname.includes(menu.path) ? pathname : menu.path, 
+              search: searchParams.toString()
+            }} 
+            key={menu.name}
+          >
             <FlexBox width="100%" height="3rem" center button sx={buttonHoverEffect}>
               <AppleTg 
                 variant={selectedMenu === menu.name ? 'appleSDGothicNeoB' : 'appleSDGothicNeoM'} 

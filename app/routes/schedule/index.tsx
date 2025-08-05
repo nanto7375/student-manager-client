@@ -1,14 +1,13 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import dayjs from "dayjs";
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
 import { buildApi } from "~/lib/api-builder";
-import { mapNumberToDay, ROUTES } from "~/constants";
+import { ROUTES } from "~/constants";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import ScheduleSidebar from "./sidebar";
 import { type ScheduleType } from "./const";
-import { formatTime12Hour, getDayOfWeekInKor } from "~/utils/time.util";
+import { formatTime12Hour, getDayOfWeekInKor } from "~/lib/utils/time.util";
 import { AppleTg } from "~/components/typography";
 import { Outlet, useLocation } from "react-router";
 

@@ -6,13 +6,12 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 
 import type { ScheduleType } from "./const";
-import { mapNumberToDay, ROUTES } from "~/constants";
+import { ROUTES } from "~/constants";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import { AppleTg } from "~/components/typography";
-import { formatTime12Hour, getDayOfWeekInKor } from "~/utils/time.util";
+import { formatTime12Hour, getDayOfWeekInKor, mapNumberToDay } from "~/lib/utils/time.util";
 
 const today = dayjs();
-const day = mapNumberToDay(today.day());
 
 type ScheduleSidebarProps = {
   scheduleList: ScheduleType[];
@@ -36,14 +35,19 @@ export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setS
     .sort((a, b) => a.startTime.localeCompare(b.startTime))
   }, [scheduleList, selectedDate]);
 
-  React.useEffect(() => {
-    navigate(`${ROUTES.SCHEDULE}?date=${selectedDate.format('YYMMDD')}`);
+  const handleGoTodayClick = React.useCallback(() => {
+    setSelectedDate(today);
     setSelectedSchedule(null);
     setOpenDateCalendar(false);
-  }, [selectedDate])
+    navigate(`${ROUTES.SCHEDULE}`);
+  }, []);
 
-  const handleGoTodayClick = React.useCallback(() => setSelectedDate(today), []);
-  const handleDateChange = React.useCallback((date: Dayjs) => setSelectedDate(date), []);
+  const handleDateChange = React.useCallback((date: Dayjs) => {
+    setSelectedDate(date);
+    setSelectedSchedule(null);
+    setOpenDateCalendar(false);
+    navigate(`${ROUTES.SCHEDULE}?date=${date.format('YYMMDD')}`);
+  }, []);
 
   const handleScheduleClick = React.useCallback((schedule: ScheduleType) => {
     setSelectedSchedule(schedule);

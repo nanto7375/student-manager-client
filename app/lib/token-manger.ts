@@ -1,5 +1,5 @@
 import { BASE_URL } from '~/constants';
-import { Deferred, type DeferredType } from '~/utils/deferred';
+import { Deferred, type DeferredType } from '~/lib/utils/deferred';
 
 const refreshPath = '/auth/refresh';
 
