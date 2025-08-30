@@ -81,7 +81,7 @@ export default function SideBar() {
 
   return (
     <FlexContainer 
-      width="9.5rem" 
+      width="8.25rem" 
       fullHeight 
       flexDirection="column" 
       justifyContent="space-between" 
@@ -101,7 +101,7 @@ export default function SideBar() {
           {MENU_PAGE_LIST.map((menu) => (<LinkFullSize 
             to={{
               pathname: pathname.includes(menu.path) ? pathname : menu.path, 
-              search: searchParams.toString()
+              // search: searchParams.toString()
             }} 
             key={menu.name}
           >

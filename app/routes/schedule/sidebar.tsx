@@ -9,7 +9,7 @@ import type { ScheduleType } from "./const";
 import { ROUTES } from "~/constants";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import { AppleTg } from "~/components/typography";
-import { formatTime12Hour, getDayOfWeekInKor, mapNumberToDay } from "~/lib/utils/time.util";
+import { formatTime12Hour, getDayOfWeekInKor, mapNumberToDayOfWeek } from "~/lib/utils/time.util";
 
 const today = dayjs();
 
@@ -29,9 +29,9 @@ export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setS
   const isTodaySelected = React.useMemo(() => selectedDate.isSame(today, 'date'), [selectedDate]);
 
   const todaySchedule = React.useMemo(() => {
-    const day = mapNumberToDay(selectedDate.day());
+    const dayOfWeek = mapNumberToDayOfWeek(selectedDate.day());
     return scheduleList
-    ?.filter((schedule) => schedule.dayOfWeek === day)
+    .filter((schedule) => schedule.dayOfWeek === dayOfWeek)
     .sort((a, b) => a.startTime.localeCompare(b.startTime))
   }, [scheduleList, selectedDate]);
 
@@ -77,7 +77,7 @@ export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setS
           {openDateCalendar && <FlexBox 
             sx={{
               position: 'absolute', 
-              top: '140%', 
+              top: '100%', 
               left: '0', 
               zIndex: 1000, 
               backgroundColor: 'white', 

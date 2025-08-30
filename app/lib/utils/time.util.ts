@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 
-export const mapNumberToDay = (number: number) => {
+export const mapNumberToDayOfWeek = (number: number) => {
   switch (number) {
     case 0:
       return '일';
@@ -31,4 +31,4 @@ export const formatTime12Hour = (time: string) => {
   return `${displayHour}:${minute}`;
 };
 
-export const getDayOfWeekInKor = (day = dayjs().day()) => mapNumberToDay(day);
+export const getDayOfWeekInKor = (day = dayjs().day()) => mapNumberToDayOfWeek(day);
