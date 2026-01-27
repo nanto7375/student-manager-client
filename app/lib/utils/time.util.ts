@@ -2,8 +2,6 @@ import dayjs from 'dayjs';
 
 export const mapNumberToDayOfWeek = (number: number) => {
   switch (number) {
-    case 0:
-      return '일';
     case 1:
       return '월';
     case 2:
@@ -16,6 +14,10 @@ export const mapNumberToDayOfWeek = (number: number) => {
       return '금';
     case 6:
       return '토';
+    case 7:
+      return '일';
+    default:
+      return '';
   }
 };
 

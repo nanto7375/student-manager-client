@@ -9,7 +9,8 @@ import { useAuth } from "./providers/auth-provider";
 
 import { FlexBox, FlexContainer } from "./components/styled-elements";
 import { AppleTg } from "./components/typography";
-import { ConfirmModal } from "./components/confirm-modal";
+// import { ConfirmModal } from "./components/confirm-modal";
+import { useConfirmModal } from "./hooks/use-confirm-modal";
 
 const LinkFullSize = styled(Link)({
   width: '100%',
@@ -32,14 +33,9 @@ const MENU_PAGE_LIST = [
     path: ROUTES.SCHEDULE,
   },
   {
-    name: "consult",
-    label: "상담 기록",
-    path: ROUTES.CONSULT,
-  },
-  {
-    name: "payment",
-    label: "수납",
-    path: ROUTES.PAYMENT,
+    name: "student",
+    label: "학생",
+    path: ROUTES.STUDENT,
   },
 ];
 const ADMIN_PAGE = {
@@ -54,9 +50,9 @@ export default function SideBar() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const pathname = location.pathname;
+  const { ConfirmModal, openConfirmModal, closeConfirmModal } = useConfirmModal();
 
   const [selectedMenu, setSelectedMenu] = React.useState<string>(pathname.split("/")[1]);
-  const [isSignoutOpen, setIsSignoutOpen] = React.useState(false);
   const isAdmin = React.useMemo(() => user?.role === AdminRoleType.SUPER_ADMIN || user?.role === AdminRoleType.ADMIN, [user]);
 
   React.useEffect(() => {
@@ -64,13 +60,13 @@ export default function SideBar() {
   }, [location.pathname]);
 
   const handleSignoutClick = React.useCallback(() => {
-    setIsSignoutOpen(true);
+    openConfirmModal();
   }, []);
 
   const handleSignout = React.useCallback(async () => {
     try {
       await signout();
-      setIsSignoutOpen(false);
+      closeConfirmModal();
     } catch (error) {
       console.error(error);
       tokenManager.clearAccessToken();
@@ -118,27 +114,27 @@ export default function SideBar() {
       </FlexBox>
 
       <FlexBox flexDirection="column" fullWidth center sx={{marginBottom: '0.5rem'}}>
-        <FlexBox sx={{marginBottom: '0.2rem'}}>
-          <AppleTg  color="secondary.main" sx={{fontSize: '0.9rem', fontWeight: '600'}}>
-            {user?.email.split("@")[0]}
-          </AppleTg>
-        </FlexBox>
-        {isAdmin && <LinkFullSize to={ADMIN_PAGE.path}>
-          <FlexBox width="100%" height="2.5rem" center button sx={{...buttonHoverEffect, backgroundColor: selectedMenu === ADMIN_PAGE.name ? '#e9e9e9' : 'white'}}>
-              <AppleTg  sx={{fontSize: '0.9rem', color: selectedMenu === ADMIN_PAGE.name ? 'black' : 'gray'}}>{ADMIN_PAGE.label}</AppleTg>
+        <FlexBox flexDirection="column" fullWidth center sx={{marginBottom: '1rem'}}>
+          <FlexBox sx={{marginBottom: '0.2rem'}}>
+            <AppleTg  color="secondary.main" sx={{fontSize: '0.9rem', fontWeight: '600'}}>
+              {user?.email.split("@")[0]}
+            </AppleTg>
           </FlexBox>
-        </LinkFullSize>}
+          {isAdmin && <LinkFullSize to={ADMIN_PAGE.path}>
+            <FlexBox width="100%" height="2.5rem" center button sx={{...buttonHoverEffect, backgroundColor: selectedMenu === ADMIN_PAGE.name ? '#e9e9e9' : 'white'}}>
+                <AppleTg  sx={{fontSize: '0.9rem', color: selectedMenu === ADMIN_PAGE.name ? 'black' : 'gray'}}>{ADMIN_PAGE.label}</AppleTg>
+            </FlexBox>
+          </LinkFullSize>}
+        </FlexBox>
         <FlexBox fullWidth height="2.5rem" center button sx={buttonHoverEffect} onClick={handleSignoutClick}>
           <AppleTg  sx={{fontSize: '0.9rem', color: 'gray'}}>로그아웃</AppleTg>
         </FlexBox>
       </FlexBox>
 
       <ConfirmModal 
-        open={isSignoutOpen} 
         bodyText="로그아웃 하시겠습니까?" 
         onConfirm={handleSignout} 
-        onCancel={() => setIsSignoutOpen(false)} 
-        onClose={() => setIsSignoutOpen(false)} />
+      />
     </FlexContainer>
   );
 }

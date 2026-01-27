@@ -9,12 +9,7 @@ export default function QueryProvider({ children }: { children: React.ReactNode 
         refetchOnWindowFocus: false,
         retry: (failureCount, error) => {
           if (
-            error.code === 401 ||
-            error.code === TOKEN_EXPIRED_ERROR_CODE ||
-            error.code === UNAUTHORIZED_ERRROR_CODE ||
-            error.code === TOKEN_NOT_FOUND_ERROR_CODE ||
-            error.code === UNSTABLE_NETWORK_ERROR_CODE ||
-            error.code === FETCH_JSON_ERROR_CODE
+            error.code === 401
           ) return false;
 
           return failureCount < 2;

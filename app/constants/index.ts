@@ -4,8 +4,7 @@ export const ROUTES = {
   HOME: '/',
   SIGNIN: '/signin',
   SCHEDULE: '/schedule',
-  CONSULT: '/consult',
-  PAYMENT: '/payment',
+  STUDENT: '/student',
   ADMIN: '/admin',
 };
 

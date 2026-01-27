@@ -1,9 +1,9 @@
 import { FlexContainer } from "~/components/styled-elements";
 
-export default function Consult() {
+export default function Student() {
   return (
     <FlexContainer center fullHeight fullWidth>
-      <h1>Consult</h1>
+      <h1>Student</h1>
     </FlexContainer>
   );
 }

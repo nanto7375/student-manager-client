@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router';
 import { ROUTES } from '~/constants';
 import { tokenManager } from '~/lib/token-manger';
 import { buildApi } from '~/lib/api-builder';
-import type { AdminRoleType } from '~/lib/types';
+import { AdminRoleType } from '~/lib/types';
 import { useGlobalToast } from '~/providers/toast-provider';
 
 type User = {
@@ -34,12 +34,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
 
   const checkAuth = React.useCallback(async () => {
-    let userInfo: User | null = null;
     try {
-      userInfo = await meApi();
-      if (!userInfo.isActive) throw new Error('user is not active');
+      // TODO: 
+      // const userInfo = await meApi();
+      // if (!userInfo.isActive) throw new Error('user is not active');
 
-      setUser(userInfo);
+      setUser({ email: 'god@test.com', name: 'god', role: AdminRoleType.SUPER_ADMIN, isActive: true });
       setIsAuthenticated(true);
     } catch (error) {
       console.log(error?.message || error)

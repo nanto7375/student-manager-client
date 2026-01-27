@@ -13,13 +13,18 @@ import { Outlet, useLocation } from "react-router";
 
 const getScheduleListApi = buildApi<ScheduleType[]>({ path: '/schedules', method: 'GET' });
 
+export const useScheduleList = () => {
+  const { data: scheduleList, error: scheduleListError, isLoading: scheduleListLoading } = useQuery({ queryKey: ['schedule-list'], queryFn: () => getScheduleListApi(), staleTime: Infinity });
+  return { scheduleList, scheduleListError, scheduleListLoading };
+}
+
 export default function Schedule() {
   const pathname = useLocation().pathname;
   const selectedScheduleId = React.useMemo(() => {
     const id = pathname.split(ROUTES.SCHEDULE).pop()?.split('/').pop();
     return Number(id) || null;
   }, [pathname]);
-  const { data: scheduleList, error: scheduleListError, isLoading: scheduleListLoading } = useQuery({ queryKey: ['schedule-list'], queryFn: () => getScheduleListApi(), staleTime: Infinity });
+  const { scheduleList, scheduleListError, scheduleListLoading } = useScheduleList();
 
   const [selectedSchedule, setSelectedSchedule] = React.useState<ScheduleType | null>(null);
   const [sidebarFolded, setSidebarFolded] = React.useState(false);

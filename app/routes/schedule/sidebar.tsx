@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import { Chip } from "@mui/material";
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';

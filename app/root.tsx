@@ -73,13 +73,12 @@ export default function App() {
   const {pathname} = useLocation();
   
   return (
-    <FlexContainer style={{maxWidth: '1920px', minWidth: '960px', height: '100vh'}}>
+    <FlexContainer style={{maxWidth: '120rem', minWidth: '48rem', height: '100vh'}}>
       {pathname !== ROUTES.SIGNIN && <SideBar />}
       <Outlet />
     </FlexContainer>
   );
 }
-
 
 export function HydrateFallback() {
 	return null
