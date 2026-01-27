@@ -7,6 +7,8 @@ import { formatTime12Hour, mapNumberToDayOfWeek } from "~/lib/utils/time.util";
 import { useGlobalToast } from "~/providers/toast-provider";
 import { useMutation } from "@tanstack/react-query";
 import { buildApi } from "~/lib/api-builder";
+import { Button, FormControl, InputLabel, MenuItem, Select, TextField, type SelectChangeEvent } from "@mui/material";
+import { AppleTg } from "~/components/typography";
 
 type RegisterStudentPayload = {
   name: string;
@@ -82,24 +84,15 @@ export default function Admin() {
     setStudentForm(copied);
   }, [studentForm]);
 
-  const handleSelectBirth = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
+  const handleSelect = React.useCallback((e: SelectChangeEvent, name: string) => {
     const copied = { ...studentForm };
-    copied[e.target.id] = value;
-    setStudentForm(copied);
-  }, [studentForm]);
-
-  const handleSelectSchool = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    const copied = { ...studentForm };
-    copied[e.target.id] = value;
-    setStudentForm(copied);
-  }, [studentForm]);
-
-  const handleSelectSchedule = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    const copied = { ...studentForm };
-    copied[e.target.id] = value;
+    copied[name] = e.target.value;
+    if (name === 'schoolLevel') {
+      copied.schoolGrade = undefined;
+    } 
+    if (name === 'scheduleDayOfWeek') {
+      copied.scheduleId = undefined;
+    } 
     setStudentForm(copied);
   }, [studentForm]);
 
@@ -136,23 +129,21 @@ export default function Admin() {
       <FlexBox flexDirection="column">
         <FlexBox>학생등록</FlexBox>
       </FlexBox>
-        <FlexBox flexDirection="column" gap={1} fullWidth>
+        <FlexBox flexDirection="column" gap={1.25} fullWidth>
           <FormInput id="name" label="이름" value={studentForm.name} onChange={handleInputChange} />
 
           <FormSelect 
-            label="수업시간" 
             value={[studentForm.scheduleDayOfWeek, studentForm.scheduleId]} 
-            onChange={handleSelectSchedule} 
+            onChange={handleSelect} 
             items={[
-              {id: 'scheduleDayOfWeek', placeholder: '요일', options: (Array.from({length: 7}, (_, i) => i + 1)).map(num => ({value: mapNumberToDayOfWeek(num), label: mapNumberToDayOfWeek(num)}))},
-              {id: 'scheduleId', placeholder: '시간', options: (scheduleList || [] ).filter(schedule => schedule.dayOfWeek === studentForm.scheduleDayOfWeek).map(schedule => ({value: schedule.id, label: formatTime12Hour(schedule.startTime) + ' - ' + formatTime12Hour(schedule.endTime)}))}
+              {id: 'scheduleDayOfWeek', placeholder: '수업 요일', options: (Array.from({length: 7}, (_, i) => i + 1)).map(num => ({value: mapNumberToDayOfWeek(num), label: mapNumberToDayOfWeek(num)}))},
+              {id: 'scheduleId', placeholder: '수업 시간', options: (scheduleList || [] ).filter(schedule => schedule.dayOfWeek === studentForm.scheduleDayOfWeek).map(schedule => ({value: schedule.id, label: formatTime12Hour(schedule.startTime) + ' - ' + formatTime12Hour(schedule.endTime)}))}
             ]} 
           />
 
           <FormSelect 
-            label="학년" 
             value={[studentForm.schoolLevel, studentForm.schoolGrade]} 
-            onChange={handleSelectSchool} 
+            onChange={handleSelect} 
             items={[
               {id: 'schoolLevel', defaultValue: '1', options: [{value: '1', label: '초등학교'}, {value: '2', label: '중학교'}, {value: '3', label: '고등학교'}]},
               {id: 'schoolGrade' , placeholder: '학년', options: getSchoolGradeList(studentForm.schoolLevel).map(grade => ({value: grade.toString(), label: grade.toString()}))}
@@ -162,13 +153,12 @@ export default function Admin() {
           <FormInput id="schoolName" label="학교명" value={studentForm.schoolName} onChange={handleInputChange} />
 
           <FormSelect 
-            label="생년월일" 
             value={[studentForm.birthYear, studentForm.birthMonth, studentForm.birthDay]} 
-            onChange={handleSelectBirth} 
+            onChange={handleSelect} 
             items={[
-              {id: 'birthYear', placeholder: '년', options: Array.from({length: 20}, (_, i) => i).map(aaa => ({value: (nowYear - aaa).toString(), label: (nowYear - aaa).toString()}))},
-              {id: 'birthMonth', placeholder: '월', options: Array.from({length: 12}, (_, i) => i + 1).map(month => ({value: month.toString(), label: month.toString()}))}, 
-              {id: 'birthDay', placeholder: '일', options: Array.from({length: 31}, (_, i) => i + 1).map(day => ({value: day.toString(), label: day.toString()}))}] 
+              {id: 'birthYear', placeholder: '생년', options: Array.from({length: 20}, (_, i) => i).map(aaa => ({value: (nowYear - aaa).toString(), label: (nowYear - aaa).toString()}))},
+              {id: 'birthMonth', placeholder: '생월', options: Array.from({length: 12}, (_, i) => i + 1).map(month => ({value: month.toString(), label: month.toString()}))}, 
+              {id: 'birthDay', placeholder: '생일', options: Array.from({length: 31}, (_, i) => i + 1).map(day => ({value: day.toString(), label: day.toString()}))}] 
             } 
           />
 
@@ -177,7 +167,7 @@ export default function Admin() {
           <FormPhone id="parentPhone" label="부모님 연락처" value={studentForm.parentPhone} onChange={handlePhoneChange} />
         </FlexBox>
         <FlexBox>
-          <FlexBox button onClick={handleSubmit}>등록</FlexBox>
+          <Button disabled={submitButtonDisabled} variant="contained" onClick={handleSubmit}><AppleTg>등록</AppleTg></Button>
         </FlexBox>
     </FlexContainer>
   );
@@ -185,24 +175,16 @@ export default function Admin() {
 
 const FormInput = ({ id, label, value, onChange }: { id: string, label: string, value: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) => {
   return (
-    <FlexBox gap={1}>
-      <FlexBox center sx={{width: '10rem', border: '1px solid red'}}>{label}</FlexBox>
-      <FlexBox sx={{width: '20rem'}}><input type="text" id={id} value={value} onChange={onChange} style={{width: '100%'}} /></FlexBox>
-    </FlexBox>
+    <FlexBox sx={{width: '20rem'}}><TextField label={label} id={id} value={value} onChange={onChange} fullWidth /></FlexBox>
   )
 };
 
 const FormPhone = ({ id, label, value, onChange }: { id: string, label: string, value: string[], onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) => {
   return (
-    <FlexBox gap={1}>
-      <FlexBox center sx={{width: '10rem', border: '1px solid red'}}>{label}</FlexBox>
-      <FlexBox>
-        <FlexBox sx={{width: '4rem'}}><input type="text" id={id + '/0'} value={value[0]} onChange={onChange} style={{width: '100%', textAlign: 'center'}} /></FlexBox>
-        &nbsp;-&nbsp;
-        <FlexBox sx={{width: '4rem'}}><input type="text" id={id + '/1'} value={value[1]} onChange={onChange} style={{width: '100%', textAlign: 'center'}} /></FlexBox>
-        &nbsp;-&nbsp;
-        <FlexBox sx={{width: '4rem'}}><input type="text" id={id + '/2'} value={value[2]} onChange={onChange} style={{width: '100%', textAlign: 'center'}} /></FlexBox>
-      </FlexBox>
+    <FlexBox sx={{width: '20rem', gap: 1, justifyContent: 'center'}}>
+      <TextField label={label} type="text" id={id + '/0'} value={value[0]} onChange={onChange} />
+      <TextField type="text" id={id + '/1'} value={value[1]} onChange={onChange} />
+      <TextField type="text" id={id + '/2'} value={value[2]} onChange={onChange} />
     </FlexBox>
   )
 };
@@ -214,25 +196,39 @@ type SelectItemProps = {
   options: { value: string | number, label: string }[];
 }
 type FormSelectProps = {
-  label: string;
   value: string[] | (string | number | undefined)[];
-  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  onChange: (e: SelectChangeEvent, name: string) => void;
   items: SelectItemProps[];
 }
-const FormSelect = ({ label, value, onChange, items }: FormSelectProps) => {
+const FormSelect = ({ value, onChange, items }: FormSelectProps) => {
   return (
-    <FlexBox gap={1}>
-      <FlexBox center sx={{width: '10rem', border: '1px solid red'}}>{label}</FlexBox>
-      <FlexBox sx={{width: '20rem'}}>
-        {items.map((item, index) => (
-          <select key={item.id} id={item.id} value={value[index] || item.defaultValue || ''} onChange={onChange} style={{width: '100%', textAlign: 'center'}}>  
-            {item.placeholder && <option value="" style={{textAlign: 'center'}}>{item.placeholder}</option>}
+    <FlexBox sx={{width: '20rem', gap: 1}}>
+      {items.map((item, index) => (
+        <FormControl key={item.id} fullWidth sx={{minWidth: 0}}>
+          <InputLabel id={item.id}>{item.placeholder}</InputLabel>
+          <Select 
+            labelId={item.id} 
+            label={item.placeholder} 
+            value={value[index] || item.defaultValue || ''} 
+            onChange={(e: SelectChangeEvent) => onChange(e, item.id)} 
+            sx={{
+              width: '100%',
+              textAlign: 'center',
+              height: '3.5rem',
+              '& .MuiSelect-select': {
+                textAlign: 'center',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }
+            }}
+          >  
             {item.options.map(option => (
-              <option key={option.value} value={option.value} style={{textAlign: 'center'}}>{option.label}</option>
+              <MenuItem key={option.value} value={option.value} sx={{textAlign: 'center'}}><AppleTg>{option.label}</AppleTg></MenuItem>
             ))}
-          </select>
-        ))}
-      </FlexBox>
+          </Select>
+        </FormControl>
+      ))}
     </FlexBox>
   )
 };
