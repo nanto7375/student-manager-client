@@ -55,7 +55,7 @@ export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setS
   }, [selectedScheduleId]);
 
   return (
-    <FlexContainer width="9.5rem" sx={{borderRight: '0.5px solid #e0e0e0'}} flexDirection="column" alignItems="center">
+    <FlexContainer width="10.5rem" sx={{borderRight: '0.5px solid #e0e0e0'}} flexDirection="column" alignItems="center">
 
       <FlexBox flexDirection="column" gap={1} fullWidth>
         <FlexBox height="2.65rem" center sx={{position: 'relative'}}>
@@ -94,6 +94,7 @@ export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setS
         {todaySchedule.map((schedule) => (
           <FlexBox 
             key={schedule.id} 
+            onClick={() => handleScheduleClick(schedule)}
             height="3rem" 
             alignItems="center"
             justifyContent="flex-start" 
@@ -107,7 +108,6 @@ export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setS
                 transform: 'scale(1)',
               }
             }}
-            onClick={() => handleScheduleClick(schedule)}
           >
             <Link 
               to={`${ROUTES.SCHEDULE}/${schedule.id}?date=${selectedDate.format('YYMMDD')}`} 
@@ -115,7 +115,7 @@ export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setS
             >
               <AppleTg 
                 sx={{
-                  color: selectedScheduleId === schedule.id ? 'secondary.main' : 'gray', 
+                  color: selectedScheduleId === schedule.id ? 'black' : 'gray', 
                   fontWeight: selectedScheduleId === schedule.id ? '600' : '500',
                   paddingBottom: '0.2rem'
                 }}
