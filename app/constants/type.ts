@@ -4,3 +4,10 @@ export enum AdminRoleType {
   MANAGER = 'manager',
   STAFF = 'staff',
 }
+
+
+export enum SchoolLevel {
+  ELEMENTARY = 1,
+  MIDDLE = 2,
+  HIGH = 3,
+}

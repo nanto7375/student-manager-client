@@ -24,7 +24,7 @@ export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setS
   const [searchParams] = useSearchParams();
   const date = searchParams.get('date');
   
-  const [selectedDate, setSelectedDate] = React.useState(date ? dayjs(date, 'YYMMDD') : today);
+  const [selectedDate, setSelectedDate] = React.useState(date ? dayjs(date, 'YYYYMMDD') : today);
   const [openDateCalendar, setOpenDateCalendar] = React.useState(false);
   const isTodaySelected = React.useMemo(() => selectedDate.isSame(today, 'date'), [selectedDate]);
 
@@ -46,7 +46,7 @@ export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setS
     setSelectedDate(date);
     setSelectedSchedule(null);
     setOpenDateCalendar(false);
-    navigate(`${ROUTES.SCHEDULE}?date=${date.format('YYMMDD')}`);
+    navigate(`${ROUTES.SCHEDULE}?date=${date.format('YYYYMMDD')}`);
   }, []);
 
   const handleScheduleClick = React.useCallback((schedule: ScheduleType) => {
@@ -110,7 +110,7 @@ export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setS
             }}
           >
             <Link 
-              to={`${ROUTES.SCHEDULE}/${schedule.id}?date=${selectedDate.format('YYMMDD')}`} 
+              to={`${ROUTES.SCHEDULE}/${schedule.id}?date=${selectedDate.format('YYYYMMDD')}`} 
               style= {{width: '100%', height: '100%', display: 'flex', alignItems: 'center', paddingLeft: '1.35rem', }}
             >
               <AppleTg 
