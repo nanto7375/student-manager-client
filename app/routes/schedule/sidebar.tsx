@@ -9,7 +9,7 @@ import type { ScheduleType } from "./const";
 import { ROUTES } from "~/constants";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import { AppleTg } from "~/components/typography";
-import { formatTime12Hour, getDayOfWeekInKor, mapNumberToDayOfWeek } from "~/lib/utils/time.util";
+import { formatTime12Hour, getDayOfWeekInKor } from "~/lib/utils/time.util";
 
 const today = dayjs();
 
@@ -29,7 +29,7 @@ export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setS
   const isTodaySelected = React.useMemo(() => selectedDate.isSame(today, 'date'), [selectedDate]);
 
   const todaySchedule = React.useMemo(() => {
-    const dayOfWeek = mapNumberToDayOfWeek(selectedDate.day());
+    const dayOfWeek = selectedDate.day();
     return scheduleList
     .filter((schedule) => schedule.dayOfWeek === dayOfWeek)
     .sort((a, b) => a.startTime.localeCompare(b.startTime))
