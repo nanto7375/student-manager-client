@@ -132,6 +132,16 @@ export default function StudentActivityRecords() {
 
 const ActivityRecordButton = ({ value, buttonTextOn, buttonTextOff, onClick }: { value: boolean; buttonTextOn: string; buttonTextOff: string; onClick: () => void }) => {
   return (
-    <Button variant="contained" color="primary" size="small" disabled={value} sx={{ width: '50%' }} onClick={onClick}><AppleTg sx={{fontSize: '0.9rem'}}>{value ? buttonTextOff : buttonTextOn}</AppleTg></Button>
+    <Button 
+      variant="contained" 
+      color="primary" 
+      size="small" 
+      sx={{ width: '50%', backgroundColor: value ? 'gray' : 'primary' }} 
+      onClick={onClick}
+    >
+      <AppleTg sx={{fontSize: '0.9rem'}}>
+        {value ? buttonTextOff : buttonTextOn}
+      </AppleTg>
+    </Button>
   )
 }
