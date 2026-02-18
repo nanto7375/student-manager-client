@@ -65,12 +65,13 @@ export default function StudentActivityRecords() {
 
   const [updating, setUpdating] = React.useState(false);
 
-  const handleActivityRecordButtonClick = async ({activityId, activityType, value}: {activityId: number; activityType: 'attendance' | 'report1' | 'report2'; value: boolean}) => {
+  const handleActivityRecordButtonClick = async ({activityId, activityKey, value}: {activityId: number; activityKey: 'attendance' | 'report1' | 'report2'; value: boolean}) => {
     if (updating || isAfterToday) return;
     
     setUpdating(true);
     try {
-      await updateDailyActivityRecord.mutateAsync({ params: { activityId }, body: { [activityType]: value }});
+      const body = { activityKey: activityKey, activityValue: value };
+      await updateDailyActivityRecord.mutateAsync({ params: { activityId }, body });
     } catch (error) {
       console.error(error);
     } finally {
@@ -101,7 +102,7 @@ export default function StudentActivityRecords() {
                     value={activityRecord.attendance} 
                     buttonTextOn="출석" 
                     buttonTextOff="출석 완료" 
-                    onClick={() => handleActivityRecordButtonClick({activityId: activityRecord.id, activityType: 'attendance', value: !activityRecord.attendance})} 
+                    onClick={() => handleActivityRecordButtonClick({activityId: activityRecord.id, activityKey: 'attendance', value: !activityRecord.attendance})} 
                   />
                 </TableCell>
                 <TableCell align="center">
@@ -109,7 +110,7 @@ export default function StudentActivityRecords() {
                     value={activityRecord.report1} 
                     buttonTextOn="제출" 
                     buttonTextOff="제출 완료" 
-                    onClick={() => handleActivityRecordButtonClick({activityId: activityRecord.id, activityType: 'report1', value: !activityRecord.report1})} 
+                    onClick={() => handleActivityRecordButtonClick({activityId: activityRecord.id, activityKey: 'report1', value: !activityRecord.report1})} 
                   />
                 </TableCell>
                 <TableCell align="center">
@@ -117,7 +118,7 @@ export default function StudentActivityRecords() {
                     value={activityRecord.report2} 
                     buttonTextOn="제출" 
                     buttonTextOff="제출 완료" 
-                    onClick={() => handleActivityRecordButtonClick({activityId: activityRecord.id, activityType: 'report2', value: !activityRecord.report2})} 
+                    onClick={() => handleActivityRecordButtonClick({activityId: activityRecord.id, activityKey: 'report2', value: !activityRecord.report2})} 
                   />
                 </TableCell>
               </TableRow>
