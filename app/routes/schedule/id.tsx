@@ -130,7 +130,13 @@ export default function StudentActivityRecords() {
   )
 }
 
-const ActivityRecordButton = ({ value, buttonTextOn, buttonTextOff, onClick }: { value: boolean; buttonTextOn: string; buttonTextOff: string; onClick: () => void }) => {
+type ActivityRecordButtonProps = {
+  value: boolean;
+  buttonTextOn: string;
+  buttonTextOff: string;
+  onClick: () => void;
+}
+const ActivityRecordButton = ({ value, buttonTextOn, buttonTextOff, onClick }: ActivityRecordButtonProps) => {
   return (
     <Button 
       variant="contained" 
