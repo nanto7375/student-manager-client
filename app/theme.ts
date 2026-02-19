@@ -1,4 +1,4 @@
-import { green, brown } from '@mui/material/colors';
+import { green, brown, grey } from '@mui/material/colors';
 import { createTheme } from '@mui/material/styles';
 
 declare module '@mui/material/styles' {
@@ -104,6 +104,9 @@ const theme = createTheme({
     secondary: {
       main: brown[600],
     },
+    grey: {
+      500: grey[500],
+    }
   },
 });
 

@@ -7,6 +7,7 @@ import { TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Butto
 import { FlexContainer } from "~/components/styled-elements";
 import { AppleTg } from "~/components/typography";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useGlobalToast } from "~/providers/toast-provider";
 
 type StudentInActivityDto = {
   id: number;
@@ -47,15 +48,19 @@ export const clientLoader = async ({ params, request }: { params: { scheduleId: 
 const updateDailyActivityRecordApi = buildApi<DailyActivityRecordType>({ path: '/activities/:activityId', method: 'PATCH' });
 
 export default function StudentActivityRecords() {
-  const { scheduleId, date } = useLoaderData<typeof clientLoader>();
-  const isAfterToday = React.useMemo(() => dayjs().isBefore(dayjs(date), 'date'), [date]); // 미래 여부
-  
   const queryClient = useQueryClient();
+  const { scheduleId, date } = useLoaderData<typeof clientLoader>();
+  const toast = useGlobalToast();
+
+  const isAfterToday = React.useMemo(() => dayjs().isBefore(dayjs(date), 'date'), [date]); // 미래 여부
+  const [updating, setUpdating] = React.useState(false);
+  
   const { data: activityRecords = [], isLoading } = useQuery({
     queryKey: dailyActivityRecordsQueryKey(scheduleId, date),
     queryFn: () => getDailyActivityRecords({ query: { scheduleId, date } }),
     enabled: !!scheduleId && !!date,
   });
+
   const updateDailyActivityRecord = useMutation({
     mutationFn: updateDailyActivityRecordApi,
     onSuccess: () => {
@@ -63,10 +68,9 @@ export default function StudentActivityRecords() {
     },
   });
 
-  const [updating, setUpdating] = React.useState(false);
-
   const handleActivityRecordButtonClick = async ({activityId, activityKey, value}: {activityId: number; activityKey: 'attendance' | 'report1' | 'report2'; value: boolean}) => {
-    if (updating || isAfterToday) return;
+    if (updating ) return;
+    if (isAfterToday) return toast.info('미래의 날짜는 활동을 업데이트할 수 없습니다.');
     
     setUpdating(true);
     try {
@@ -74,6 +78,10 @@ export default function StudentActivityRecords() {
       await updateDailyActivityRecord.mutateAsync({ params: { activityId }, body });
     } catch (error) {
       console.error(error);
+      toast.error(error.status >= 500 ? 
+        `서버에 문제가 발생했습니다.(${error.message})` : 
+        '출석 기록 업데이트에 실패했습니다.'
+      );
     } finally {
       setUpdating(false);
     }
@@ -140,9 +148,8 @@ const ActivityRecordButton = ({ value, buttonTextOn, buttonTextOff, onClick }: A
   return (
     <Button 
       variant="contained" 
-      color="primary" 
       size="small" 
-      sx={{ width: '50%', backgroundColor: value ? 'gray' : 'primary' }} 
+      sx={{ width: '50%', backgroundColor: value ? 'grey.500' : 'primary' }} 
       onClick={onClick}
     >
       <AppleTg sx={{fontSize: '0.9rem'}}>
