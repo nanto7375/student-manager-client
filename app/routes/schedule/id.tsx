@@ -19,18 +19,17 @@ type StudentInActivityDto = {
   schoolGrade: number;
 };
 
-type DailyActivityCheck = {
-  attendance: boolean;
-  report1: boolean;
-  report2: boolean;
-};
-
 /**
  * isMakeup: 보충 수업 여부
  * attendance: 출석 여부
  * report: 감상문 제출 여부
  * report2: 주간 레오 제출 여부
  */
+type DailyActivityCheck = {
+  attendance: boolean;
+  report1: boolean;
+  report2: boolean;
+};
 type DailyActivityRecordType = DailyActivityCheck & {
   id: number;
   student: StudentInActivityDto;
