@@ -19,20 +19,23 @@ type StudentInActivityDto = {
   schoolGrade: number;
 };
 
+type DailyActivityCheck = {
+  attendance: boolean;
+  report1: boolean;
+  report2: boolean;
+};
+
 /**
  * isMakeup: 보충 수업 여부
  * attendance: 출석 여부
  * report: 감상문 제출 여부
  * report2: 주간 레오 제출 여부
  */
-type DailyActivityRecordType = {
+type DailyActivityRecordType = DailyActivityCheck & {
   id: number;
   student: StudentInActivityDto;
   date: string;
-  isMakeup: boolean;  
-  attendance: boolean;  
-  report1: boolean;   
-  report2: boolean;  
+  isMakeup: boolean;
 };
 
 const getDailyActivityRecords = buildApi<DailyActivityRecordType[]>({ path: '/activities', method: 'GET' });
@@ -68,7 +71,7 @@ export default function StudentActivityRecords() {
     },
   });
 
-  const handleActivityRecordButtonClick = async ({activityId, activityKey, value}: {activityId: number; activityKey: 'attendance' | 'report1' | 'report2'; value: boolean}) => {
+  const handleActivityRecordButtonClick = async ({activityId, activityKey, value}: {activityId: number; activityKey: keyof DailyActivityCheck; value: boolean}) => {
     if (updating ) return;
     if (isAfterToday) return toast.info('미래의 날짜는 활동을 업데이트할 수 없습니다.');
     
