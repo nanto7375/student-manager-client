@@ -1,12 +1,13 @@
 import React from "react";
 import { useLoaderData } from "react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Button } from "@mui/material";
 import dayjs from "dayjs";
+
 import type { SchoolLevel } from "~/constants/type";
 import { buildApi } from "~/lib/api-builder";
-import { TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Button } from "@mui/material";
 import { FlexContainer } from "~/components/styled-elements";
 import { AppleTg } from "~/components/typography";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useGlobalToast } from "~/providers/toast-provider";
 
 type StudentInActivityDto = {
@@ -24,20 +25,53 @@ type StudentInActivityDto = {
  * attendance: 출석 여부
  * report: 감상문 제출 여부
  * report2: 주간 레오 제출 여부
+ * monthlyProject: 월간 레오 참여 여부
+ * monthlyPreview: 월간 레오 개요 제출 여부
+ * monthlyReport: 월간 레오 감상문 제출 여부
  */
 type DailyActivityCheck = {
   attendance: boolean;
   report1: boolean;
   report2: boolean;
+  monthlyProject: boolean;
+  monthlyPreview: boolean;
+  monthlyReport: boolean;
 };
+type BookRental = {
+  id: number;
+  bookTitle: string | null;
+  borrowedAt: Date;
+}
 type DailyActivityRecordType = DailyActivityCheck & {
   id: number;
   student: StudentInActivityDto;
   date: string;
   isMakeup: boolean;
+  borrowedBook: BookRental | null;
 };
 
+const DailyActivityKey: Record<string, keyof DailyActivityCheck> = {
+  ATTENDANCE: 'attendance',
+  REPORT1: 'report1',
+  REPORT2: 'report2',
+  MONTHLY_PROJECT: 'monthlyProject',
+  MONTHLY_PREVIEW: 'monthlyPreview',
+  MONTHLY_REPORT: 'monthlyReport',
+}
+
 const getDailyActivityRecords = buildApi<DailyActivityRecordType[]>({ path: '/activities', method: 'GET' });
+
+const monthlyProjectStatusText = (record: DailyActivityRecordType) => {
+  if (!record.monthlyProject) return '참여';
+  if (!record.monthlyPreview) return '개요 제출';
+  else if (!record.monthlyReport) return '감상문 제출';
+}
+
+const monthlyProjectNextKey = (record: DailyActivityRecordType): keyof DailyActivityCheck => {
+  if (!record.monthlyProject) return DailyActivityKey.MONTHLY_PROJECT;
+  if (!record.monthlyPreview) return DailyActivityKey.MONTHLY_PREVIEW;
+  else if (!record.monthlyReport) return DailyActivityKey.MONTHLY_REPORT;
+}
 
 const dailyActivityRecordsQueryKey = (scheduleId: string, date: string | null) =>
   ['dailyActivityRecords', scheduleId, date] as const;
@@ -71,7 +105,7 @@ export default function StudentActivityRecords() {
   });
 
   const handleActivityRecordButtonClick = async ({activityId, activityKey, value}: {activityId: number; activityKey: keyof DailyActivityCheck; value: boolean}) => {
-    if (updating ) return;
+    if (updating) return;
     if (isAfterToday) return toast.info('미래의 날짜는 활동을 업데이트할 수 없습니다.');
     
     setUpdating(true);
@@ -85,7 +119,7 @@ export default function StudentActivityRecords() {
         '출석 기록 업데이트에 실패했습니다.'
       );
     } finally {
-      setUpdating(false);
+      setTimeout(() => setUpdating(false), 500);
     }
   }
 
@@ -97,22 +131,28 @@ export default function StudentActivityRecords() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell width="20%" align="center"><AppleTg>이름</AppleTg></TableCell>
-              <TableCell width="20%" align="center"><AppleTg>출석</AppleTg></TableCell>
-              <TableCell width="20%" align="center"><AppleTg>감상문</AppleTg></TableCell>
-              <TableCell width="20%" align="center"><AppleTg>주간 레오</AppleTg></TableCell>
+              <TableCell width="17%" align="center"><AppleTg>이름</AppleTg></TableCell>
+              <TableCell width="17%" align="center"><AppleTg>출석</AppleTg></TableCell>
+              <TableCell width="17%" align="center"><AppleTg>감상문</AppleTg></TableCell>
+              <TableCell width="17%" align="center"><AppleTg>주간 레오</AppleTg></TableCell>
+              <TableCell width="17%" align="center"><AppleTg>월간 레오</AppleTg></TableCell>
+              <TableCell width="15%" align="center">기타</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {activityRecords.map((activityRecord) => (
               <TableRow key={activityRecord.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                <TableCell align="center"><AppleTg sx={{fontSize: '0.9rem'}}>{activityRecord.student.name} ({activityRecord.student.schoolName} {activityRecord.student.schoolGrade}학년)</AppleTg></TableCell>
+                <TableCell align="center"><AppleTg sx={{fontSize: '0.9rem'}}><div>{activityRecord.student.name}</div><div>({activityRecord.student.schoolName} {activityRecord.student.schoolGrade}학년)</div></AppleTg></TableCell>
                 <TableCell align="center">
                   <ActivityRecordButton 
                     value={activityRecord.attendance} 
-                    buttonTextOn="출석" 
+                    buttonTextOn={`출석${activityRecord.isMakeup ? ' (보충)' : ''}`} 
                     buttonTextOff="출석 완료" 
-                    onClick={() => handleActivityRecordButtonClick({activityId: activityRecord.id, activityKey: 'attendance', value: !activityRecord.attendance})} 
+                    onClick={() => handleActivityRecordButtonClick({
+                      activityId: activityRecord.id, 
+                      activityKey: DailyActivityKey.ATTENDANCE, 
+                      value: !activityRecord.attendance
+                    })} 
                   />
                 </TableCell>
                 <TableCell align="center">
@@ -120,7 +160,11 @@ export default function StudentActivityRecords() {
                     value={activityRecord.report1} 
                     buttonTextOn="제출" 
                     buttonTextOff="제출 완료" 
-                    onClick={() => handleActivityRecordButtonClick({activityId: activityRecord.id, activityKey: 'report1', value: !activityRecord.report1})} 
+                    onClick={() => handleActivityRecordButtonClick({
+                      activityId: activityRecord.id, 
+                      activityKey: DailyActivityKey.REPORT1, 
+                      value: !activityRecord.report1
+                    })} 
                   />
                 </TableCell>
                 <TableCell align="center">
@@ -128,8 +172,27 @@ export default function StudentActivityRecords() {
                     value={activityRecord.report2} 
                     buttonTextOn="제출" 
                     buttonTextOff="제출 완료" 
-                    onClick={() => handleActivityRecordButtonClick({activityId: activityRecord.id, activityKey: 'report2', value: !activityRecord.report2})} 
+                    onClick={() => handleActivityRecordButtonClick({
+                      activityId: activityRecord.id, 
+                      activityKey: DailyActivityKey.REPORT2, 
+                      value: !activityRecord.report2
+                    })} 
                   />
+                </TableCell>
+                <TableCell align="center">
+                  <ActivityRecordButton 
+                    value={activityRecord.monthlyProject && activityRecord.monthlyPreview && activityRecord.monthlyReport} 
+                    buttonTextOn={monthlyProjectStatusText(activityRecord)} 
+                    buttonTextOff="참여 완료"
+                    onClick={() => handleActivityRecordButtonClick({
+                      activityId: activityRecord.id, 
+                      activityKey: monthlyProjectNextKey(activityRecord), 
+                      value: !activityRecord[monthlyProjectNextKey(activityRecord)]
+                    })}
+                  />
+                </TableCell>
+                <TableCell align="center">
+                  {activityRecord.borrowedBook ? '책 대여중': '대여 가능'}
                 </TableCell>
               </TableRow>
             ))}
@@ -143,7 +206,7 @@ export default function StudentActivityRecords() {
 type ActivityRecordButtonProps = {
   value: boolean;
   buttonTextOn: string;
-  buttonTextOff: string;
+  buttonTextOff: string | React.ReactNode;
   onClick: () => void;
 }
 const ActivityRecordButton = ({ value, buttonTextOn, buttonTextOff, onClick }: ActivityRecordButtonProps) => {
@@ -151,12 +214,10 @@ const ActivityRecordButton = ({ value, buttonTextOn, buttonTextOff, onClick }: A
     <Button 
       variant="contained" 
       size="small" 
-      sx={{ width: '50%', backgroundColor: value ? 'grey.500' : 'primary' }} 
+      sx={{ width: '75%', backgroundColor: value ? 'grey.500' : 'primary' }} 
       onClick={onClick}
     >
-      <AppleTg sx={{fontSize: '0.9rem'}}>
-        {value ? buttonTextOff : buttonTextOn}
-      </AppleTg>
+      <AppleTg sx={{fontSize: '0.9rem'}}>{value ? buttonTextOff : buttonTextOn}</AppleTg>
     </Button>
   )
 }
