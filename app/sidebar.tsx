@@ -77,7 +77,7 @@ export default function SideBar() {
 
   return (
     <FlexContainer 
-      width="8.25rem" 
+      width="7rem" 
       fullHeight 
       flexDirection="column" 
       justifyContent="space-between" 

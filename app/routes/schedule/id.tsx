@@ -129,19 +129,19 @@ export default function StudentActivityRecords() {
     <FlexContainer padding="1rem" fullWidth fullHeight>
       <TableContainer className='non-overflow-scroll' sx={{
         border: '1px solid #ddd',
-        borderRadius: '4px',
+        borderRadius: '0.25rem',
         overflowY: 'scroll',
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
       }}>
         <Table stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell width="17%" align="center" sx={{ py: 1 }}><AppleTg>이름</AppleTg></TableCell>
+              <TableCell width="18%" align="center" sx={{ py: 1 }}><AppleTg>이름</AppleTg></TableCell>
               <TableCell width="17%" align="center" sx={{ py: 1 }}><AppleTg>출석</AppleTg></TableCell>
               <TableCell width="17%" align="center" sx={{ py: 1 }}><AppleTg>감상문</AppleTg></TableCell>
               <TableCell width="17%" align="center" sx={{ py: 1 }}><AppleTg>주간 레오</AppleTg></TableCell>
               <TableCell width="17%" align="center" sx={{ py: 1 }}><AppleTg>월간 레오</AppleTg></TableCell>
-              <TableCell width="15%" align="center" sx={{ py: 1 }}>기타</TableCell>
+              <TableCell width="14%" align="center" sx={{ py: 1 }}>기타</TableCell>
             </TableRow>
           </TableHead>
           <TableBody sx={{}}>

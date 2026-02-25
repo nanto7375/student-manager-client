@@ -10,11 +10,19 @@ import { type ScheduleType } from "./const";
 import { formatTime12Hour, getDayOfWeekInKor } from "~/lib/utils/time.util";
 import { AppleTg } from "~/components/typography";
 import { Outlet, useLocation } from "react-router";
+import { useGlobalToast } from "~/providers/toast-provider";
 
 const getScheduleListApi = buildApi<ScheduleType[]>({ path: '/schedules', method: 'GET' });
 
 export const useScheduleList = () => {
   const { data: scheduleList, error: scheduleListError, isLoading: scheduleListLoading } = useQuery({ queryKey: ['schedule-list'], queryFn: () => getScheduleListApi(), staleTime: Infinity });
+  const toast = useGlobalToast();
+
+  React.useEffect(() => {
+    if (!scheduleListError) return;
+    toast.error('스케줄 목록을 불러오는 데 실패했습니다.');
+  }, [scheduleListError])
+
   return { scheduleList, scheduleListError, scheduleListLoading };
 }
 
@@ -29,18 +37,21 @@ export default function Schedule() {
   const [selectedSchedule, setSelectedSchedule] = React.useState<ScheduleType | null>(null);
   const [sidebarFolded, setSidebarFolded] = React.useState(false);
 
-  if (scheduleListLoading || scheduleListError) {
-    return (
-      <FlexContainer center fullHeight fullWidth>
-        <h1>Loading...</h1>
-      </FlexContainer>
-    );
+  if (scheduleListLoading) {
+    return (<FlexContainer center fullHeight fullWidth></FlexContainer>);
   }
-
+  if (scheduleListError) {
+    return (<FlexContainer center fullHeight fullWidth><AppleTg>Loading...</AppleTg></FlexContainer>);
+  }
   return (
     <FlexContainer fullHeight fullWidth>
       {!sidebarFolded && 
-        <ScheduleSidebar scheduleList={scheduleList} selectedScheduleId={selectedScheduleId} setSelectedSchedule={setSelectedSchedule} foldSidebar={() => setSidebarFolded(true)} />  
+        <ScheduleSidebar 
+          scheduleList={scheduleList} 
+          selectedScheduleId={selectedScheduleId} 
+          setSelectedSchedule={setSelectedSchedule} 
+          foldSidebar={() => setSidebarFolded(true)} 
+        />  
       }
       
       <FlexContainer flexDirection="column"> 
@@ -61,7 +72,7 @@ export default function Schedule() {
           </FlexBox>
         }
 
-        <FlexBox width="100%" height="100%">
+        <FlexBox fullHeight fullWidth>
           <Outlet />
         </FlexBox>
       </FlexContainer>
