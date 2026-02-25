@@ -151,8 +151,8 @@ export default function StudentActivityRecords() {
                 <TableCell align="center">
                   <ActivityRecordButton 
                     value={activityRecord.attendance} 
-                    buttonTextOn={`출석${activityRecord.isMakeup ? ' (보충)' : ''}`} 
-                    buttonTextOff="출석 완료" 
+                    buttonTextOn={`출석${activityRecord.isMakeup ? ' (보강)' : ''}`} 
+                    buttonTextOff={`${activityRecord.isMakeup ? '보강' : '출석'} 완료`}
                     onClick={() => handleActivityRecordButtonClick({
                       activityId: activityRecord.id, 
                       activityKey: DailyActivityKey.ATTENDANCE, 
