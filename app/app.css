@@ -34,6 +34,13 @@
   unicode-range: U+0020-007E, U+AC00-D7A3; 
 }
 
+html, body {
+  /* iOS에서 페이지 바운스 효과 방지 */
+  /* overscroll-behavior-y: none; */
+  overflow: scroll;
+  height: 100%;
+}
+
 body {
   -webkit-user-select:none;
   -moz-user-select:none;
@@ -43,6 +50,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  scrollbar-width: none;
 }
 
 /* 모든 텍스트 요소에 폰트 렌더링 최적화 적용 */
@@ -91,6 +99,12 @@ textarea {
   }
 }
 
+.non-overflow-scroll {
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
 @keyframes fadeIn {
   0% {
     opacity: 0;
@@ -126,7 +140,8 @@ a {
   text-decoration: none;
 }
 
-/* 
+
+/*
 * {
   box-sizing: border-box;
   padding: 0;

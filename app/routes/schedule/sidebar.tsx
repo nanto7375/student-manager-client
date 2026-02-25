@@ -55,7 +55,7 @@ export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setS
   }, [selectedScheduleId]);
 
   return (
-    <FlexContainer width="10.5rem" sx={{borderRight: '0.5px solid #e0e0e0'}} flexDirection="column" alignItems="center">
+    <FlexContainer width="10rem" flexDirection="column" alignItems="center">
 
       <FlexBox flexDirection="column" gap={1} fullWidth>
         <FlexBox height="2.65rem" center sx={{position: 'relative'}}>

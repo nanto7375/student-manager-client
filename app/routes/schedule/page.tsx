@@ -61,7 +61,7 @@ export default function Schedule() {
           </FlexBox>
         }
 
-        <FlexBox width="100%" height="100%" sx={{border: '1px solid blue'}}>
+        <FlexBox width="100%" height="100%">
           <Outlet />
         </FlexBox>
       </FlexContainer>

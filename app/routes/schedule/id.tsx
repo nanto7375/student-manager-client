@@ -106,7 +106,7 @@ export default function StudentActivityRecords() {
 
   const handleActivityRecordButtonClick = async ({activityId, activityKey, value}: {activityId: number; activityKey: keyof DailyActivityCheck; value: boolean}) => {
     if (updating) return;
-    if (isAfterToday) return toast.info('미래의 날짜는 활동을 업데이트할 수 없습니다.');
+    if (isAfterToday) return toast.info('미래 날짜의 활동은 업데이트할 수 없습니다.');
     
     setUpdating(true);
     try {
@@ -116,33 +116,38 @@ export default function StudentActivityRecords() {
       console.error(error);
       toast.error(error.status >= 500 ? 
         `서버에 문제가 발생했습니다.(${error.message})` : 
-        '출석 기록 업데이트에 실패했습니다.'
+        '활동 기록 업데이트에 실패했습니다.'
       );
     } finally {
-      setTimeout(() => setUpdating(false), 500);
+      setTimeout(() => setUpdating(false), 300);
     }
   }
 
   // if (isLoading) return null; // 또는 로딩 UI
 
   return (
-    <FlexContainer padding="1rem">
-      <TableContainer>
-        <Table>
+    <FlexContainer padding="1rem" fullWidth fullHeight>
+      <TableContainer className='non-overflow-scroll' sx={{
+        border: '1px solid #ddd',
+        borderRadius: '4px',
+        overflowY: 'scroll',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+      }}>
+        <Table stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell width="17%" align="center"><AppleTg>이름</AppleTg></TableCell>
-              <TableCell width="17%" align="center"><AppleTg>출석</AppleTg></TableCell>
-              <TableCell width="17%" align="center"><AppleTg>감상문</AppleTg></TableCell>
-              <TableCell width="17%" align="center"><AppleTg>주간 레오</AppleTg></TableCell>
-              <TableCell width="17%" align="center"><AppleTg>월간 레오</AppleTg></TableCell>
-              <TableCell width="15%" align="center">기타</TableCell>
+              <TableCell width="17%" align="center" sx={{ py: 1 }}><AppleTg>이름</AppleTg></TableCell>
+              <TableCell width="17%" align="center" sx={{ py: 1 }}><AppleTg>출석</AppleTg></TableCell>
+              <TableCell width="17%" align="center" sx={{ py: 1 }}><AppleTg>감상문</AppleTg></TableCell>
+              <TableCell width="17%" align="center" sx={{ py: 1 }}><AppleTg>주간 레오</AppleTg></TableCell>
+              <TableCell width="17%" align="center" sx={{ py: 1 }}><AppleTg>월간 레오</AppleTg></TableCell>
+              <TableCell width="15%" align="center" sx={{ py: 1 }}>기타</TableCell>
             </TableRow>
           </TableHead>
-          <TableBody>
-            {activityRecords.map((activityRecord) => (
+          <TableBody sx={{}}>
+            {[...activityRecords, ...activityRecords, ...activityRecords, ...activityRecords, ...activityRecords, ...activityRecords].map((activityRecord) => (
               <TableRow key={activityRecord.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                <TableCell align="center"><AppleTg sx={{fontSize: '0.9rem'}}><div>{activityRecord.student.name}</div><div>({activityRecord.student.schoolName} {activityRecord.student.schoolGrade}학년)</div></AppleTg></TableCell>
+                <TableCell align="center"><AppleTg sx={{fontSize: '0.9rem'}}><div>{activityRecord.student.name}</div><div>({activityRecord.student.schoolName.replace('초등학교', '초').replace('중학교', '중').replace('고등학교', '고')} {activityRecord.student.schoolGrade}학년)</div></AppleTg></TableCell>
                 <TableCell align="center">
                   <ActivityRecordButton 
                     value={activityRecord.attendance} 
@@ -214,7 +219,7 @@ const ActivityRecordButton = ({ value, buttonTextOn, buttonTextOff, onClick }: A
     <Button 
       variant="contained" 
       size="small" 
-      sx={{ width: '75%', backgroundColor: value ? 'grey.500' : 'primary' }} 
+      sx={{ width: '100%', backgroundColor: value ? 'grey.500' : 'primary' }} 
       onClick={onClick}
     >
       <AppleTg sx={{fontSize: '0.9rem'}}>{value ? buttonTextOff : buttonTextOn}</AppleTg>
