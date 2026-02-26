@@ -29,7 +29,7 @@ type StudentInActivityDto = {
  * monthlyPreview: 월간 레오 개요 제출 여부
  * monthlyReport: 월간 레오 감상문 제출 여부
  */
-type DailyActivityCheck = {
+type ActivityCheck = {
   attendance: boolean;
   report1: boolean;
   report2: boolean;
@@ -42,7 +42,7 @@ type BookRental = {
   bookTitle: string | null;
   borrowedAt: Date;
 }
-type DailyActivityRecordType = DailyActivityCheck & {
+type ActivityRecordType = ActivityCheck & {
   id: number;
   student: StudentInActivityDto;
   date: string;
@@ -50,7 +50,7 @@ type DailyActivityRecordType = DailyActivityCheck & {
   borrowedBook: BookRental | null;
 };
 
-const DailyActivityKey: Record<string, keyof DailyActivityCheck> = {
+const ActivityKey: Record<string, keyof ActivityCheck> = {
   ATTENDANCE: 'attendance',
   REPORT1: 'report1',
   REPORT2: 'report2',
@@ -59,29 +59,30 @@ const DailyActivityKey: Record<string, keyof DailyActivityCheck> = {
   MONTHLY_REPORT: 'monthlyReport',
 }
 
-const getDailyActivityRecords = buildApi<DailyActivityRecordType[]>({ path: '/activities', method: 'GET' });
+const getActivityRecords = buildApi<ActivityRecordType[]>({ path: '/activities', method: 'GET' });
 
-const monthlyProjectStatusText = (record: DailyActivityRecordType) => {
+const monthlyProjectStatusText = (record: ActivityRecordType) => {
   if (!record.monthlyProject) return '참여';
   if (!record.monthlyPreview) return '개요 제출';
   else if (!record.monthlyReport) return '감상문 제출';
 }
 
-const monthlyProjectNextKey = (record: DailyActivityRecordType): keyof DailyActivityCheck => {
-  if (!record.monthlyProject) return DailyActivityKey.MONTHLY_PROJECT;
-  if (!record.monthlyPreview) return DailyActivityKey.MONTHLY_PREVIEW;
-  else if (!record.monthlyReport) return DailyActivityKey.MONTHLY_REPORT;
+const monthlyProjectNextKey = (record: ActivityRecordType): keyof ActivityCheck => {
+  if (!record.monthlyProject) return ActivityKey.MONTHLY_PROJECT;
+  if (!record.monthlyPreview) return ActivityKey.MONTHLY_PREVIEW;
+  else if (!record.monthlyReport) return ActivityKey.MONTHLY_REPORT;
+  return ActivityKey.MONTHLY_PROJECT; // 이미 모두 완료된 경우 다시 참여로 변경 가능
 }
 
-const dailyActivityRecordsQueryKey = (scheduleId: string, date: string | null) =>
-  ['dailyActivityRecords', scheduleId, date] as const;
+const activityRecordsQueryKey = (scheduleId: string, date: string | null) =>
+  ['activityRecords', scheduleId, date] as const;
 
 export const clientLoader = async ({ params, request }: { params: { scheduleId: string }; request: Request }) => {
   const date = new URL(request.url).searchParams.get('date') ?? dayjs().format('YYYYMMDD'); // YYYYMMDD
   return { scheduleId: params.scheduleId, date };
 }
 
-const updateDailyActivityRecordApi = buildApi<DailyActivityRecordType>({ path: '/activities/:activityId', method: 'PATCH' });
+const updateActivityRecordApi = buildApi<ActivityRecordType>({ path: '/activities/:activityId', method: 'PATCH' });
 
 export default function StudentActivityRecords() {
   const queryClient = useQueryClient();
@@ -92,26 +93,27 @@ export default function StudentActivityRecords() {
   const [updating, setUpdating] = React.useState(false);
   
   const { data: activityRecords = [], isLoading } = useQuery({
-    queryKey: dailyActivityRecordsQueryKey(scheduleId, date),
-    queryFn: () => getDailyActivityRecords({ query: { scheduleId, date } }),
+    queryKey: activityRecordsQueryKey(scheduleId, date),
+    queryFn: () => getActivityRecords({ query: { scheduleId, date } }),
     enabled: !!scheduleId && !!date,
   });
 
-  const updateDailyActivityRecord = useMutation({
-    mutationFn: updateDailyActivityRecordApi,
+  const updateActivityRecord = useMutation({
+    mutationFn: updateActivityRecordApi,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: dailyActivityRecordsQueryKey(scheduleId, date) });
+      queryClient.invalidateQueries({ queryKey: activityRecordsQueryKey(scheduleId, date) });
     },
   });
 
-  const handleActivityRecordButtonClick = async ({activityId, activityKey, value}: {activityId: number; activityKey: keyof DailyActivityCheck; value: boolean}) => {
+  const handleActivityRecordButtonClick = async ({activityId, activityKey, value}: {activityId: number; activityKey: keyof ActivityCheck; value: boolean}) => {
     if (updating) return;
     if (isAfterToday) return toast.info('미래 날짜의 활동은 업데이트할 수 없습니다.');
     
     setUpdating(true);
     try {
       const body = { activityKey: activityKey, activityValue: value };
-      await updateDailyActivityRecord.mutateAsync({ params: { activityId }, body });
+      const isMonthlyProjectKey = [ActivityKey.MONTHLY_PREVIEW, ActivityKey.MONTHLY_REPORT, ActivityKey.MONTHLY_PROJECT].includes(activityKey);
+      await updateActivityRecord.mutateAsync({ params: { activityId }, body, query: { monthly: isMonthlyProjectKey } });
     } catch (error) {
       console.error(error);
       toast.error(error.status >= 500 ? 
@@ -155,7 +157,7 @@ export default function StudentActivityRecords() {
                     buttonTextOff={`${activityRecord.isMakeup ? '보강' : '출석'} 완료`}
                     onClick={() => handleActivityRecordButtonClick({
                       activityId: activityRecord.id, 
-                      activityKey: DailyActivityKey.ATTENDANCE, 
+                      activityKey: ActivityKey.ATTENDANCE, 
                       value: !activityRecord.attendance
                     })} 
                   />
@@ -167,7 +169,7 @@ export default function StudentActivityRecords() {
                     buttonTextOff="제출 완료" 
                     onClick={() => handleActivityRecordButtonClick({
                       activityId: activityRecord.id, 
-                      activityKey: DailyActivityKey.REPORT1, 
+                      activityKey: ActivityKey.REPORT1, 
                       value: !activityRecord.report1
                     })} 
                   />
@@ -179,7 +181,7 @@ export default function StudentActivityRecords() {
                     buttonTextOff="제출 완료" 
                     onClick={() => handleActivityRecordButtonClick({
                       activityId: activityRecord.id, 
-                      activityKey: DailyActivityKey.REPORT2, 
+                      activityKey: ActivityKey.REPORT2, 
                       value: !activityRecord.report2
                     })} 
                   />
