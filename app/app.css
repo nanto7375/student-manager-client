@@ -35,8 +35,6 @@
 }
 
 html, body {
-  /* iOS에서 페이지 바운스 효과 방지 */
-  /* overscroll-behavior-y: none; */
   overflow: scroll;
   height: 100%;
 }
@@ -46,11 +44,18 @@ body {
   -moz-user-select:none;
   -ms-user-select:none;
   user-select:none;
+
   /* iOS 웹뷰에서 폰트 렌더링 개선 */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+
+  /* 스크롤바 숨기기 */
   scrollbar-width: none;
+  /* -ms-overflow-style: none; */
+  /* ::-webkit-scrollbar { display: none; } */
+  /* .box { -ms-overflow-style: none; } */
+  /* .box::-webkit-scrollbar { display:none; } */
 }
 
 /* 모든 텍스트 요소에 폰트 렌더링 최적화 적용 */
@@ -68,6 +73,13 @@ img {
   -moz-user-select:text;
   -ms-user-select:text;
   user-select:text;
+}
+
+/* iOS에서 페이지 바운스 효과 방지 */
+.non-overflow-scroll {
+  overscroll-behavior-y: none;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 
 ::placeholder {
@@ -97,12 +109,6 @@ textarea {
     transform: translate(-50%, 0);
     opacity: 1;
   }
-}
-
-.non-overflow-scroll {
-  overscroll-behavior-y: none;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
 }
 
 @keyframes fadeIn {

@@ -55,7 +55,7 @@ export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setS
   }, [selectedScheduleId]);
 
   return (
-    <FlexContainer width="10rem" flexDirection="column" alignItems="center">
+    <FlexContainer width="9rem" flexDirection="column" alignItems="center">
 
       <FlexBox flexDirection="column" gap={1} fullWidth>
         <FlexBox height="2.65rem" center sx={{position: 'relative'}}>
@@ -111,7 +111,7 @@ export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setS
           >
             <Link 
               to={`${ROUTES.SCHEDULE}/${schedule.id}?date=${selectedDate.format('YYYYMMDD')}`} 
-              style= {{width: '100%', height: '100%', display: 'flex', alignItems: 'center', paddingLeft: '1.35rem', }}
+              style= {{width: '100%', height: '100%', display: 'flex', alignItems: 'center', paddingLeft: '1rem'}}
             >
               <AppleTg 
                 sx={{

@@ -20,6 +20,7 @@ export const useScheduleList = () => {
 
   React.useEffect(() => {
     if (!scheduleListError) return;
+    console.error(scheduleListError);
     toast.error('스케줄 목록을 불러오는 데 실패했습니다.');
   }, [scheduleListError])
 
@@ -37,12 +38,8 @@ export default function Schedule() {
   const [selectedSchedule, setSelectedSchedule] = React.useState<ScheduleType | null>(null);
   const [sidebarFolded, setSidebarFolded] = React.useState(false);
 
-  if (scheduleListLoading) {
-    return (<FlexContainer center fullHeight fullWidth></FlexContainer>);
-  }
-  if (scheduleListError) {
-    return (<FlexContainer center fullHeight fullWidth><AppleTg>Loading...</AppleTg></FlexContainer>);
-  }
+  if (scheduleListLoading) return (<FlexContainer center fullHeight fullWidth></FlexContainer>);
+  if (scheduleListError) return (<FlexContainer center fullHeight fullWidth><AppleTg>Loading...</AppleTg></FlexContainer>);
   return (
     <FlexContainer fullHeight fullWidth>
       {!sidebarFolded && 
