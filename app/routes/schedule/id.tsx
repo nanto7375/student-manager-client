@@ -83,6 +83,9 @@ export const clientLoader = async ({ params, request }: { params: { scheduleId: 
 }
 
 const updateActivityRecordApi = buildApi<ActivityRecordType>({ path: '/activities/:activityId', method: 'PATCH' });
+const borrowBookApi = buildApi<void>({ path: '/book-rentals', method: 'POST' });
+const updateBookRentalInfoApi = buildApi<void>({ path: '/book-rentals/:bookRentalId', method: 'PATCH' });
+const returnBookApi = buildApi<void>({ path: '/book-rentals/:bookRentalId/return', method: 'PATCH' });
 
 export default function StudentActivityRecords() {
   const queryClient = useQueryClient();
@@ -100,6 +103,18 @@ export default function StudentActivityRecords() {
 
   const updateActivityRecord = useMutation({
     mutationFn: updateActivityRecordApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: activityRecordsQueryKey(scheduleId, date) });
+    },
+  });
+  const borrowBook = useMutation({
+    mutationFn: borrowBookApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: activityRecordsQueryKey(scheduleId, date) });
+    },
+  });
+  const returnBook = useMutation({
+    mutationFn: returnBookApi,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: activityRecordsQueryKey(scheduleId, date) });
     },
@@ -125,6 +140,26 @@ export default function StudentActivityRecords() {
     }
   }
 
+  const handleBookRentalButtonClick = async (record: ActivityRecordType) => {
+    if (updating) return;
+    setUpdating(true);
+    try {
+      if (!record.borrowedBook) {
+        await borrowBook.mutateAsync({ body: { studentId: record.student.id } });
+      } else {
+        await returnBook.mutateAsync({ params: { bookRentalId: record.borrowedBook.id } });
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(error.status >= 500 ? 
+        `서버에 문제가 발생했습니다.(${error.message})` : 
+        '책 대여/반납 처리에 실패했습니다.'
+      );
+    } finally {
+      setTimeout(() => setUpdating(false), 300);
+    }
+  }
+
   // if (isLoading) return null; // 또는 로딩 UI
 
   return (
@@ -143,7 +178,7 @@ export default function StudentActivityRecords() {
               <TableCell width="17%" align="center" sx={{ py: 1 }}><AppleTg>감상문</AppleTg></TableCell>
               <TableCell width="17%" align="center" sx={{ py: 1 }}><AppleTg>주간 레오</AppleTg></TableCell>
               <TableCell width="17%" align="center" sx={{ py: 1 }}><AppleTg>월간 레오</AppleTg></TableCell>
-              <TableCell width="14%" align="center" sx={{ py: 1 }}>기타</TableCell>
+              <TableCell width="14%" align="center" sx={{ py: 1 }}>책 대여</TableCell>
             </TableRow>
           </TableHead>
           <TableBody sx={{}}>
@@ -199,7 +234,14 @@ export default function StudentActivityRecords() {
                   />
                 </TableCell>
                 <TableCell align="center">
-                  {activityRecord.borrowedBook ? '책 대여중': '대여 가능'}
+                  <ActivityRecordButton
+                    value={!!activityRecord.borrowedBook}
+                    buttonTextOn="대여하기"
+                    buttonTextOff="반납하기"
+                    onClick={() => handleBookRentalButtonClick(activityRecord)}
+                    mainBgColor="white"
+                    fontColor={!!activityRecord.borrowedBook ? 'white' : 'black'}
+                  />
                 </TableCell>
               </TableRow>
             ))}
@@ -215,13 +257,15 @@ type ActivityRecordButtonProps = {
   buttonTextOn: string;
   buttonTextOff: string | React.ReactNode;
   onClick: () => void;
+  mainBgColor?: string;
+  fontColor?: string;
 }
-const ActivityRecordButton = ({ value, buttonTextOn, buttonTextOff, onClick }: ActivityRecordButtonProps) => {
+const ActivityRecordButton = ({ value, buttonTextOn, buttonTextOff, onClick, mainBgColor='primary', fontColor='white' }: ActivityRecordButtonProps) => {
   return (
     <Button 
       variant="contained" 
       size="small" 
-      sx={{ width: '100%', backgroundColor: value ? 'grey.500' : 'primary' }} 
+      sx={{ width: '100%', backgroundColor: value ? 'grey.500' : mainBgColor, color: fontColor }} 
       onClick={onClick}
     >
       <AppleTg sx={{fontSize: '0.9rem'}}>{value ? buttonTextOff : buttonTextOn}</AppleTg>
