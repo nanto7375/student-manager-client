@@ -119,6 +119,12 @@ export default function StudentActivityRecords() {
       queryClient.invalidateQueries({ queryKey: activityRecordsQueryKey(scheduleId, date) });
     },
   });
+  const updateBookRentalInfo = useMutation({
+    mutationFn: updateBookRentalInfoApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: activityRecordsQueryKey(scheduleId, date) });
+    },
+  });
 
   const handleActivityRecordButtonClick = async ({activityId, activityKey, value}: {activityId: number; activityKey: keyof ActivityCheck; value: boolean}) => {
     if (updating) return;
@@ -237,10 +243,11 @@ export default function StudentActivityRecords() {
                   <ActivityRecordButton
                     value={!!activityRecord.borrowedBook}
                     buttonTextOn="대여하기"
-                    buttonTextOff="반납하기"
+                    buttonTextOff="반납"
                     onClick={() => handleBookRentalButtonClick(activityRecord)}
                     mainBgColor="white"
-                    fontColor={!!activityRecord.borrowedBook ? 'white' : 'black'}
+                    disabledBgColor="white"
+                    fontColor='black'
                   />
                 </TableCell>
               </TableRow>
@@ -258,14 +265,15 @@ type ActivityRecordButtonProps = {
   buttonTextOff: string | React.ReactNode;
   onClick: () => void;
   mainBgColor?: string;
+  disabledBgColor?: string;
   fontColor?: string;
 }
-const ActivityRecordButton = ({ value, buttonTextOn, buttonTextOff, onClick, mainBgColor='primary', fontColor='white' }: ActivityRecordButtonProps) => {
+const ActivityRecordButton = ({ value, buttonTextOn, buttonTextOff, onClick, mainBgColor='primary', disabledBgColor='grey.500', fontColor='white' }: ActivityRecordButtonProps) => {
   return (
     <Button 
       variant="contained" 
       size="small" 
-      sx={{ width: '100%', backgroundColor: value ? 'grey.500' : mainBgColor, color: fontColor }} 
+      sx={{ width: '100%', backgroundColor: value ? disabledBgColor : mainBgColor, color: fontColor }} 
       onClick={onClick}
     >
       <AppleTg sx={{fontSize: '0.9rem'}}>{value ? buttonTextOff : buttonTextOn}</AppleTg>
