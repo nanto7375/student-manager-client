@@ -246,7 +246,7 @@ export default function StudentActivityRecords() {
                     buttonTextOff="반납"
                     onClick={() => handleBookRentalButtonClick(activityRecord)}
                     mainBgColor="white"
-                    disabledBgColor="white"
+                    disabledBgColor="grey.200" 
                     fontColor='black'
                   />
                 </TableCell>
