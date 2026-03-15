@@ -1,6 +1,6 @@
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardActions, Button } from "@mui/material";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { Card, CardContent, Button } from "@mui/material";
 import { useNavigate, useSearchParams } from "react-router";
 
 import { FlexContainer, FlexBox } from "~/components/styled-elements";
@@ -19,7 +19,7 @@ const getStudentListApi = buildApi<StudentInListType[]>({ path: '/students', met
 
 // schoolLevel, schedule, 
 
-const DAY_OF_WEEKS = [{title: '화', value: 2}, {title: '수', value: 3}, {title: '목', value: 4}, {title: '금', value: 5}, {title: '토', value: 6}, {title: '일', value: 7}];
+const DAY_OF_WEEKS = [{title: '화', value: 2}, {title: '수', value: 3}, {title: '목', value: 4}, {title: '금', value: 5}, {title: '토', value: 6}, {title: '일', value: 0}];
 const SCHOOL_LEVELS = [{ title: '초등', value: 1 }, { title: '중등', value: 2 }, { title: '고등', value: 3 }];
 
 const getStudnetListQueryKey = (name: string, schoolLevel: number | null, dayOfWeek: number | null, limit: number, page: number) => {
@@ -29,20 +29,30 @@ const getStudnetListQueryKey = (name: string, schoolLevel: number | null, dayOfW
 export default function Student() {
   const navigate = useNavigate();
   const [searchParam, setSearchParam] = useSearchParams();
-  const { name, schoolLevel, dayOfWeek } = React.useMemo(() => {
+
+  const { schoolLevel, dayOfWeek, name } = React.useMemo(() => {
     const params = new URLSearchParams(searchParam);
     return {
-      name: params.get('name') || '',
-      schoolLevel: Number(params.get('schoolLevel')) || null,
-      dayOfWeek: Number(params.get('dayOfWeek')) || null,
+      schoolLevel: Number(params.get('schoolLevel')) || undefined,
+      dayOfWeek: Number(params.get('dayOfWeek')) || undefined,
+      name: params.get('name') || undefined
     }
   }, [searchParam]);
+
   const limit = React.useMemo(() => 20, []);
+  const [inputName, setInputName] = React.useState('');
 
   // TODO: 무한스크롤
   const { data: studentList, error: studentListError, isLoading: studentListLoading } = useQuery({
     queryKey: getStudnetListQueryKey(name, schoolLevel, dayOfWeek, limit, 1),
-    queryFn: () => getStudentListApi({ query: { name, schoolLevel, dayOfWeek, limit, page: 1 } }),
+    queryFn: () => getStudentListApi({ query: { 
+      ...(name !== undefined && { name }),
+      ...(schoolLevel !== undefined && { schoolLevel }),
+      ...(dayOfWeek !== undefined && { dayOfWeek }),
+      limit, 
+      page: 1 
+    } }),
+    placeholderData: keepPreviousData,
     // staleTime: Infinity
   });
 
@@ -58,21 +68,79 @@ export default function Student() {
     const params = new URLSearchParams(searchParam);
     const alreadySelected = params.get(key) === String(value)
     alreadySelected ? params.delete(key) : params.set(key, value);
-    setSearchParam(params.toString());
+    setSearchParam(params.toString(), { replace: true });
   }, [searchParam, setSearchParam]);
 
+  const handleSearchNameChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputName(e.target.value);
+  }, []);
+
+  const handleClearInput = React.useCallback(() => {
+    setInputName('');
+    const params = new URLSearchParams(searchParam);
+    params.delete('name');
+    setSearchParam(params.toString(), { replace: true });
+  }, [searchParam, setSearchParam]);
+
+  // 입력이 끝난 후 자동 검색 (debounce)
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchParam((prev) => {
+        const params = new URLSearchParams(prev);
+        if (inputName) params.set('name', inputName);
+        else params.delete('name');
+        return params.toString();
+      }, { replace: true });
+    }, 700);
+
+    return () => clearTimeout(timer);
+  }, [inputName, setSearchParam]);
+  
   if (studentListLoading) {
-    return (
-      <FlexContainer fullHeight fullWidth sx={{ padding: '1rem', justifyContent: 'center', alignItems: 'center' }}>
-        <p>Loading...</p>
-      </FlexContainer>
-    );
+    return <FlexContainer fullHeight fullWidth center sx={{ padding: '1rem', flexDirection: 'column', gap: '1rem' }}>Loading...</FlexContainer>;
   }
 
   return (
-    <FlexContainer fullHeight fullWidth sx={{ padding: '1rem', flexDirection: 'column', gap: '1rem', border: '1px solid black' }}>
+    <FlexContainer fullHeight fullWidth sx={{ padding: '1rem', flexDirection: 'column', gap: '1rem' }}>
 
       <FlexBox id='student-filter-section' gap={1}>
+        <FlexBox sx={{ position: 'relative' }}>
+          <input
+            type="text"
+            placeholder="이름으로 검색"
+            value={inputName}
+            onChange={handleSearchNameChange}
+            style={{
+              padding: '0.5rem',
+              paddingRight: '2rem',
+              borderRadius: '4px',
+              border: '1px solid #ccc',
+              width: '200px',
+            }}
+          />
+          {inputName && (
+            <button
+              onClick={handleClearInput}
+              style={{
+                position: 'absolute',
+                right: '0.5rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '0.25rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#999',
+                fontSize: '1.2rem',
+              }}
+            >
+              ×
+            </button>
+          )}
+        </FlexBox>
         <FlexBox id='day-of-week-filter' gap={0.5}>
           {DAY_OF_WEEKS.map((day) => (
             <SearchElementButton key={day.value} title={day.title} rounded={true} onClick={() => handleSearchElementButton('dayOfWeek', day.value)} selected={dayOfWeek === day.value} />
@@ -89,7 +157,7 @@ export default function Student() {
         {studentList?.map(student => (
           <StudentCard 
             key={student.id} 
-            student={student} 
+            student={student}
             onClick={handleStudentClick}
           />
         ))}
