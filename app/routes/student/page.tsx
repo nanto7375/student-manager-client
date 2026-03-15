@@ -56,9 +56,8 @@ export default function Student() {
 
   const handleSearchElementButton = React.useCallback((key: string, value: any) => {
     const params = new URLSearchParams(searchParam);
-    params.get(key) === String(value) ? 
-      params.delete(key) :
-      params.set(key, value);
+    const alreadySelected = params.get(key) === String(value)
+    alreadySelected ? params.delete(key) : params.set(key, value);
     setSearchParam(params.toString());
   }, [searchParam, setSearchParam]);
 
@@ -74,13 +73,12 @@ export default function Student() {
     <FlexContainer fullHeight fullWidth sx={{ padding: '1rem', flexDirection: 'column', gap: '1rem', border: '1px solid black' }}>
 
       <FlexBox id='student-filter-section' gap={1}>
-        <FlexBox gap={0.5}>
+        <FlexBox id='day-of-week-filter' gap={0.5}>
           {DAY_OF_WEEKS.map((day) => (
             <SearchElementButton key={day.value} title={day.title} rounded={true} onClick={() => handleSearchElementButton('dayOfWeek', day.value)} selected={dayOfWeek === day.value} />
           )) }
         </FlexBox>
-
-        <FlexBox gap={0.5}>
+        <FlexBox id='school-level-filter' gap={0.5}>
           {SCHOOL_LEVELS.map((level) => (
             <SearchElementButton key={level.value} title={level.title} rounded={false} onClick={() => handleSearchElementButton('schoolLevel', level.value)} selected={schoolLevel === level.value} />
           )) }
