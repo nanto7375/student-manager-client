@@ -57,6 +57,7 @@ export default function StudentDetail() {
   const createAssessmentMutation = useMutation({ mutationFn: createAssessmentApi });
   const updateAssessmentMutation = useMutation({ mutationFn: updateAssessmentApi });
 
+  const assessmentListContainerRef = React.useRef<HTMLDivElement>(null);
   const [isAdding, setIsAdding] = React.useState(false);
   const [editingId, setEditingId] = React.useState<number | null>(null);
   const [recordingAssessment, setRecordingAssessment] = React.useState<{ id: number, value: string }>(initAccessment());
@@ -76,8 +77,8 @@ export default function StudentDetail() {
     setRecordingAssessment(initAccessment());
   }, []);
 
-  const saveAssessment = React.useCallback(async () => {
-    if (recordingAssessment.id === -1) {
+  const saveAssessment = React.useCallback(async (isNew: boolean) => {
+    if (isNew) {
       const assessment = await createAssessmentMutation.mutateAsync({ 
         params: { studentId }, 
         body: { value: recordingAssessment.value } 
@@ -94,11 +95,23 @@ export default function StudentDetail() {
   }, [createAssessmentMutation, updateAssessmentMutation, studentId, recordingAssessment, assessmentList]);
 
   const handleSave = async () => {
-    await saveAssessment()
+    const isNewAssessment = recordingAssessment.id === -1;
+    await saveAssessment(isNewAssessment)
     setIsAdding(false);
     setEditingId(null);
     setRecordingAssessment(initAccessment());
-    queryClient.invalidateQueries({ queryKey: assessmentListKey(studentId) });
+
+    queryClient.invalidateQueries({ queryKey: assessmentListKey(studentId) }).then(() => {
+      if (!isNewAssessment) return;
+      setTimeout(() => {
+        if (assessmentListContainerRef.current) {
+          assessmentListContainerRef.current.scrollTo({
+            top: assessmentListContainerRef.current.scrollHeight,
+            behavior: 'smooth'
+          });
+        }
+      }, 100);
+    });
   };
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -110,7 +123,7 @@ export default function StudentDetail() {
 
   if (!student || !assessmentList) return <FlexContainer padding="1rem" fullHeight fullWidth center></FlexContainer>;
   return (
-    <FlexContainer fullHeight fullWidth sx={{ flexDirection: 'column', overflow: 'auto', paddingLeft: '1rem' }}>
+    <FlexContainer ref={assessmentListContainerRef} fullHeight fullWidth sx={{ flexDirection: 'column', overflow: 'auto', paddingLeft: '1rem' }}>
       <FlexBox
         flexDirection='column'
         padding="1rem 1rem 0 0"
@@ -133,11 +146,28 @@ export default function StudentDetail() {
       </FlexBox>
 
       {/* 평가 목록 */}
-      <FlexBox flexDirection='column' gap={1} padding='1rem' alignItems='flex-start'>
+      <FlexBox flexDirection='column' gap={1} padding='1rem' alignItems='flex-start' width="70%">
+
+        {/* 기록 추가 영역 */}
+        {(isAdding ? (
+          <FlexBox width="100%" sx={{ flexDirection: 'column', gap: '2rem', padding: '1rem', border: '1px solid #ddd', borderRadius: '0.5rem' }}>
+            <AssessmentEditBox
+              value={recordingAssessment.value}
+              onChange={handleTextareaChange}
+              onSave={handleSave}
+              onCancel={handleCancel}
+              placeholder="기록을 입력하세요"
+              isInline={false}
+            />
+          </FlexBox>
+        ) : (
+          <AddAssessmentButton onClick={handleAddClick} disabled={!!editingId} />
+        ))}
+
         {assessmentList.map(assessment => (
           <FlexBox 
             key={assessment.id} 
-            width="70%"
+            width="100%"
             padding="1rem"
             position="relative"
             flexDirection="column"
@@ -154,8 +184,7 @@ export default function StudentDetail() {
               />
             ) : (
               <>
-                <FlexBox className="draggable">{assessment.value}</FlexBox>
-                <FlexBox alignItems="flex-end" justifyContent="space-between" height="3rem">
+                <FlexBox alignItems="flex-start" justifyContent="space-between" height="3rem">
                   <div style={{ fontSize: '0.875rem', color: '#999' }}>
                     <div>작성일: {new Date(assessment.createdAt).toLocaleString('ko-KR')}</div>
                     <div>수정일: {new Date(assessment.updatedAt).toLocaleString('ko-KR')}&nbsp;({assessment.lastCommenter.name})
@@ -168,25 +197,12 @@ export default function StudentDetail() {
                     </div>
                   )}
                 </FlexBox>
+                <FlexBox className="draggable">{assessment.value}</FlexBox>
               </>
             )}
           </FlexBox>
         ))}
 
-        {!editingId && (isAdding ? (
-          <FlexBox sx={{ flexDirection: 'column', gap: '2rem', padding: '1rem', border: '1px solid #ddd', borderRadius: '0.5rem' }}>
-            <AssessmentEditBox
-              value={recordingAssessment.value}
-              onChange={handleTextareaChange}
-              onSave={handleSave}
-              onCancel={handleCancel}
-              placeholder="기록을 입력하세요"
-              isInline={false}
-            />
-          </FlexBox>
-        ) : (
-          <AddAssessmentButton onClick={handleAddClick} />
-        ))}
       </FlexBox>
     </FlexContainer>
   );
@@ -242,11 +258,11 @@ const AssessmentEditBox = ({
           overflow: 'hidden',
         }}
       />
-      <FlexBox alignItems='flex-end' sx={{ gap: isInline ? '0.5rem' : '1rem', height: '3rem' }}>
-        <Button variant="contained" onClick={onSave} sx={{ flex: 1, height: '2.5rem' }}>
+      <FlexBox alignItems='flex-end' justifyContent='flex-end' sx={{ gap: '1rem', height: '3rem' }}>
+        <Button variant="contained" onClick={onSave} sx={{ width: '3rem', height: '2.5rem' }}>
           저장
         </Button>
-        <Button variant="outlined" onClick={onCancel} sx={{ flex: 1, height: '2.5rem' }}>
+        <Button variant="outlined" onClick={onCancel} sx={{ width: '3rem', height: '2.5rem' }}>
           취소
         </Button>
       </FlexBox>
@@ -273,11 +289,12 @@ const AssessmentBoxFooterButton = ({title, onClick}) => {
   </Button>
 }
 
-const AddAssessmentButton = ({ onClick }: { onClick: () => void }) => {
+const AddAssessmentButton = ({ onClick, disabled=false }: { onClick: () => void; disabled?: boolean }) => {
   return (
     <Button
       variant="outlined"
       onClick={onClick}
+      disabled={disabled}
       sx={{
         width: '100%',
         padding: '1rem',
@@ -287,6 +304,11 @@ const AddAssessmentButton = ({ onClick }: { onClick: () => void }) => {
         '&:hover': {
           border: '1px solid #999',
           backgroundColor: 'action.hover',
+        },
+        '&.Mui-disabled': {
+          border: '1px solid #e0e0e0',
+          color: '#bbb',
+          cursor: 'not-allowed',
         }
       }}
     >
