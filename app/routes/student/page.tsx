@@ -1,6 +1,7 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardActions } from "@mui/material";
+import { useNavigate } from "react-router";
 
 import { FlexContainer, FlexBox } from "~/components/styled-elements";
 import { buildApi } from "~/lib/api-builder";
@@ -17,6 +18,7 @@ type StudentInListType = {
 const getStudentListApi = buildApi<StudentInListType[]>({ path: '/students', method: 'GET' });
 
 export default function Student() {
+  const navigate = useNavigate();
   const [searchParam, setSearchParam] = React.useState('');
   const { name, schoolLevel } = React.useMemo(() => {
     const params = new URLSearchParams(searchParam);
@@ -28,29 +30,37 @@ export default function Student() {
   const limit = React.useMemo(() => 20, []);
 
   // TODO: 무한스크롤
-  const { data: studentList, error: studentListError, isLoading: studentListLoading } = useQuery({ 
-    queryKey: ['student-list'], 
-    queryFn: () => getStudentListApi({ query: { name, schoolLevel, limit, page: 1 } }), 
-    staleTime: Infinity 
+  const { data: studentList, error: studentListError, isLoading: studentListLoading } = useQuery({
+    queryKey: ['student-list'],
+    queryFn: () => getStudentListApi({ query: { name, schoolLevel, limit, page: 1 } }),
+    staleTime: Infinity
   });
 
   React.useEffect(() => {
     console.log(studentList)
   }, [studentList])
 
+  const handleStudentClick = (studentId: number) => {
+    navigate(`/student/${studentId}`);
+  }
+
 
   return (
     <FlexContainer fullHeight fullWidth sx={{ padding: '1rem' }}>
       <FlexBox sx={{ flexWrap: 'wrap' }}>
         {studentList?.map(student => (
-          <StudentCard key={student.id} student={student} />
+          <StudentCard 
+            key={student.id} 
+            student={student} 
+            onClick={handleStudentClick}
+          />
         ))}
       </FlexBox>
     </FlexContainer>
   );
 }
 
-const StudentCard = ({ student }: { student: StudentInListType }) => {
+const StudentCard = ({ student, onClick }: { student: StudentInListType; onClick: (id: number) => void }) => {
   return (
     <Card
       variant="outlined"
@@ -75,7 +85,7 @@ const StudentCard = ({ student }: { student: StudentInListType }) => {
         boxShadow: 3,
       }
       }}
-      onClick={() => alert(`학생 ID: ${student.id}`)}
+      onClick={() => onClick(student.id)}
     >
       <CardContent sx={{ '& > *': { margin: '0.25rem 0', textAlign: 'center' } }}>
         <h2>{student.name}</h2>

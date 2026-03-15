@@ -10,6 +10,13 @@ import { buildApi } from "~/lib/api-builder";
 import { Button, FormControl, InputLabel, MenuItem, Select, TextField, type SelectChangeEvent } from "@mui/material";
 import { AppleTg } from "~/components/typography";
 
+export type ShortAdminDto = {
+  id: number;
+  name: string;
+  email: string;
+  isActive: boolean;
+}
+
 type RegisterStudentPayload = {
   name: string;
   schoolName: string;
