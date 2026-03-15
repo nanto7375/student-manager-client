@@ -9,8 +9,8 @@ import type { ShortAdminDto } from "../admin/page";
 
 type Assessment = {
   id: number;
-  lastCommentor: ShortAdminDto;
   value: string;
+  lastCommentor: ShortAdminDto;
   updatedAt: Date;
 }
 
