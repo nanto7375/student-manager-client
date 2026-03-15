@@ -48,8 +48,7 @@ export default function SideBar() {
   const { user, signout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const pathname = location.pathname;
+  const pathname = React.useMemo(() => location.pathname, [location]);
   const { ConfirmModal, openConfirmModal, closeConfirmModal } = useConfirmModal();
 
   const [selectedMenu, setSelectedMenu] = React.useState<string>(pathname.split("/")[1]);
@@ -87,7 +86,7 @@ export default function SideBar() {
       }}
     >
 
-      <FlexBox fullWidth flexDirection="column" center>
+      <FlexBox id='main-menu' fullWidth flexDirection="column" center>
         <FlexBox fullWidth height="3rem" center sx={{marginBottom: '0.5rem', boxShadow: '0 4px 8px rgba(0,0,0,0.1)'}}>
           <Link to={ROUTES.HOME} style={{cursor: 'pointer'}}>
             <AppleTg sx={{fontSize: '0.9rem', color: 'primary.main', fontWeight: '600'}}>{LEO_TITLE.kor}</AppleTg>
@@ -114,7 +113,7 @@ export default function SideBar() {
         </FlexBox>
       </FlexBox>
 
-      <FlexBox flexDirection="column" fullWidth center sx={{marginBottom: '0.5rem'}}>
+      <FlexBox id='bottom-menu' flexDirection="column" fullWidth center sx={{marginBottom: '0.5rem'}}>
         <FlexBox flexDirection="column" fullWidth center sx={{marginBottom: '1rem'}}>
           <FlexBox sx={{marginBottom: '0.2rem'}}>
             <AppleTg  color="secondary.main" sx={{fontSize: '0.9rem', fontWeight: '600'}}>
