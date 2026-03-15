@@ -5,6 +5,7 @@ import { useNavigate, useSearchParams } from "react-router";
 
 import { FlexContainer, FlexBox } from "~/components/styled-elements";
 import { buildApi } from "~/lib/api-builder";
+import { InputXButton } from "~/components/input-x-button";
 
 type StudentInListType = {
   id: number;
@@ -118,28 +119,7 @@ export default function Student() {
               width: '200px',
             }}
           />
-          {inputName && (
-            <button
-              onClick={handleClearInput}
-              style={{
-                position: 'absolute',
-                right: '0.5rem',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: '0.25rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#999',
-                fontSize: '1.2rem',
-              }}
-            >
-              ×
-            </button>
-          )}
+          {inputName && (<InputXButton onClick={handleClearInput} />)}
         </FlexBox>
         <FlexBox id='day-of-week-filter' gap={0.5}>
           {DAY_OF_WEEKS.map((day) => (

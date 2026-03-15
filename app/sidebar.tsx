@@ -96,7 +96,8 @@ export default function SideBar() {
         <FlexBox flexDirection="column" fullWidth center>
           {MENU_PAGE_LIST.map((menu) => (<LinkFullSize 
             to={{
-              pathname: pathname.includes(menu.path) ? pathname : menu.path, 
+              pathname: menu.path,
+              // pathname: pathname.includes(menu.path) ? pathname : menu.path, 
               // search: searchParams.toString()
             }} 
             key={menu.name}
