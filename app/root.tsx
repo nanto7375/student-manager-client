@@ -71,11 +71,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const {pathname} = useLocation();
-  
+
   return (
-    <FlexContainer style={{maxWidth: '120rem', minWidth: '48rem', height: '100vh'}}>
+    <FlexContainer style={{maxWidth: '120rem', minWidth: '48rem', height: '100%'}}>
       {pathname !== ROUTES.SIGNIN && <SideBar />}
-      <Outlet />
+      <FlexBox style={{flex: 1, overflow: 'auto'}}>
+        <Outlet />
+      </FlexBox>
     </FlexContainer>
   );
 }
@@ -101,7 +103,7 @@ export function ErrorBoundary() {
         <Links />
       </head>
       <body>
-        <FlexContainer center style={{maxWidth: '1920px', minWidth: '960px', height: '100vh'}}>
+        <FlexContainer center style={{maxWidth: '1920px', minWidth: '960px', height: '100%'}}>
           <FlexBox center>
             <p>Error</p>
             <h1>

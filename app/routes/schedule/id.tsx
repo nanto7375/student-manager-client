@@ -95,7 +95,7 @@ export default function StudentActivityRecords() {
   const isAfterToday = React.useMemo(() => dayjs().isBefore(dayjs(date), 'date'), [date]); // 미래 여부
   const [updating, setUpdating] = React.useState(false);
   
-  const { data: activityRecords = [], isLoading } = useQuery({
+  const { data: activityRecords, isLoading } = useQuery({
     queryKey: activityRecordsQueryKey(scheduleId, date),
     queryFn: () => getActivityRecords({ query: { scheduleId, date } }),
     enabled: !!scheduleId && !!date,
@@ -166,8 +166,9 @@ export default function StudentActivityRecords() {
     }
   }
 
-  // if (isLoading) return null; // 또는 로딩 UI
-
+  if (isLoading || !activityRecords) {
+    return <FlexContainer padding="1rem" fullHeight fullWidth center></FlexContainer>;
+  }
   return (
     <FlexContainer padding="1rem" fullWidth fullHeight>
       <TableContainer className='non-overflow-scroll' sx={{

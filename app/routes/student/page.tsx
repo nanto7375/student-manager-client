@@ -1,6 +1,6 @@
 import React from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { Card, CardContent, Button } from "@mui/material";
+import { Card, CardContent, Button, ToggleButtonGroup, ToggleButton } from "@mui/material";
 import { useNavigate, useSearchParams } from "react-router";
 
 import { FlexContainer, FlexBox } from "~/components/styled-elements";
@@ -33,9 +33,10 @@ export default function Student() {
 
   const { schoolLevel, dayOfWeek, name } = React.useMemo(() => {
     const params = new URLSearchParams(searchParam);
+    const dayOfWeek = Number(params.get('dayOfWeek'));
     return {
       schoolLevel: Number(params.get('schoolLevel')) || undefined,
-      dayOfWeek: Number(params.get('dayOfWeek')) || undefined,
+      dayOfWeek: !Number.isNaN(dayOfWeek)? dayOfWeek : undefined,
       name: params.get('name') || undefined
     }
   }, [searchParam]);
@@ -57,15 +58,12 @@ export default function Student() {
     // staleTime: Infinity
   });
 
-  React.useEffect(() => {
-    console.log(studentList)
-  }, [studentList])
-
   const handleStudentClick = React.useCallback((studentId: number) => {
     navigate(`/student/${studentId}`);
   }, [navigate]);
 
   const handleSearchElementButton = React.useCallback((key: string, value: any) => {
+    console.log('hi')
     const params = new URLSearchParams(searchParam);
     const alreadySelected = params.get(key) === String(value)
     alreadySelected ? params.delete(key) : params.set(key, value);
@@ -96,11 +94,8 @@ export default function Student() {
 
     return () => clearTimeout(timer);
   }, [inputName, setSearchParam]);
-  
-  if (studentListLoading) {
-    return <FlexContainer fullHeight fullWidth center sx={{ padding: '1rem', flexDirection: 'column', gap: '1rem' }}>Loading...</FlexContainer>;
-  }
 
+  if (studentListLoading || !studentList) return (<FlexContainer padding="1rem" fullHeight fullWidth sx={{ flexDirection: 'column', gap: '1rem' }} center></FlexContainer>);
   return (
     <FlexContainer fullHeight fullWidth sx={{ padding: '1rem', flexDirection: 'column', gap: '1rem' }}>
 
@@ -121,16 +116,30 @@ export default function Student() {
           />
           {inputName && (<InputXButton onClick={handleClearInput} />)}
         </FlexBox>
-        <FlexBox id='day-of-week-filter' gap={0.5}>
+        <ToggleButtonGroup
+          id='day-of-week-filter'
+          value={dayOfWeek}
+        >
           {DAY_OF_WEEKS.map((day) => (
-            <SearchElementButton key={day.value} title={day.title} rounded={true} onClick={() => handleSearchElementButton('dayOfWeek', day.value)} selected={dayOfWeek === day.value} />
-          )) }
-        </FlexBox>
-        <FlexBox id='school-level-filter' gap={0.5}>
+            <ToggleButton
+              key={day.value}
+              value={day.value}
+              onClick={() => handleSearchElementButton('dayOfWeek', day.value)}
+            >
+              {day.title}
+            </ToggleButton>
+          ))}
+        </ToggleButtonGroup>
+        <ToggleButtonGroup id='school-level-filter' value={schoolLevel}>
           {SCHOOL_LEVELS.map((level) => (
-            <SearchElementButton key={level.value} title={level.title} rounded={false} onClick={() => handleSearchElementButton('schoolLevel', level.value)} selected={schoolLevel === level.value} />
+            <ToggleButton 
+              key={level.value} 
+              value={level.value}
+              onClick={() => handleSearchElementButton('schoolLevel', level.value)}>
+                {level.title}
+              </ToggleButton>
           )) }
-        </FlexBox>
+        </ToggleButtonGroup>
       </FlexBox>
 
       <FlexBox sx={{ flexWrap: 'wrap' }}>
@@ -151,8 +160,8 @@ const StudentCard = ({ student, onClick }: { student: StudentInListType; onClick
     <Card
       variant="outlined"
       sx={{
-      width: '10rem',
-      height: '10rem',
+      width: '9rem',
+      height: '9rem',
       margin: '0.5rem',
       display: 'flex',
       justifyContent: 'center',
@@ -179,28 +188,5 @@ const StudentCard = ({ student, onClick }: { student: StudentInListType; onClick
         <p>({student.schoolGrade}학년, {student.schoolLevel === 1 ? '초등' : student.schoolLevel === 2 ? '중등' : '고등'})</p>
       </CardContent>
     </Card>
-  );
-}
-
-const SearchElementButton = ({ title, onClick, selected, rounded=false }: { title: string; onClick: () => void; selected: boolean, rounded: boolean }) => {
-  return (
-    <Button
-      variant={selected ? "contained" : "outlined"}
-      onClick={onClick}
-      sx={{
-        minWidth: '3rem',
-        padding: '0.25rem',
-        backgroundColor: selected ? 'primary.main' : 'white',
-        color: selected ? 'white' : 'grey.600',
-        borderColor: 'grey.400',
-        borderRadius: rounded ? '50%' : undefined,
-        '&:hover': {
-          backgroundColor: selected ? 'primary.dark' : 'action.hover',
-          borderColor: 'grey.400',
-        },
-      }}
-    >
-        {title}
-    </Button>
   );
 }

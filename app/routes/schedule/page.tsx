@@ -38,13 +38,12 @@ export default function Schedule() {
   const [selectedSchedule, setSelectedSchedule] = React.useState<ScheduleType | null>(null);
   const [sidebarFolded, setSidebarFolded] = React.useState(false);
 
-  if (scheduleListLoading) return (<FlexContainer center fullHeight fullWidth></FlexContainer>);
-  if (scheduleListError) return (<FlexContainer center fullHeight fullWidth><AppleTg>Loading...</AppleTg></FlexContainer>);
+  if (scheduleListLoading || !scheduleList) return (<FlexContainer center fullHeight fullWidth></FlexContainer>);
   return (
     <FlexContainer fullHeight fullWidth>
       {!sidebarFolded && 
         <ScheduleSidebar 
-          scheduleList={scheduleList} 
+          scheduleList={scheduleList || []} 
           selectedScheduleId={selectedScheduleId} 
           setSelectedSchedule={setSelectedSchedule} 
           foldSidebar={() => setSidebarFolded(true)} 
