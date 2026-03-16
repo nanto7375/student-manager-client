@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal, type ModalProps } from '@mui/material';
+import { Backdrop, Modal, type ModalProps } from '@mui/material';
 import { FlexBox, FlexContainer } from '~/components/styled-elements';
 import { AppleTg } from '~/components/typography';
 import { colors } from '~/components/index';
@@ -41,6 +41,7 @@ export const useConfirmModal = () => {
         backdrop: { sx: { backgroundColor: 'transparent', outline: 'none' }}
       }}
     >
+      <Backdrop open>
       <FlexContainer fullWidth fullHeight center>
         <FlexBox flexDirection="column" width={width} center sx={{minHeight: '10rem', backgroundColor: 'white', borderRadius: '0.5rem', boxShadow: '0 8px 24px rgba(0,0,0,0.3)'}}>
           
@@ -74,6 +75,7 @@ export const useConfirmModal = () => {
           </FlexBox>
         </FlexBox>
       </FlexContainer>
+      </Backdrop>
     </Modal>
     );
   };

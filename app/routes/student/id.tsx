@@ -6,6 +6,7 @@ import { Button, Tab, Tabs } from "@mui/material";
 import { buildApi } from "~/lib/api-builder";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import type { ShortAdminDto } from "../admin/page";
+import { useConfirmModal } from "~/hooks/use-confirm-modal";
 
 type StudentInListType = {
   id: number;
@@ -29,6 +30,7 @@ const getStudentDetailApi = buildApi<StudentInListType>({ path: '/students/:stud
 const getStudentAssessmentListApi = buildApi<Assessment[]>({ path: '/students/:studentId/assessments', method: 'GET' });
 const createAssessmentApi = buildApi<Assessment>({ path: '/students/:studentId/assessments', method: 'POST' });
 const updateAssessmentApi = buildApi<Assessment>({ path: '/students/:studentId/assessments/:assessmentId', method: 'PATCH' });
+const deleteAssessmentApi = buildApi<boolean>({path: '/students/:studentId/assessments/:assessmentId', method: 'DELETE'});
 
 const studentDetailQueryKey = (studentId: string) => ['student-detail', studentId] as const;
 const assessmentListKey = (studentId: string) => ['assessment-list', studentId] as const;
@@ -54,12 +56,20 @@ export default function StudentDetail() {
     queryFn: () => getStudentAssessmentListApi({ params: { studentId } }),
     placeholderData: keepPreviousData,
   });
+
   const createAssessmentMutation = useMutation({ mutationFn: createAssessmentApi });
   const updateAssessmentMutation = useMutation({ mutationFn: updateAssessmentApi });
+  const deleteAssessmentMutation = useMutation({ mutationFn: deleteAssessmentApi, onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: assessmentListKey(studentId) })
+  } })
+
+  const {ConfirmModal: DeleteModal, openConfirmModal: openDeleteModal, closeConfirmModal: closeDeleteModal} = useConfirmModal();
+  const {ConfirmModal: CancelModal, openConfirmModal: openCancelModal, closeConfirmModal: closeCancelModal} = useConfirmModal();
 
   const assessmentListContainerRef = React.useRef<HTMLDivElement>(null);
   const [isAdding, setIsAdding] = React.useState(false);
   const [editingId, setEditingId] = React.useState<number | null>(null);
+  const [deletingId, setDeletingId] = React.useState<number | null>(null);
   const [recordingAssessment, setRecordingAssessment] = React.useState<{ id: number, value: string }>(initAccessment());
 
   const handleAddClick = React.useCallback(() => {
@@ -71,11 +81,27 @@ export default function StudentDetail() {
     setEditingId(assessment.id);
   }, []); 
 
-  const handleCancel = React.useCallback(() => {
+  const handleCancelButtonClick = React.useCallback(() => {
+    openCancelModal();
+  }, [])
+
+  const handleEditCancel = React.useCallback(() => {
     setIsAdding(false);
     setEditingId(null);
     setRecordingAssessment(initAccessment());
+    closeCancelModal();
   }, []);
+
+  const handleDeleteButtonClick = React.useCallback(async (assessmentId: number) => {
+    setDeletingId(assessmentId)
+    openDeleteModal()
+  }, [deleteAssessmentMutation, studentId])
+
+  const handleDeleteAssessment = React.useCallback(async () => {
+    await deleteAssessmentMutation.mutateAsync({params: {studentId, assessmentId: deletingId}});
+    setDeletingId(null);
+    closeDeleteModal();
+  }, [deleteAssessmentMutation, studentId, deletingId])
 
   const saveAssessment = React.useCallback(async (isNew: boolean) => {
     if (isNew) {
@@ -155,7 +181,7 @@ export default function StudentDetail() {
               value={recordingAssessment.value}
               onChange={handleTextareaChange}
               onSave={handleSave}
-              onCancel={handleCancel}
+              onCancel={handleCancelButtonClick}
               placeholder="기록을 입력하세요"
               isInline={false}
             />
@@ -179,7 +205,7 @@ export default function StudentDetail() {
                 value={recordingAssessment.value}
                 onChange={handleTextareaChange}
                 onSave={handleSave}
-                onCancel={handleCancel}
+                onCancel={handleCancelButtonClick}
                 isInline={true}
               />
             ) : (
@@ -193,7 +219,7 @@ export default function StudentDetail() {
                   {!(isAdding || editingId) && (
                     <div>
                       <AssessmentBoxFooterButton title="편집" onClick={() => handleEditClick(assessment)} />
-                      <AssessmentBoxFooterButton title="삭제" onClick={() => {}} />
+                      <AssessmentBoxFooterButton title="삭제" onClick={() => handleDeleteButtonClick(assessment.id)} />
                     </div>
                   )}
                 </FlexBox>
@@ -202,8 +228,10 @@ export default function StudentDetail() {
             )}
           </FlexBox>
         ))}
-
       </FlexBox>
+
+      <DeleteModal onConfirm={handleDeleteAssessment} bodyText='삭제하시겠습니까?' />
+      <CancelModal onConfirm={handleEditCancel} bodyText='취소하시겠습니까?' />
     </FlexContainer>
   );
 }
