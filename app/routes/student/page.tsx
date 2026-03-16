@@ -33,10 +33,10 @@ export default function Student() {
 
   const { schoolLevel, dayOfWeek, name } = React.useMemo(() => {
     const params = new URLSearchParams(searchParam);
-    const dayOfWeek = Number(params.get('dayOfWeek'));
+    const dayOfWeek = params.get('dayOfWeek');
     return {
       schoolLevel: Number(params.get('schoolLevel')) || undefined,
-      dayOfWeek: !Number.isNaN(dayOfWeek)? dayOfWeek : undefined,
+      dayOfWeek: dayOfWeek ? Number(dayOfWeek) : undefined,
       name: params.get('name') || undefined
     }
   }, [searchParam]);
