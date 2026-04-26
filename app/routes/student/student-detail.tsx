@@ -91,8 +91,8 @@ export default function StudentDetail() {
           </FlexBox>
         </FlexBox>
       
-      <div style={{height: '100%', width: '100%', paddingLeft: '1rem', paddingRight: '0.5rem', overflowY: 'hidden', overflowX: 'auto', display: 'grid', placeItems: 'center'}}>
-        <FlexBox gap={1.5} style={{display: 'flex', minWidth: '50rem', width: '100%', maxWidth: '95rem'}}>
+      <div style={{height: '100%', width: '100%', paddingLeft: '1rem', paddingRight: '0.5rem', overflowY: 'hidden', overflowX: 'auto', display: 'grid', justifyItems: 'center', alignItems: 'start'}}>
+        <FlexBox gap={1.5} fullHeight fullWidth minWidth='50rem' maxWidth='95rem'>
           <FlexBox maxWidth="60rem" minWidth="30rem" style={{width: '70%'}}>
             <RecordNoteList
               createNote={createNote}
@@ -102,7 +102,7 @@ export default function StudentDetail() {
             />
           </FlexBox>
 
-          <FlexBox maxWidth="35rem" minWidth="20rem" sx={{flex: 1, overflowY: 'hidden', border: '1px solid red'}}>
+          <FlexBox maxWidth="35rem" minWidth="25rem" sx={{ flex:1, overflowY: 'hidden', border: '1px solid red'}}>
             <MemoNoteList notes={student.notes || []} />
           </FlexBox>
         </FlexBox>
