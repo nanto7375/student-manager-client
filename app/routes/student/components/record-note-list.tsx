@@ -171,7 +171,7 @@ export const AddNoteButton = ({ onClick, disabled = false }: AddNoteButtonProps)
       disabled={disabled}
       sx={{
         width: '100%',
-        padding: '1rem',
+        padding: '0.8rem',
         borderRadius: '8px',
         border: '1px solid #ddd',
         color: '#666',
