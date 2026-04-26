@@ -1,8 +1,9 @@
+import React from "react"
 import { Tab, Tabs, Button } from "@mui/material"
+
 import { FlexBox, FlexContainer } from "~/components/styled-elements"
 import { NoteEditBox } from "./note-edit-box"
 import { NoteContentBox } from "./note-content-box"
-import React from "react"
 import type { Note, NoteType } from "../student-detail"
 import { useConfirmModal } from "~/hooks/use-confirm-modal"
 
