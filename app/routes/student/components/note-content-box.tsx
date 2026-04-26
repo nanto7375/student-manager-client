@@ -5,10 +5,9 @@ export const NoteContentBox = ({ note, isAdding, editingId, handleEditClick, han
   return (
     <FlexBox 
       width="100%"
-      padding="1rem"
+      padding="2rem"
       flexDirection="column"
-      gap={0.5}
-      sx={{ border: '1px solid #ddd', borderRadius: '0.5rem' }}
+      sx={{ border: '1px solid #ddd', borderRadius: '0.5rem', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
     >
       <FlexBox alignItems="flex-start" justifyContent="space-between" height="3rem">
         <div style={{ fontSize: '0.875rem', color: '#999' }}>
@@ -23,7 +22,10 @@ export const NoteContentBox = ({ note, isAdding, editingId, handleEditClick, han
           </div>
         )}
       </FlexBox>
-      <FlexBox className="draggable">{note.value}</FlexBox>
+      
+      <FlexBox className="draggable" style={{padding: '0.5rem 0'}}>
+        {note.value}
+      </FlexBox>
     </FlexBox>
   );
 }

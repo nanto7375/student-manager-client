@@ -146,6 +146,16 @@ a {
   text-decoration: none;
 }
 
+/* 스크롤바 gutter 전역 적용 */
+* {
+  scrollbar-gutter: stable;
+}
+
+/* div와 FlexBox에 줄바꿈 기본 적용 */
+div {
+  white-space: pre-wrap;
+}
+
 /* 커스텀 스크롤바 스타일 */
 *::-webkit-scrollbar {
   width: 6px;

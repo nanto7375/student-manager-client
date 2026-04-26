@@ -43,12 +43,12 @@ export const NoteEditBox = ({
   }, []);
 
   return (
-    <FlexBox 
+    <FlexBox
       width="100%"
       padding="1rem"
       flexDirection="column"
       gap={0.5}
-      sx={{ border: '1px solid #ddd', borderRadius: '0.5rem' }}
+      sx={{ border: '1px solid #ddd', borderRadius: '0.5rem', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
       ref={containerRef}
     >
       <textarea

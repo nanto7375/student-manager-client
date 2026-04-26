@@ -55,8 +55,8 @@ export const RecordNoteList = ({ notes, deleteNote, createNote, updateNote }: Re
       setRecordingNote(prev => ({ ...prev, id: note.id }));
     } else {
       const currentNote = recordNotes.find(a => a.id === recordingNote.id);
-      if (recordingNote.value === currentNote?.value) return;
-      await updateNote({ id: recordingNote.id, value: recordingNote.value });
+      const changed = currentNote?.value !== recordingNote.value;
+      changed && await updateNote({ id: recordingNote.id, value: recordingNote.value });
     }
 
     setIsAdding(false);
@@ -99,7 +99,7 @@ export const RecordNoteList = ({ notes, deleteNote, createNote, updateNote }: Re
   
 
   return (
-    <FlexContainer width="70%" sx={{flexDirection: 'column', flex: 1, overflow: 'hidden'}}>
+    <FlexContainer width="100%" sx={{flexDirection: 'column', padding: '1rem 0'}}>
       <Tabs
         value={selectedTab}
         onChange={(_, newValue) => setSelectedTab(newValue)}
@@ -114,44 +114,42 @@ export const RecordNoteList = ({ notes, deleteNote, createNote, updateNote }: Re
       </Tabs>
 
       {/* 평가 목록 */}
-      <FlexBox flexDirection='column' alignItems='flex-start' sx={{flex: 1, overflow: 'auto', paddingTop: '1rem'}} gap={1}>
-
+      <FlexBox ref={noteListRef} flexDirection='column' alignItems='flex-start' sx={{overflow: 'auto', padding: '1rem 0'}} gap={1}>
         {/* 기록 추가 영역 */}
-        <FlexBox ref={noteListRef} flexDirection='column' width="100%" gap={1} sx={{overflow: 'auto', flex: 1, paddingBottom: '1rem'}}>
-          {(isAdding ? (
+        {(isAdding ? (
+          <NoteEditBox
+            value={recordingNote.value}
+            onChange={handleTextareaChange}
+            onSave={handleSaveClick}
+            onCancel={handleCancelButtonClick}
+            placeholder="기록을 입력하세요"
+            isInline={false}
+          />
+        ) : (
+          <AddNoteButton onClick={handleAddClick} disabled={!!editingId} />
+        ))}
+
+        {recordNotes.map((note) => (
+          editingId === note.id ? (
             <NoteEditBox
+              key={note.id}
               value={recordingNote.value}
               onChange={handleTextareaChange}
               onSave={handleSaveClick}
               onCancel={handleCancelButtonClick}
-              placeholder="기록을 입력하세요"
-              isInline={false}
+              isInline={true}
             />
           ) : (
-            <AddNoteButton onClick={handleAddClick} disabled={!!editingId} />
-          ))}
-          {recordNotes.map((note) => (
-            editingId === note.id ? (
-              <NoteEditBox
+            <NoteContentBox
               key={note.id}
-                value={recordingNote.value}
-                onChange={handleTextareaChange}
-                onSave={handleSaveClick}
-                onCancel={handleCancelButtonClick}
-                isInline={true}
-              />
-            ) : (
-              <NoteContentBox
-                key={note.id}
-                note={note}
-                isAdding={isAdding}
-                editingId={editingId}
-                handleEditClick={handleEditClick}
-                handleDeleteButtonClick={handleDeleteButtonClick}
-              />
-            )
-          ))}
-        </FlexBox>
+              note={note}
+              isAdding={isAdding}
+              editingId={editingId}
+              handleEditClick={handleEditClick}
+              handleDeleteButtonClick={handleDeleteButtonClick}
+            />
+          )
+        ))}
       </FlexBox>
 
       <DeleteModal onConfirm={handleDeleteAssessment} bodyText='삭제하시겠습니까?' />

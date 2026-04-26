@@ -73,7 +73,7 @@ export default function App() {
   const {pathname} = useLocation();
 
   return (
-    <FlexContainer style={{maxWidth: '120rem', minWidth: '48rem', height: '100%'}}>
+    <FlexContainer style={{ minWidth: '48rem', height: '100%'}}>
       {pathname !== ROUTES.SIGNIN && <SideBar />}
       <FlexBox style={{flex: 1, overflow: 'auto'}}>
         <Outlet />

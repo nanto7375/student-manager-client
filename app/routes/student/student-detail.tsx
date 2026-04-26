@@ -6,6 +6,7 @@ import { buildApi } from "~/lib/api-builder";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import type { ShortAdminDto } from "../admin/page";
 import { RecordNoteList } from "./components/record-note-list";
+import { MemoNoteList } from "./components/memo-note-list";
 
 type StudentInListType = {
   id: number;
@@ -77,7 +78,7 @@ export default function StudentDetail() {
 
   if (studentDetailError || studentDetailLoading) return <FlexContainer padding="1rem" fullHeight fullWidth center></FlexContainer>;
   return (
-    <FlexContainer fullHeight fullWidth sx={{ flexDirection: 'column', paddingLeft: '1rem' }}>
+    <FlexContainer fullHeight fullWidth sx={{ flexDirection: 'column', paddingLeft: '1rem' }} style={{overflowX: 'auto'}}>
         <FlexBox
           flexDirection='column'
           padding="1rem 1rem 0 0"
@@ -90,12 +91,22 @@ export default function StudentDetail() {
           </FlexBox>
         </FlexBox>
       
-      <RecordNoteList
-        createNote={createNote}
-        updateNote={updateNote}
-        deleteNote={deleteNote}
-        notes={student.notes || []}
-      />
+      <div style={{height: '100%', width: '100%', paddingLeft: '1rem', paddingRight: '0.5rem', overflowY: 'hidden', overflowX: 'auto', display: 'grid', placeItems: 'center'}}>
+        <FlexBox gap={1.5} style={{display: 'flex', minWidth: '50rem', width: '100%', maxWidth: '95rem'}}>
+          <FlexBox maxWidth="60rem" minWidth="30rem" style={{width: '70%'}}>
+            <RecordNoteList
+              createNote={createNote}
+              updateNote={updateNote}
+              deleteNote={deleteNote}
+              notes={student.notes || []}
+            />
+          </FlexBox>
+
+          <FlexBox maxWidth="35rem" minWidth="20rem" sx={{flex: 1, overflowY: 'hidden', border: '1px solid red'}}>
+            <MemoNoteList notes={student.notes || []} />
+          </FlexBox>
+        </FlexBox>
+      </div>
     </FlexContainer>
   );
 }
