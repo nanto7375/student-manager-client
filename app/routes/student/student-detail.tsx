@@ -52,6 +52,9 @@ export default function StudentDetail() {
     placeholderData: keepPreviousData,
   });
 
+  const notes = React.useMemo(() => {
+    return student?.notes || [];
+  }, [student]);
 
   const deleteNote = React.useCallback(async (noteId: number) => {
     await deleteNoteApi({params: {studentId, noteId}});
@@ -91,22 +94,22 @@ export default function StudentDetail() {
           </FlexBox>
         </FlexBox>
       
-      <div style={{height: '100%', width: '100%', paddingLeft: '1rem', paddingRight: '0.5rem', overflowY: 'hidden', overflowX: 'auto', display: 'grid', justifyItems: 'center', alignItems: 'start'}}>
-        <FlexBox gap={1.5} fullHeight fullWidth minWidth='50rem' maxWidth='95rem'>
-          <FlexBox maxWidth="60rem" minWidth="30rem" style={{width: '70%'}}>
+      <FlexBox fullHeight fullWidth style={{paddingLeft: '1rem', paddingRight: '0.5rem', overflowY: 'hidden', overflowX: 'auto'}}>
+        <FlexBox gap={1.5} fullHeight style={{margin: '0 auto', minWidth: '50rem', maxWidth: '95rem', width: '100%'}}>
+          <FlexBox maxWidth="60rem" minWidth="30rem" fullHeight style={{width: '70%'}}>
             <RecordNoteList
               createNote={createNote}
               updateNote={updateNote}
               deleteNote={deleteNote}
-              notes={student.notes || []}
+              notes={notes}
             />
           </FlexBox>
 
-          <FlexBox maxWidth="35rem" minWidth="25rem" sx={{ flex:1, overflowY: 'hidden', border: '1px solid red'}}>
-            <MemoNoteList notes={student.notes || []} />
+          <FlexBox maxWidth="35rem" minWidth="25rem" fullHeight sx={{ flex:1, overflowY: 'hidden'}}>
+            <MemoNoteList notes={notes} />
           </FlexBox>
         </FlexBox>
-      </div>
+      </FlexBox>
     </FlexContainer>
   );
 }
