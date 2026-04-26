@@ -1,5 +1,5 @@
 import React from "react";
-import { Backdrop, Modal, type ModalProps } from '@mui/material';
+import { Modal, type ModalProps } from '@mui/material';
 import { FlexBox, FlexContainer } from '~/components/styled-elements';
 import { AppleTg } from '~/components/typography';
 import { colors } from '~/components/index';
@@ -27,56 +27,48 @@ export const useConfirmModal = () => {
     cancelText = '취소',
     children
   }: ConfirmModalProps) => {
-    return (   <Modal 
-      open={isOpen}
-      sx={{ 
-        outline: 'none',
-        '&:focus': {outline: 'none'},
-        '& *': {outline: 'none'},
-        '& .MuiBackdrop-root': {
-          outline: 'none'
-        }
-      }} 
-      slotProps={{
-        backdrop: { sx: { backgroundColor: 'transparent', outline: 'none' }}
-      }}
-    >
-      <Backdrop open>
-      <FlexContainer fullWidth fullHeight center>
-        <FlexBox flexDirection="column" width={width} center sx={{minHeight: '10rem', backgroundColor: 'white', borderRadius: '0.5rem', boxShadow: '0 8px 24px rgba(0,0,0,0.3)'}}>
-          
-          <FlexBox fullWidth center sx={{minHeight: '7rem', padding: '1rem'}}>
-            {children ? children : <AppleTg>{bodyText}</AppleTg>}
-          </FlexBox>
+    return (
+      <Modal
+        open={isOpen}
+        disableRestoreFocus
+        slotProps={{
+          backdrop: { sx: { backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+        }}
+      >
+        <FlexContainer fullWidth fullHeight center>
+          <FlexBox flexDirection="column" width={width} center sx={{minHeight: '10rem', backgroundColor: 'white', borderRadius: '0.5rem', boxShadow: '0 8px 24px rgba(0,0,0,0.3)'}}>
 
-          <FlexBox fullWidth height="3.5rem" alignItems="center" justifyContent="space-between">
-            <FlexBox 
-              width="40%" 
-              fullHeight 
-              center 
-              button 
-              onClick={() => {setIsOpen(false); onCancel();}} 
-              sx={{ '&:hover': { '& .MuiTypography-root': { color: colors.red } }}}
-            >
-              <AppleTg>{cancelText}</AppleTg>
+            <FlexBox fullWidth center sx={{minHeight: '7rem', padding: '1rem'}}>
+              {children ? children : <AppleTg>{bodyText}</AppleTg>}
             </FlexBox>
 
-            <FlexBox 
-              width="40%" 
-              fullHeight 
-              center 
-              button 
-              onClick={onConfirm} 
-              sx={{ '&:hover': { '& .MuiTypography-root': { color: colors.blue } }}}
-            >
-              <AppleTg>{confirmText}</AppleTg>
-            </FlexBox>
+            <FlexBox fullWidth height="3.5rem" alignItems="center" justifyContent="space-between">
+              <FlexBox
+                width="40%"
+                fullHeight
+                center
+                button
+                onClick={() => {setIsOpen(false); onCancel();}}
+                sx={{ '&:hover': { '& .MuiTypography-root': { color: colors.red } }}}
+              >
+                <AppleTg>{cancelText}</AppleTg>
+              </FlexBox>
 
+              <FlexBox
+                width="40%"
+                fullHeight
+                center
+                button
+                onClick={onConfirm}
+                sx={{ '&:hover': { '& .MuiTypography-root': { color: colors.blue } }}}
+              >
+                <AppleTg>{confirmText}</AppleTg>
+              </FlexBox>
+
+            </FlexBox>
           </FlexBox>
-        </FlexBox>
-      </FlexContainer>
-      </Backdrop>
-    </Modal>
+        </FlexContainer>
+      </Modal>
     );
   };
 

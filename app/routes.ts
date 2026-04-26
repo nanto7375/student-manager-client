@@ -9,7 +9,7 @@ export default [
 
   ...prefix('student', [
     index('./routes/student/page.tsx'),
-    route(':studentId', './routes/student/id.tsx'),
+    route(':studentId', './routes/student/student-detail.tsx'),
   ]),
   
   route('admin', './routes/admin/page.tsx'),
