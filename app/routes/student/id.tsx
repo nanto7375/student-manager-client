@@ -1,5 +1,5 @@
 import React from "react";
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLoaderData } from "react-router";
 import { Button, Tab, Tabs } from "@mui/material";
 
@@ -16,26 +16,27 @@ type StudentInListType = {
   schoolGrade: number;
   schoolLevel: number;
   schoolName: string;
+  notes: Note[];
 }
 
-type Assessment = {
+type NoteType = 'note' | 'parent-counseling' | 'fixed-memo' | 'temporary-memo';
+
+type Note = {
   id: number;
   value: string;
+  type: NoteType;
   lastCommenter: ShortAdminDto;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const getStudentDetailApi = buildApi<StudentInListType>({ path: '/students/:studentId', method: 'GET' });
-const getStudentAssessmentListApi = buildApi<Assessment[]>({ path: '/students/:studentId/assessments', method: 'GET' });
-const createAssessmentApi = buildApi<Assessment>({ path: '/students/:studentId/assessments', method: 'POST' });
-const updateAssessmentApi = buildApi<Assessment>({ path: '/students/:studentId/assessments/:assessmentId', method: 'PATCH' });
-const deleteAssessmentApi = buildApi<boolean>({path: '/students/:studentId/assessments/:assessmentId', method: 'DELETE'});
+const getStudentApi = buildApi<StudentInListType>({ path: '/students/:studentId', method: 'GET' });
+const createNoteApi = buildApi<Note>({ path: '/students/:studentId/notes', method: 'POST' });
+const updateNoteApi = buildApi<Note>({ path: '/students/:studentId/notes/:noteId', method: 'PATCH' });
+const deleteNoteApi = buildApi<boolean>({path: '/students/:studentId/notes/:noteId', method: 'DELETE'});
 
-const studentDetailQueryKey = (studentId: string) => ['student-detail', studentId] as const;
-const assessmentListKey = (studentId: string) => ['assessment-list', studentId] as const;
-
-const initAccessment = () => ({ id: -1, value: '' })
+const studentQueryKey = (studentId: string) => ['student', studentId] as const;
+const initNote = () => ({ id: -1, value: '', type: 'note' as NoteType })
 
 export const clientLoader = async ({ params }: { params: { studentId: string } }) => {
   return { studentId: params.studentId };
@@ -45,40 +46,37 @@ export default function StudentDetail() {
   const { studentId } = useLoaderData<typeof clientLoader>();
   const queryClient = useQueryClient();
 
-  const {data: student, error: studentDetailError, isLoading: studentDetailLoading } = useQuery({
-    queryKey: studentDetailQueryKey(studentId),
-    queryFn: () => getStudentDetailApi({ params: { studentId } }),
-    enabled: !!studentId,
-    staleTime: Infinity,
-  });
-  const { data: assessmentList, error: assessmentListError, isLoading: assessmentListLoading } = useQuery({
-    queryKey: assessmentListKey(studentId),
-    queryFn: () => getStudentAssessmentListApi({ params: { studentId } }),
-    placeholderData: keepPreviousData,
-  });
-
-  const createAssessmentMutation = useMutation({ mutationFn: createAssessmentApi });
-  const updateAssessmentMutation = useMutation({ mutationFn: updateAssessmentApi });
-  const deleteAssessmentMutation = useMutation({ mutationFn: deleteAssessmentApi, onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: assessmentListKey(studentId) })
-  } })
-
   const {ConfirmModal: DeleteModal, openConfirmModal: openDeleteModal, closeConfirmModal: closeDeleteModal} = useConfirmModal();
   const {ConfirmModal: CancelModal, openConfirmModal: openCancelModal, closeConfirmModal: closeCancelModal} = useConfirmModal();
 
   const assessmentListContainerRef = React.useRef<HTMLDivElement>(null);
+
   const [isAdding, setIsAdding] = React.useState(false);
   const [editingId, setEditingId] = React.useState<number | null>(null);
   const [deletingId, setDeletingId] = React.useState<number | null>(null);
-  const [recordingAssessment, setRecordingAssessment] = React.useState<{ id: number, value: string }>(initAccessment());
+
+  const [selectedTab, setSelectedTab] = React.useState<'assessment' | 'parent-counseling'>('assessment');
+  const [recordingNote, setRecordingNote] = React.useState<{ id: number, value: string }>(initNote());
+
+  const {data: student, error: studentDetailError, isLoading: studentDetailLoading } = useQuery({
+    queryKey: studentQueryKey(studentId),
+    queryFn: () => getStudentApi({ params: { studentId } }),
+    enabled: !!studentId,
+    placeholderData: keepPreviousData,
+  });
+
+  const notes = React.useMemo(() => {
+    if (!student) return [];
+    return student.notes.filter(note => note.type === selectedTab);
+  }, [student, selectedTab]);
 
   const handleAddClick = React.useCallback(() => {
     setIsAdding(true);
   }, []);
 
-  const handleEditClick = React.useCallback((assessment: Assessment) => {
-    setRecordingAssessment({ id: assessment.id, value: assessment.value });
-    setEditingId(assessment.id);
+  const handleEditClick = React.useCallback((note: Note) => {
+    setRecordingNote({ id: note.id, value: note.value });
+    setEditingId(note.id);
   }, []); 
 
   const handleCancelButtonClick = React.useCallback(() => {
@@ -88,46 +86,47 @@ export default function StudentDetail() {
   const handleEditCancel = React.useCallback(() => {
     setIsAdding(false);
     setEditingId(null);
-    setRecordingAssessment(initAccessment());
+    setRecordingNote(initNote());
     closeCancelModal();
   }, []);
 
-  const handleDeleteButtonClick = React.useCallback(async (assessmentId: number) => {
-    setDeletingId(assessmentId)
+  const handleDeleteButtonClick = React.useCallback(async (noteId: number) => {
+    setDeletingId(noteId)
     openDeleteModal()
-  }, [deleteAssessmentMutation, studentId])
+  }, [])
 
   const handleDeleteAssessment = React.useCallback(async () => {
-    await deleteAssessmentMutation.mutateAsync({params: {studentId, assessmentId: deletingId}});
+    await deleteNoteApi({params: {studentId, noteId: deletingId}});
+    queryClient.invalidateQueries({ queryKey: studentQueryKey(studentId) })
     setDeletingId(null);
     closeDeleteModal();
-  }, [deleteAssessmentMutation, studentId, deletingId])
+  }, [studentId, deletingId])
 
   const saveAssessment = React.useCallback(async (isNew: boolean) => {
     if (isNew) {
-      const assessment = await createAssessmentMutation.mutateAsync({ 
+      const note = await createNoteApi({ 
         params: { studentId }, 
-        body: { value: recordingAssessment.value } 
+        body: { value: recordingNote.value, type: selectedTab } 
       });
-      setRecordingAssessment(prev => ({ ...prev, id: assessment.id }));
+      setRecordingNote(prev => ({ ...prev, id: note.id }));
     } else {
-      const currentAssessment = assessmentList?.find(a => a.id === recordingAssessment.id);
-      if (recordingAssessment.value === currentAssessment?.value) return;
-      await updateAssessmentMutation.mutateAsync({ 
-        params: { studentId, assessmentId: recordingAssessment.id }, 
-        body: { value: recordingAssessment.value } 
+      const currentAssessment = notes.find(a => a.id === recordingNote.id);
+      if (recordingNote.value === currentAssessment?.value) return;
+      await updateNoteApi({ 
+        params: { studentId, noteId: recordingNote.id }, 
+        body: { value: recordingNote.value } 
       });
     }
-  }, [createAssessmentMutation, updateAssessmentMutation, studentId, recordingAssessment, assessmentList]);
+  }, [studentId, recordingNote, student, notes, selectedTab]);
 
-  const handleSave = async () => {
-    const isNewAssessment = recordingAssessment.id === -1;
+  const handleSaveClick = async () => {
+    const isNewAssessment = recordingNote.id === -1;
     await saveAssessment(isNewAssessment)
     setIsAdding(false);
     setEditingId(null);
-    setRecordingAssessment(initAccessment());
+    setRecordingNote(initNote());
 
-    queryClient.invalidateQueries({ queryKey: assessmentListKey(studentId) }).then(() => {
+    queryClient.invalidateQueries({ queryKey: studentQueryKey(studentId) }).then(() => {
       if (!isNewAssessment) return;
       setTimeout(() => {
         if (assessmentListContainerRef.current) {
@@ -141,13 +140,13 @@ export default function StudentDetail() {
   };
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setRecordingAssessment(prev => ({ ...prev, value: e.target.value }));
+    setRecordingNote(prev => ({ ...prev, value: e.target.value }));
     // 자동으로 높이 조절
     e.target.style.height = 'auto';
     e.target.style.height = e.target.scrollHeight + 'px';
   };
 
-  if (!student || !assessmentList) return <FlexContainer padding="1rem" fullHeight fullWidth center></FlexContainer>;
+  if (studentDetailError || studentDetailLoading) return <FlexContainer padding="1rem" fullHeight fullWidth center></FlexContainer>;
   return (
     <FlexContainer ref={assessmentListContainerRef} fullHeight fullWidth sx={{ flexDirection: 'column', overflow: 'auto', paddingLeft: '1rem' }}>
       <FlexBox
@@ -166,8 +165,9 @@ export default function StudentDetail() {
           <FlexBox sx={{ color: '#666' }}>{student.schoolName} {student.schoolGrade}학년</FlexBox>
           <FlexBox sx={{ color: '#666' }}>({student.schoolLevel === 1 ? '초등' : student.schoolLevel === 2 ? '중등' : '고등'})</FlexBox>
         </FlexBox>
-        <Tabs value="학생 기록">
-          <Tab label="학생 기록" value="학생 기록" sx={{ fontSize: '1rem' }} />
+        <Tabs value={selectedTab} onChange={(e, newValue) => setSelectedTab(newValue)} sx={{ marginTop: '1rem' }}>
+          <Tab label="학생 기록" value="assessment" sx={{ fontSize: '1rem' }} />
+          <Tab label="상담 기록" value="parent-counseling" sx={{ fontSize: '1rem' }} />
         </Tabs>
       </FlexBox>
 
@@ -177,10 +177,10 @@ export default function StudentDetail() {
         {/* 기록 추가 영역 */}
         {(isAdding ? (
           <FlexBox width="100%" sx={{ flexDirection: 'column', gap: '2rem', padding: '1rem', border: '1px solid #ddd', borderRadius: '0.5rem' }}>
-            <AssessmentEditBox
-              value={recordingAssessment.value}
+            <NoteEditBox
+              value={recordingNote.value}
               onChange={handleTextareaChange}
-              onSave={handleSave}
+              onSave={handleSaveClick}
               onCancel={handleCancelButtonClick}
               placeholder="기록을 입력하세요"
               isInline={false}
@@ -190,9 +190,9 @@ export default function StudentDetail() {
           <AddAssessmentButton onClick={handleAddClick} disabled={!!editingId} />
         ))}
 
-        {assessmentList.map(assessment => (
+        {notes.map(note => (
           <FlexBox 
-            key={assessment.id} 
+            key={note.id} 
             width="100%"
             padding="1rem"
             position="relative"
@@ -200,11 +200,11 @@ export default function StudentDetail() {
             gap={0.5}
             sx={{ border: '1px solid #ddd', borderRadius: '0.5rem' }}
           >
-            {editingId === assessment.id ? (
-              <AssessmentEditBox
-                value={recordingAssessment.value}
+            {editingId === note.id ? (
+              <NoteEditBox
+                value={recordingNote.value}
                 onChange={handleTextareaChange}
-                onSave={handleSave}
+                onSave={handleSaveClick}
                 onCancel={handleCancelButtonClick}
                 isInline={true}
               />
@@ -212,18 +212,18 @@ export default function StudentDetail() {
               <>
                 <FlexBox alignItems="flex-start" justifyContent="space-between" height="3rem">
                   <div style={{ fontSize: '0.875rem', color: '#999' }}>
-                    <div>작성일: {new Date(assessment.createdAt).toLocaleString('ko-KR')}</div>
-                    <div>수정일: {new Date(assessment.updatedAt).toLocaleString('ko-KR')}&nbsp;({assessment.lastCommenter.name})
+                    <div>작성일: {new Date(note.createdAt).toLocaleString('ko-KR')}</div>
+                    <div>수정일: {new Date(note.updatedAt).toLocaleString('ko-KR')}&nbsp;({note.lastCommenter.name})
                     </div>
                   </div>
                   {!(isAdding || editingId) && (
                     <div>
-                      <AssessmentBoxFooterButton title="편집" onClick={() => handleEditClick(assessment)} />
-                      <AssessmentBoxFooterButton title="삭제" onClick={() => handleDeleteButtonClick(assessment.id)} />
+                      <NoteBoxFooterButton title="편집" onClick={() => handleEditClick(note)} />
+                      <NoteBoxFooterButton title="삭제" onClick={() => handleDeleteButtonClick(note.id)} />
                     </div>
                   )}
                 </FlexBox>
-                <FlexBox className="draggable">{assessment.value}</FlexBox>
+                <FlexBox className="draggable">{note.value}</FlexBox>
               </>
             )}
           </FlexBox>
@@ -236,7 +236,7 @@ export default function StudentDetail() {
   );
 }
 
-const AssessmentEditBox = ({
+const NoteEditBox = ({
   value,
   onChange,
   onSave,
@@ -298,7 +298,7 @@ const AssessmentEditBox = ({
   );
 };
 
-const AssessmentBoxFooterButton = ({title, onClick}) => {
+const NoteBoxFooterButton = ({title, onClick}) => {
   return <Button
     size="small"
     variant="text"
