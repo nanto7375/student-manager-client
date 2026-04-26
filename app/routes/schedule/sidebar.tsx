@@ -91,7 +91,7 @@ export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setS
       </FlexBox>
 
       <FlexBox flexDirection="column" fullWidth>
-        {todaySchedule.map((schedule) => (
+        {todaySchedule?.length ? todaySchedule.map((schedule) => (
           <FlexBox 
             key={schedule.id} 
             onClick={() => handleScheduleClick(schedule)}
@@ -125,7 +125,7 @@ export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setS
               {selectedScheduleId === schedule.id && <ArrowForwardIosIcon sx={{fontSize: '0.9rem', color: 'gray', marginLeft: '0.2rem'}} />}
             </Link>
           </FlexBox>
-        ))}
+        )) : <FlexBox height="3rem" alignItems="center" justifyContent="center"><span style={{color: 'gray', fontSize: '0.875rem'}}>수업이 없습니다</span></FlexBox>}
       </FlexBox>
 
     </FlexContainer>
