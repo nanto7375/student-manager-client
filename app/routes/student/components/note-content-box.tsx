@@ -16,10 +16,10 @@ export const NoteContentBox = ({ note, isAdding, editingId, handleEditClick, han
           </div>
         </div>
         {!(isAdding || editingId) && (
-          <div>
+          <FlexBox gap={1}>
             <NoteBoxFooterButton title="편집" onClick={() => handleEditClick(note)} />
             <NoteBoxFooterButton title="삭제" onClick={() => handleDeleteButtonClick(note.id)} />
-          </div>
+          </FlexBox>
         )}
       </FlexBox>
       
