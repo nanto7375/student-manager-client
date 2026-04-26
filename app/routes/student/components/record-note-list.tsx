@@ -2,8 +2,102 @@ import { Tab, Tabs, Button } from "@mui/material"
 import { FlexBox, FlexContainer } from "~/components/styled-elements"
 import { NoteEditBox } from "./note-edit-box"
 import { NoteContentBox } from "./note-content-box"
+import React from "react"
+import type { Note, NoteType } from "../student-detail"
+import { useConfirmModal } from "~/hooks/use-confirm-modal"
 
-export const RecordNoteList = ({ selectedTab, setSelectedTab, isAdding, editingId, recordingNote, handleTextareaChange, handleSaveClick, handleCancelButtonClick, handleAddClick, handleEditClick, handleDeleteButtonClick, notes }) => {
+const initNote = () => ({ id: -1, value: '', type: 'note' as NoteType })
+
+type RecordNoteListProps = {
+  notes: Note[];
+  deleteNote: (noteId: number) => void;
+  createNote: (note: { value: string, type: NoteType }) => Promise<Note>;
+  updateNote: (note: { id: number, value: string }) => Promise<void>;
+}
+export const RecordNoteList = ({ notes, deleteNote, createNote, updateNote }: RecordNoteListProps) => {
+  const noteListRef = React.useRef<HTMLDivElement>(null);
+
+  const [selectedTab, setSelectedTab] = React.useState<'assessment' | 'parent-counseling'>('assessment');
+    const recordNotes = React.useMemo(() => {
+      return notes.filter(note => note.type === selectedTab);
+    }, [notes, selectedTab]);
+
+
+  const [isAdding, setIsAdding] = React.useState(false);
+  const [editingId, setEditingId] = React.useState<number | null>(null);
+  const [deletingId, setDeletingId] = React.useState<number | null>(null);
+  const [recordingNote, setRecordingNote] = React.useState<{ id: number, value: string }>(initNote());
+  
+    const {ConfirmModal: DeleteModal, openConfirmModal: openDeleteModal, closeConfirmModal: closeDeleteModal} = useConfirmModal();
+    const {ConfirmModal: CancelModal, openConfirmModal: openCancelModal, closeConfirmModal: closeCancelModal} = useConfirmModal();
+
+  const handleAddClick = React.useCallback(() => {
+    setIsAdding(true);
+  }, []);
+
+  const handleEditClick = React.useCallback((note: Note) => {
+    setRecordingNote({ id: note.id, value: note.value });
+    setEditingId(note.id);
+  }, []); 
+
+  const handleEditCancel = React.useCallback(() => {
+    setIsAdding(false);
+    setEditingId(null);
+    setRecordingNote(initNote());
+    closeCancelModal();
+  }, []);
+
+  const handleSaveClick = async () => {
+    const isNew = recordingNote.id === -1;
+
+    if (isNew) {
+      const note = await createNote({ value: recordingNote.value, type: selectedTab as NoteType });
+      setRecordingNote(prev => ({ ...prev, id: note.id }));
+    } else {
+      const currentNote = recordNotes.find(a => a.id === recordingNote.id);
+      if (recordingNote.value === currentNote?.value) return;
+      await updateNote({ id: recordingNote.id, value: recordingNote.value });
+    }
+
+    setIsAdding(false);
+    setEditingId(null);
+    setRecordingNote(initNote());
+
+    setTimeout(() => {
+      if (!isNew) return;
+      if (noteListRef.current) {
+        noteListRef.current.scrollTo({
+          top: noteListRef.current.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
+    }, 100);
+  }
+
+  const handleDeleteButtonClick = React.useCallback(async (noteId: number) => {
+      setDeletingId(noteId)
+      openDeleteModal()
+    }, [])
+
+  const handleDeleteAssessment = React.useCallback(async () => {
+    deleteNote(deletingId);
+    setDeletingId(null);
+    closeDeleteModal();
+  }, [deletingId])
+
+  
+  const handleCancelButtonClick = React.useCallback(() => {
+    openCancelModal();
+  }, [])
+
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setRecordingNote(prev => ({ ...prev, value: e.target.value }));
+    // 자동으로 높이 조절
+    e.target.style.height = 'auto';
+    e.target.style.height = e.target.scrollHeight + 'px';
+  };
+  
+
   return (
     <FlexContainer width="70%" sx={{flexDirection: 'column', flex: 1, overflow: 'hidden'}}>
       <Tabs
@@ -23,22 +117,20 @@ export const RecordNoteList = ({ selectedTab, setSelectedTab, isAdding, editingI
       <FlexBox flexDirection='column' alignItems='flex-start' sx={{flex: 1, overflow: 'auto', paddingTop: '1rem'}} gap={1}>
 
         {/* 기록 추가 영역 */}
-        <FlexBox flexDirection='column' width="100%" gap={1} sx={{overflow: 'auto', flex: 1, paddingBottom: '1rem'}}>
+        <FlexBox ref={noteListRef} flexDirection='column' width="100%" gap={1} sx={{overflow: 'auto', flex: 1, paddingBottom: '1rem'}}>
           {(isAdding ? (
-            <FlexBox width="100%" sx={{ flexDirection: 'column', gap: '2rem', padding: '1rem', border: '1px solid #ddd', borderRadius: '0.5rem' }}>
-              <NoteEditBox
-                value={recordingNote.value}
-                onChange={handleTextareaChange}
-                onSave={handleSaveClick}
-                onCancel={handleCancelButtonClick}
-                placeholder="기록을 입력하세요"
-                isInline={false}
-              />
-            </FlexBox>
+            <NoteEditBox
+              value={recordingNote.value}
+              onChange={handleTextareaChange}
+              onSave={handleSaveClick}
+              onCancel={handleCancelButtonClick}
+              placeholder="기록을 입력하세요"
+              isInline={false}
+            />
           ) : (
             <AddNoteButton onClick={handleAddClick} disabled={!!editingId} />
           ))}
-          {notes.map((note) => (
+          {recordNotes.map((note) => (
             editingId === note.id ? (
               <NoteEditBox
               key={note.id}
@@ -61,6 +153,9 @@ export const RecordNoteList = ({ selectedTab, setSelectedTab, isAdding, editingI
           ))}
         </FlexBox>
       </FlexBox>
+
+      <DeleteModal onConfirm={handleDeleteAssessment} bodyText='삭제하시겠습니까?' />
+      <CancelModal onConfirm={handleEditCancel} bodyText='취소하시겠습니까?' />
     </FlexContainer>
   )
 }
