@@ -128,33 +128,38 @@ export default function SignIn() {
               placeholder="Email"
               value={email}
               onChange={handleEmailChange}
-              sx={{ 
+              sx={{
                 width: SIGNIN_INPUT_FIELD_WIDTH,
                 '& .MuiOutlinedInput-root': {
                   borderBottomLeftRadius: 0,
                   borderBottomRightRadius: 0,
+                  '& fieldset legend': {
+                    display: 'none',
+                  }
                 }
               }}
               variant="outlined"
             />
           </FlexBox>
-          <FlexBox center>
+          <FlexBox center sx={{ marginTop: '4px' }}>
             <TextField
               id="password"
               type="password"
               placeholder="Password"
               value={password}
               onChange={handlePasswordChange}
-              sx={{ 
+              sx={{
                 width: SIGNIN_INPUT_FIELD_WIDTH,
-                marginTop: '-1px',
                 '& .MuiOutlinedInput-root': {
                   borderTopLeftRadius: 0,
                   borderTopRightRadius: 0,
+                  '& fieldset legend': {
+                    display: 'none',
+                  }
                 }
               }}
               variant="outlined"
-            />
+              />
           </FlexBox>
           <FlexBox
             className="save-email-checkbox-wrapper"
