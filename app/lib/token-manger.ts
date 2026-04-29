@@ -4,18 +4,18 @@ import { Deferred, type DeferredType } from '~/lib/utils/deferred';
 const refreshPath = '/auth/refresh';
 
 class TokenManager {
-  private accessToken: string = '';
+  private readonly TOKEN_KEY = 'access_token';
 
   setAccessToken(token: string) {
-    this.accessToken = token;
+    sessionStorage.setItem(this.TOKEN_KEY, token);
   }
 
   getAccessToken(): string {
-    return this.accessToken;
+    return sessionStorage.getItem(this.TOKEN_KEY) || '';
   }
 
   clearAccessToken() {
-    this.accessToken = '';
+    sessionStorage.removeItem(this.TOKEN_KEY);
   }
 
   async refreshAccessToken(): Promise<void> {
@@ -28,7 +28,7 @@ class TokenManager {
     });
     if (!response.ok) throw new Error('Refresh failed');
     const result = await response.json();
-    this.accessToken = result.message;
+    this.setAccessToken(result.message);
   }
 }
 export const tokenManager = new TokenManager();
