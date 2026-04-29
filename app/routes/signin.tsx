@@ -8,8 +8,8 @@ import { ROUTES } from "~/constants";
 import { LEO_TITLE } from "~/constants";
 import { convertKoreanToEnglish, emailRegex, removeSpace } from "~/lib/utils/string.util";
 import { UNAUTHORIZED_ERRROR_CODE } from "~/lib/error";
-import { useAuth } from "~/providers/auth-provider";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
+import { auth } from "~/lib/auth";
 
 const SIGNIN_INPUT_FIELD_WIDTH = '18rem';
 const SAVED_EMAIL_KEY = 'saved-email';
@@ -31,8 +31,6 @@ export default function SignIn() {
     const _redirect = new URLSearchParams(location.search).get('redirect');
     return _redirect ? decodeURIComponent(_redirect) : '';
   }, [location.search]);
-
-  const { signin } = useAuth();
 
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -74,7 +72,7 @@ export default function SignIn() {
     if (isSaveEmail) localStorage.setItem(SAVED_EMAIL_KEY, email);
     if (!validateEmail(email) || !validatePassword(password)) return;
     try {
-      await signin(email, password);
+      await auth.signin(email, password);
       navigate(redirect || ROUTES.HOME);
     } catch (error: any) {
       if (error.code === SIGNIN_ERROR_CASES.authenticationFailed.code) {

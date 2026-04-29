@@ -5,12 +5,12 @@ import { styled } from "@mui/material";
 import { ROUTES, LEO_TITLE } from "./constants";
 import { AdminRoleType } from "./constants/type";
 import { tokenManager } from "./lib/token-manger";
-import { useAuth } from "./providers/auth-provider";
 
 import { FlexBox, FlexContainer } from "./components/styled-elements";
 import { AppleTg } from "./components/typography";
 // import { ConfirmModal } from "./components/confirm-modal";
 import { useConfirmModal } from "./hooks/use-confirm-modal";
+import { auth } from "./lib/auth";
 
 const LinkFullSize = styled(Link)({
   width: '100%',
@@ -45,14 +45,14 @@ const ADMIN_PAGE = {
 }
 
 export default function SideBar() {
-  const { user, signout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const pathname = React.useMemo(() => location.pathname, [location]);
   const { ConfirmModal, openConfirmModal, closeConfirmModal } = useConfirmModal();
 
   const [selectedMenu, setSelectedMenu] = React.useState<string>(pathname.split("/")[1]);
-  const isAdmin = React.useMemo(() => user?.role === AdminRoleType.SUPER_ADMIN || user?.role === AdminRoleType.ADMIN, [user]);
+  const user = auth.getMyInfo();
+  const isAdmin = user?.role === AdminRoleType.SUPER_ADMIN || user?.role === AdminRoleType.ADMIN;
 
   React.useEffect(() => {
     setSelectedMenu(location.pathname.split("/")[1]);
@@ -64,7 +64,7 @@ export default function SideBar() {
 
   const handleSignout = React.useCallback(async () => {
     try {
-      await signout();
+      await auth.signout();
       closeConfirmModal();
     } catch (error) {
       console.error(error);
@@ -72,7 +72,7 @@ export default function SideBar() {
     } finally {
       navigate(ROUTES.SIGNIN);
     }
-  }, [signout]);
+  }, []);
 
   return (
     <FlexContainer 

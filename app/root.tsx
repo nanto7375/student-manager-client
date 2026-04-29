@@ -5,72 +5,41 @@ import {
   Meta,
   Outlet,
   Scripts,
-  ScrollRestoration,
   useLocation,
   useRouteError,
 } from "react-router";
-import type { LinksFunction } from "react-router";
-import { ThemeProvider } from "@emotion/react";
-import CssBaseline from "@mui/material/CssBaseline";
 
 import "./app.css";
-import theme from "./theme";
 import { FlexBox, FlexContainer } from "./components/styled-elements";
-
-import QueryProvider from "./providers/query-client";
-import { AuthProvider } from "./providers/auth-provider";
-import { ToastProvider } from "./providers/toast-provider";
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 import { ROUTES } from "./constants";
 import NotFound from "./not-found";
 import SideBar from "./sidebar";
+import { buildApi } from "./lib/api-builder";
+import { tokenManager } from "./lib/token-manger";
+import { auth, type Admin } from "./lib/auth";
 
-export const links: LinksFunction = () => [
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
-  {
-    rel: "preconnect",
-    href: "https://fonts.gstatic.com",
-    crossOrigin: "anonymous",
-  },
-  {
-    rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
-  },
-];
+export { Layout, links } from "./layout";
 
-export function Layout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <Meta />
-        <Links />
-      </head>
-      <body>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <QueryProvider>
-            <ToastProvider>
-              <AuthProvider>
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                  {children}
-                </LocalizationProvider>
-              </AuthProvider>
-            </ToastProvider>
-          </QueryProvider>
-        </ThemeProvider>
-        <ScrollRestoration />
-        <Scripts />
-      </body>
-    </html>
-  );
-}
+const meApi = buildApi<Admin>({ path: '/admins/me', method: 'GET' });
 
 export default function App() {
   const {pathname} = useLocation();
+
+  const setAdminInfo = React.useCallback(async () => {
+    try {
+      const isSignedIn = !!tokenManager.getAccessToken();
+      if (!isSignedIn) return;
+      const adminInfo = await meApi();
+      auth.setMyInfo(adminInfo);
+    } catch (error) {
+      console.log(error);
+    }
+  }, [])
+
+  React.useEffect(() => {
+    setAdminInfo();
+  }, [setAdminInfo]);
 
   return (
     <FlexContainer style={{ minWidth: '48rem', height: '100%'}}>
