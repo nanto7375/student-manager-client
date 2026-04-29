@@ -1,6 +1,7 @@
 import { FETCH_JSON_ERROR_CODE, TOKEN_EXPIRED_ERROR_CODE, TOKEN_NOT_FOUND_ERROR_CODE, UNSTABLE_NETWORK_ERROR_CODE, hasErrorMessage } from '~/lib/error';
-import { RefreshProcessor, tokenManager } from './token-manger';
+import { RefreshProcessor } from './pending-request'
 import { BASE_URL } from '~/constants';
+import { tokenManager } from './token-manger';
 
 type BuildApiParams = {
   path: string;
@@ -39,7 +40,7 @@ export const buildApi = <T = unknown>({ path, method, credentials }: BuildApiPar
         headers: {
           ..._baseHeaders,
           ...(headers && headers),
-          ...(tokenManager.getAccessToken() && { Authorization: `Bearer ${tokenManager.getAccessToken()}` }),
+          ...tokenManager.getAccessToken() && { Authorization: `Bearer ${tokenManager.getAccessToken()}` },
         },
         ...(body && { body: JSON.stringify(body) }),
       });

@@ -1,20 +1,25 @@
 import { BASE_URL } from '~/constants';
-import { Deferred, type DeferredType } from '~/lib/utils/deferred';
 
 const refreshPath = '/auth/refresh';
 
 class TokenManager {
   private readonly TOKEN_KEY = 'access_token';
+  private accessToken: string | null = null;
 
   setAccessToken(token: string) {
+    this.accessToken = token;
     sessionStorage.setItem(this.TOKEN_KEY, token);
   }
 
-  getAccessToken(): string {
-    return sessionStorage.getItem(this.TOKEN_KEY) || '';
+  getAccessToken(): string | null {
+    if (this.accessToken) return this.accessToken;
+    const token = sessionStorage.getItem(this.TOKEN_KEY);
+    this.accessToken = token;
+    return token;
   }
 
   clearAccessToken() {
+    this.accessToken = null;
     sessionStorage.removeItem(this.TOKEN_KEY);
   }
 
@@ -27,58 +32,11 @@ class TokenManager {
       },
     });
     if (!response.ok) throw new Error('Refresh failed');
+
     const result = await response.json();
-    this.setAccessToken(result.message);
+    const accessToken = result.message;
+    this.setAccessToken(accessToken);
   }
 }
+
 export const tokenManager = new TokenManager();
-
-type PendingRequest<T> = {
-  deferred: DeferredType;
-  api: () => Promise<T>;
-};
-export const RefreshProcessor = () => {
-  let isRefreshing = false;
-  let isRefreshSuccess = true;
-  let pendingRequests = [] as PendingRequest<unknown>[];
-
-  const processRequests = async () => {
-    for (const request of pendingRequests) {
-      if (isRefreshSuccess) {
-        try {
-          const result = await request.api();
-          request.deferred.resolve(result);
-        } catch (error: any) {
-          request.deferred.reject({ status: error.status || 400, code: error.code || 400, message: error.message });
-        }
-      } else {
-        request.deferred.reject({ status: 401, code: 401, message: 'token expired' });
-      }
-    }
-    pendingRequests = [];
-    isRefreshing = false;
-  };
-
-  return async (originRequest: () => Promise<unknown>) => {
-    if (isRefreshing) {
-      const deferred = Deferred();
-      pendingRequests.push({
-        deferred,
-        api: () => originRequest(),
-      });
-      return deferred.promise as Promise<unknown>;
-    }
-
-    isRefreshing = true;
-    try {
-      await tokenManager.refreshAccessToken();
-      isRefreshSuccess = true;
-      return await originRequest();
-    } catch (error: any) {
-      isRefreshSuccess = false;
-      throw { status: error.status || 400, code: error.code || 400, message: error.message || 'token expired' };
-    } finally {
-      processRequests();
-    }
-  };
-};
