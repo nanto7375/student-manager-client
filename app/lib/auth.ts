@@ -13,6 +13,7 @@ const signoutApi = buildApi({ path: '/auth/signout', method: 'POST', credentials
 
 // TODO: provider로 처리해야 할지 고민
 class Auth {
+  private readonly MY_INFO_KEY = 'my-info';
   private myInfo: Admin | null = null;
 
   signin = async (email: string, password: string) => {
@@ -28,13 +29,13 @@ class Auth {
   }
 
   setMyInfo(admin: Admin | null) {
-    sessionStorage.setItem('my-info', JSON.stringify(admin));
+    sessionStorage.setItem(this.MY_INFO_KEY, JSON.stringify(admin));
     this.myInfo = admin;
   }
 
   getMyInfo() {
     if (this.myInfo) return this.myInfo;
-    const admin = sessionStorage.getItem('my-info');
+    const admin = sessionStorage.getItem(this.MY_INFO_KEY);
     this.myInfo = admin ? JSON.parse(admin) : null;
     return this.myInfo;
   }
