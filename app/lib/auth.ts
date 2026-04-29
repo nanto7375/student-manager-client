@@ -11,7 +11,7 @@ export type Admin = {
 const signinApi = buildApi<{ admin: Admin; accessToken: string }>({ path: '/auth/signin', method: 'POST', credentials: 'include' });
 const signoutApi = buildApi({ path: '/auth/signout', method: 'POST', credentials: 'include' });
 
-
+// TODO: provider로 처리해야 할지 고민
 class Auth {
   private myInfo: Admin | null = null;
 
