@@ -5,7 +5,7 @@ export default [
 
   route('signin', './routes/signin.tsx'),
 
-  route('schedule', './routes/schedule/page.tsx', [route(':scheduleId', './routes/schedule/id.tsx')]),
+  route('schedule', './routes/schedule/page.tsx', [route(':scheduleId', './routes/schedule/activity-records.tsx')]),
 
   ...prefix('student', [
     index('./routes/student/page.tsx'),
