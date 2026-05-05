@@ -39,6 +39,11 @@ class Auth {
     this.myInfo = admin ? JSON.parse(admin) : null;
     return this.myInfo;
   }
+
+  clearMyInfo() {
+    sessionStorage.removeItem(this.MY_INFO_KEY);
+    this.myInfo = null;
+  }
 }
 
 export const auth = new Auth();

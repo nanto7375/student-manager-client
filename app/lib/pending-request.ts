@@ -5,6 +5,15 @@ type PendingRequest<T> = {
   deferred: DeferredType;
   api: () => Promise<T>;
 };
+
+type ErrorHandler = (error: any) => void;
+
+let globalErrorHandler: ErrorHandler | null = null;
+
+export const setGlobalErrorHandler = (handler: ErrorHandler) => {
+  globalErrorHandler = handler;
+};
+
 export const RefreshProcessor = () => {
   let isRefreshing = false;
   let isRefreshSuccess = true;
@@ -44,7 +53,13 @@ export const RefreshProcessor = () => {
       return await originRequest();
     } catch (error: any) {
       isRefreshSuccess = false;
-      throw { status: error.status || 400, code: error.code || 400, message: error.message || 'token expired' };
+      const formattedError = { status: error.status || 401, code: error.code || 401, message: error.message || 'token expired' };
+
+      if (globalErrorHandler) {
+        globalErrorHandler(formattedError);
+      }
+
+      throw formattedError;
     } finally {
       processRequests();
     }

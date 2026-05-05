@@ -14,6 +14,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import theme from "./theme";
 import QueryProvider from "./providers/query-client";
 import { ToastProvider } from "./providers/toast-provider";
+import { ErrorHandlerProvider } from "./providers/error-handler-provider";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -42,9 +43,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <CssBaseline />
           <QueryProvider>
             <ToastProvider>
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                {children}
-              </LocalizationProvider>
+              <ErrorHandlerProvider>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  {children}
+                </LocalizationProvider>
+              </ErrorHandlerProvider>
             </ToastProvider>
           </QueryProvider>
         </ThemeProvider>
