@@ -82,7 +82,8 @@ export const clientLoader = async ({ params, request }: { params: { scheduleId: 
   return { scheduleId: params.scheduleId, date };
 }
 
-const updateActivityRecordApi = buildApi<ActivityRecordType>({ path: '/activities/:activityId', method: 'PATCH' });
+const updateWeeklyActivityRecordApi = buildApi<ActivityRecordType>({ path: '/activities/:activityId', method: 'PATCH' });
+const updateMonthlyActivityRecordApi = buildApi<ActivityRecordType>({ path: '/activities/:activityId/monthly', method: 'PATCH' });
 const borrowBookApi = buildApi<void>({ path: '/book-rentals', method: 'POST' });
 const updateBookRentalInfoApi = buildApi<void>({ path: '/book-rentals/:bookRentalId', method: 'PATCH' });
 const returnBookApi = buildApi<void>({ path: '/book-rentals/:bookRentalId/return', method: 'PATCH' });
@@ -101,24 +102,6 @@ export default function StudentActivityRecords() {
     enabled: !!scheduleId && !!date,
   });
 
-  const updateActivityRecord = useMutation({
-    mutationFn: updateActivityRecordApi,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: activityRecordsQueryKey(scheduleId, date) });
-    },
-  });
-  const borrowBook = useMutation({
-    mutationFn: borrowBookApi,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: activityRecordsQueryKey(scheduleId, date) });
-    },
-  });
-  const returnBook = useMutation({
-    mutationFn: returnBookApi,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: activityRecordsQueryKey(scheduleId, date) });
-    },
-  });
   const updateBookRentalInfo = useMutation({
     mutationFn: updateBookRentalInfoApi,
     onSuccess: () => {
@@ -126,15 +109,33 @@ export default function StudentActivityRecords() {
     },
   });
 
-  const handleActivityRecordButtonClick = async ({activityId, activityKey, value}: {activityId: number; activityKey: keyof ActivityCheck; value: boolean}) => {
+  const handleWeeklyActivityRecordButtonClick = async ({activityId, activityKey, value}: {activityId: number; activityKey: keyof ActivityCheck; value: boolean}) => {
     if (updating) return;
-    if (isAfterToday) return toast.info('미래 날짜의 활동은 업데이트할 수 없습니다.');
+    // if (isAfterToday) return toast.info('미래 날짜의 활동은 업데이트할 수 없습니다.');
     
     setUpdating(true);
     try {
-      const body = { activityKey: activityKey, activityValue: value };
-      const isMonthlyProjectKey = [ActivityKey.MONTHLY_PREVIEW, ActivityKey.MONTHLY_REPORT, ActivityKey.MONTHLY_PROJECT].includes(activityKey);
-      await updateActivityRecord.mutateAsync({ params: { activityId }, body, query: { monthly: isMonthlyProjectKey } });
+      await updateWeeklyActivityRecordApi({ params: { activityId }, body: { [activityKey]: value } });
+      queryClient.invalidateQueries({ queryKey: activityRecordsQueryKey(scheduleId, date) });
+    } catch (error) {
+      console.error(error);
+      toast.error(error.status >= 500 ? 
+        `서버에 문제가 발생했습니다.(${error.message})` : 
+        '활동 기록 업데이트에 실패했습니다.'
+      );
+    } finally {
+      setTimeout(() => setUpdating(false), 300);
+    }
+  }
+
+  const handleMonthlyActivityRecordButtonClick = async ({activityId, activityKey, value}: {activityId: number; activityKey: keyof ActivityCheck; value: boolean}) => {
+    if (updating) return;
+    // if (isAfterToday) return toast.info('미래 날짜의 활동은 업데이트할 수 없습니다.');
+    
+    setUpdating(true);
+    try {
+      await updateMonthlyActivityRecordApi({ params: { activityId }, body: { [activityKey]: value } });
+      queryClient.invalidateQueries({ queryKey: activityRecordsQueryKey(scheduleId, date) });
     } catch (error) {
       console.error(error);
       toast.error(error.status >= 500 ? 
@@ -151,10 +152,11 @@ export default function StudentActivityRecords() {
     setUpdating(true);
     try {
       if (!record.borrowedBook) {
-        await borrowBook.mutateAsync({ body: { studentId: record.student.id } });
+        await borrowBookApi({ body: { studentId: record.student.id } });
       } else {
-        await returnBook.mutateAsync({ params: { bookRentalId: record.borrowedBook.id } });
+        await returnBookApi({ params: { bookRentalId: record.borrowedBook.id } });
       }
+      queryClient.invalidateQueries({ queryKey: activityRecordsQueryKey(scheduleId, date) });
     } catch (error) {
       console.error(error);
       toast.error(error.status >= 500 ? 
@@ -197,7 +199,7 @@ export default function StudentActivityRecords() {
                     value={activityRecord.attendance} 
                     buttonTextOn={`출석${activityRecord.isMakeup ? ' (보강)' : ''}`} 
                     buttonTextOff={`${activityRecord.isMakeup ? '보강' : '출석'} 완료`}
-                    onClick={() => handleActivityRecordButtonClick({
+                    onClick={() => handleWeeklyActivityRecordButtonClick({
                       activityId: activityRecord.id, 
                       activityKey: ActivityKey.ATTENDANCE, 
                       value: !activityRecord.attendance
@@ -209,7 +211,7 @@ export default function StudentActivityRecords() {
                     value={activityRecord.report1} 
                     buttonTextOn="제출" 
                     buttonTextOff="제출 완료" 
-                    onClick={() => handleActivityRecordButtonClick({
+                    onClick={() => handleWeeklyActivityRecordButtonClick({
                       activityId: activityRecord.id, 
                       activityKey: ActivityKey.REPORT1, 
                       value: !activityRecord.report1
@@ -221,7 +223,7 @@ export default function StudentActivityRecords() {
                     value={activityRecord.report2} 
                     buttonTextOn="제출" 
                     buttonTextOff="제출 완료" 
-                    onClick={() => handleActivityRecordButtonClick({
+                    onClick={() => handleWeeklyActivityRecordButtonClick({
                       activityId: activityRecord.id, 
                       activityKey: ActivityKey.REPORT2, 
                       value: !activityRecord.report2
@@ -233,7 +235,7 @@ export default function StudentActivityRecords() {
                     value={activityRecord.monthlyProject && activityRecord.monthlyPreview && activityRecord.monthlyReport} 
                     buttonTextOn={monthlyProjectStatusText(activityRecord)} 
                     buttonTextOff="참여 완료"
-                    onClick={() => handleActivityRecordButtonClick({
+                    onClick={() => handleMonthlyActivityRecordButtonClick({
                       activityId: activityRecord.id, 
                       activityKey: monthlyProjectNextKey(activityRecord), 
                       value: !activityRecord[monthlyProjectNextKey(activityRecord)]
