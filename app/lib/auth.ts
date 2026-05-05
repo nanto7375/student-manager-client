@@ -13,7 +13,7 @@ const signoutApi = buildApi({ path: '/auth/signout', method: 'POST', credentials
 
 // TODO: provider로 처리해야 할지 고민
 class Auth {
-  private readonly MY_INFO_KEY = 'my-info';
+  private readonly MY_INFO_KEY = 'me';
   private myInfo: Admin | null = null;
 
   signin = async (email: string, password: string) => {

@@ -24,7 +24,7 @@ const validateEmail = (value: string) => emailRegex.test(value);
 const validatePassword = (value: string) => value.length >= 4 && value.length <= 16;
 const validateInput = (id: string, password: string) => validateEmail(id) && validatePassword(password);
 
-export default function SignIn() {
+export default function Signin() {
   const navigate = useNavigate();
   const location = useLocation();
   const redirect = React.useMemo(() => {

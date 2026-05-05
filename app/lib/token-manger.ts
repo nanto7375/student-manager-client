@@ -3,7 +3,7 @@ import { BASE_URL } from '~/constants';
 const refreshPath = '/auth/refresh';
 
 class TokenManager {
-  private readonly TOKEN_KEY = 'access_token';
+  private readonly TOKEN_KEY = 'acc';
   private accessToken: string | null = null;
 
   setAccessToken(token: string) {
