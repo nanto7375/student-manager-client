@@ -1,17 +1,10 @@
+import { globalErrorHandler } from "~/providers/error-handler-provider";
 import { tokenManager } from "./token-manger";
 import { Deferred, type DeferredType } from "./utils/deferred";
 
 type PendingRequest<T> = {
   deferred: DeferredType;
   api: () => Promise<T>;
-};
-
-type ErrorHandler = (error: any) => void;
-
-let globalErrorHandler: ErrorHandler | null = null;
-
-export const setGlobalErrorHandler = (handler: ErrorHandler) => {
-  globalErrorHandler = handler;
 };
 
 export const RefreshProcessor = () => {
@@ -50,15 +43,19 @@ export const RefreshProcessor = () => {
     try {
       await tokenManager.refreshAccessToken();
       isRefreshSuccess = true;
-      return await originRequest();
-    } catch (error: any) {
+    } catch (error) {
       isRefreshSuccess = false;
       const formattedError = { status: error.status || 401, code: error.code || 401, message: error.message || 'token expired' };
+      return globalErrorHandler(formattedError);
+    }
 
-      if (globalErrorHandler) {
-        globalErrorHandler(formattedError);
+    try {
+      return await originRequest();
+    } catch (error: any) {
+      const formattedError = { status: error.status || 401, code: error.code || 401, message: error.message || 'token expired' };
+      if (error.status === 401 || error.status === 403) {
+        return globalErrorHandler(formattedError);
       }
-
       throw formattedError;
     } finally {
       processRequests();

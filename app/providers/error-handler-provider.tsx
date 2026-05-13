@@ -4,11 +4,19 @@ import { useGlobalToast } from './toast-provider';
 import { tokenManager } from '~/lib/token-manger';
 import { auth } from '~/lib/auth';
 import { ROUTES } from '~/constants';
-import { setGlobalErrorHandler } from '~/lib/pending-request';
+
+
+type ErrorHandler = (error: any) => void;
+
+export let globalErrorHandler: ErrorHandler | null = null;
+
+const setGlobalErrorHandler = (handler: ErrorHandler) => {
+  globalErrorHandler = handler;
+};
 
 interface ErrorHandlerContextType {
   handleError: (error: any) => void;
-  handleTokenRefreshError: (error: any) => void;
+  handleSignoutError: (error: any) => void;
 }
 
 const ErrorHandlerContext = createContext<ErrorHandlerContextType | undefined>(undefined);
@@ -17,7 +25,7 @@ export const ErrorHandlerProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const navigate = useNavigate();
   const { error: showErrorToast } = useGlobalToast();
 
-  const handleTokenRefreshError = useCallback((error: any) => {
+  const handleSignoutError = useCallback((error: any) => {
     tokenManager.clearAccessToken();
     auth.clearMyInfo();
 
@@ -31,20 +39,20 @@ export const ErrorHandlerProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const status = error?.status || error?.code;
 
     if (status === 401) {
-      handleTokenRefreshError(error);
+      handleSignoutError(error);
       return;
     }
 
     const errorMessage = error?.message || '오류가 발생했습니다.';
     showErrorToast(errorMessage);
-  }, [handleTokenRefreshError, showErrorToast]);
+  }, [handleSignoutError, showErrorToast]);
 
   useEffect(() => {
-    setGlobalErrorHandler(handleTokenRefreshError);
-  }, [handleTokenRefreshError]);
+    setGlobalErrorHandler(handleSignoutError);
+  }, [handleSignoutError]);
 
   return (
-    <ErrorHandlerContext.Provider value={{ handleError, handleTokenRefreshError }}>
+    <ErrorHandlerContext.Provider value={{ handleError, handleSignoutError }}>
       {children}
     </ErrorHandlerContext.Provider>
   );
