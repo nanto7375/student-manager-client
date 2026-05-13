@@ -6,6 +6,7 @@ import {
   Outlet,
   Scripts,
   useLocation,
+  useNavigate,
   useRouteError,
 } from "react-router";
 
@@ -25,11 +26,12 @@ const meApi = buildApi<Admin>({ path: '/admins/me', method: 'GET' });
 
 export default function App() {
   const {pathname} = useLocation();
+  const navigate = useNavigate();
 
   const setAdminInfo = React.useCallback(async () => {
     try {
       const isSignedIn = !!tokenManager.getAccessToken();
-      if (!isSignedIn) return;
+      if (!isSignedIn) return navigate(ROUTES.SIGNIN);
       const adminInfo = await meApi();
       auth.setMyInfo(adminInfo);
     } catch (error) {
