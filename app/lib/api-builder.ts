@@ -72,9 +72,9 @@ export const buildApi = <T = unknown>({ path, method, credentials }: BuildApiPar
       if (data.message === 'token-expired') {
         return processRequestWithRefresh(() => api({ params, query, body, headers })) as Promise<T>;
       }
-      if (response.status === 401 || response.status === 403) {
-        globalErrorHandler({ status: response.status, code: data.code || TOKEN_EXPIRED_ERROR_CODE, message: '인증 오류가 발생했습니다. 다시 로그인해주세요.' });
-      }
+      // if (response.status === 401 || response.status === 403) {
+      //   globalErrorHandler({ status: response.status, code: data.code || TOKEN_EXPIRED_ERROR_CODE, message: '인증 오류가 발생했습니다. 다시 로그인해주세요.' });
+      // }
       throw { path, method, status: response.status, message: data.message, code: data.code };
     }
 
