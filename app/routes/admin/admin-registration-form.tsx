@@ -5,7 +5,6 @@ import { Button } from "@mui/material";
 import { AppleTg } from "~/components/typography";
 import { buildApi } from "~/lib/api-builder";
 
-
 export enum AdminRoleType {
   SUPER_ADMIN = 'super_admin',
   ADMIN = 'admin',
