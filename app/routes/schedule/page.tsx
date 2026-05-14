@@ -41,17 +41,15 @@ export default function Schedule() {
   if (scheduleListLoading || !scheduleList) return (<FlexContainer center fullHeight fullWidth></FlexContainer>);
   return (
     <FlexContainer fullHeight fullWidth>
-      {!sidebarFolded && 
-        <ScheduleSidebar 
-          scheduleList={scheduleList || []} 
-          selectedScheduleId={selectedScheduleId} 
-          setSelectedSchedule={setSelectedSchedule} 
-          foldSidebar={() => setSidebarFolded(true)} 
-        />  
-      }
+      <ScheduleSidebar 
+        scheduleList={scheduleList || []} 
+        selectedScheduleId={selectedScheduleId} 
+        setSelectedSchedule={setSelectedSchedule} 
+        // foldSidebar={() => setSidebarFolded(true)} 
+      />  
       
       <FlexContainer flexDirection="column"> 
-        {sidebarFolded && 
+        {/* {sidebarFolded && 
           <FlexBox 
             justifyContent="center" 
             width={selectedSchedule ? "8.5rem" : "3.5rem"} 
@@ -66,7 +64,7 @@ export default function Schedule() {
               </AppleTg>}
             </FlexBox>
           </FlexBox>
-        }
+        } */}
 
         <FlexBox fullHeight fullWidth>
           <Outlet />

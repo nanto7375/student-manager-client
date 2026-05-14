@@ -1,8 +1,7 @@
-import { FETCH_JSON_ERROR_CODE, TOKEN_EXPIRED_ERROR_CODE, TOKEN_NOT_FOUND_ERROR_CODE, UNSTABLE_NETWORK_ERROR_CODE, hasErrorMessage } from '~/lib/error';
+import { FETCH_JSON_ERROR_CODE, UNSTABLE_NETWORK_ERROR_CODE, hasErrorMessage } from '~/lib/error';
 import { RefreshProcessor } from './pending-request'
 import { BASE_URL } from '~/constants';
 import { tokenManager } from './token-manger';
-import { globalErrorHandler } from '~/providers/error-handler-provider';
 
 type BuildApiParams = {
   path: string;
@@ -72,9 +71,6 @@ export const buildApi = <T = unknown>({ path, method, credentials }: BuildApiPar
       if (data.message === 'token-expired') {
         return processRequestWithRefresh(() => api({ params, query, body, headers })) as Promise<T>;
       }
-      // if (response.status === 401 || response.status === 403) {
-      //   globalErrorHandler({ status: response.status, code: data.code || TOKEN_EXPIRED_ERROR_CODE, message: '인증 오류가 발생했습니다. 다시 로그인해주세요.' });
-      // }
       throw { path, method, status: response.status, message: data.message, code: data.code };
     }
 
