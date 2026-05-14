@@ -27,6 +27,7 @@ const meApi = buildApi<Admin>({ path: '/admins/me', method: 'GET' });
 export default function App() {
   const {pathname} = useLocation();
   const navigate = useNavigate();
+  const [loaded, setLoaded] = React.useState(false);
 
   const setAdminInfo = React.useCallback(async () => {
     try {
@@ -41,11 +42,12 @@ export default function App() {
 
   React.useEffect(() => {
     setAdminInfo();
+    setLoaded(true);
   }, [setAdminInfo]);
 
   return (
     <FlexContainer style={{ minWidth: '48rem', height: '100%'}}>
-      {pathname !== ROUTES.SIGNIN && <SideBar />}
+      {(pathname !== ROUTES.SIGNIN && loaded) && <SideBar />}
       <FlexBox style={{flex: 1, overflow: 'auto'}}>
         <Outlet />
       </FlexBox>
