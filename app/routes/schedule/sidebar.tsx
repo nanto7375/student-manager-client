@@ -17,9 +17,9 @@ type ScheduleSidebarProps = {
   scheduleList: ScheduleType[];
   selectedScheduleId: number | null;
   setSelectedSchedule: (schedule: ScheduleType) => void;
-  foldSidebar: () => void;
+  // foldSidebar: () => void;
 }
-export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setSelectedSchedule, foldSidebar }: ScheduleSidebarProps) {
+export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setSelectedSchedule }: ScheduleSidebarProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const date = searchParams.get('date');
@@ -51,7 +51,7 @@ export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setS
 
   const handleScheduleClick = React.useCallback((schedule: ScheduleType) => {
     setSelectedSchedule(schedule);
-    if (selectedScheduleId === schedule.id) foldSidebar();
+    // if (selectedScheduleId === schedule.id) foldSidebar();
   }, [selectedScheduleId]);
 
   return (
