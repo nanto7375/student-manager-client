@@ -24,7 +24,7 @@ export default function Admin() {
       <Tabs 
         value={selectedTab} 
         onChange={(_, newValue) => setSearchParams({ tab: newValue })} 
-        sx={{ borderBottom: 1, borderColor: 'divider', marginBottom: '1rem'}}
+        sx={{ marginBottom: '1rem' }}
       >
         <Tab label="학생 관리" value="student" />
         <Tab label="관리자 관리" value="admin" />

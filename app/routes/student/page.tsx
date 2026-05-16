@@ -1,11 +1,11 @@
 import React from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { Card, CardContent, Button, ToggleButtonGroup, ToggleButton } from "@mui/material";
+import { Card, CardContent } from "@mui/material";
 import { useNavigate, useSearchParams } from "react-router";
 
 import { FlexContainer, FlexBox } from "~/components/styled-elements";
 import { buildApi } from "~/lib/api-builder";
-import { InputXButton } from "~/components/input-x-button";
+import { StudentSearchFilter } from "./components/student-search-filter";
 
 type StudentInListType = {
   id: number;
@@ -19,9 +19,6 @@ type StudentInListType = {
 const getStudentListApi = buildApi<{list: StudentInListType[]; count: number}>({ path: '/students', method: 'GET' });
 
 // schoolLevel, schedule, 
-
-const DAY_OF_WEEKS = [{title: '화', value: 2}, {title: '수', value: 3}, {title: '목', value: 4}, {title: '금', value: 5}, {title: '토', value: 6}, {title: '일', value: 0}];
-const SCHOOL_LEVELS = [{ title: '초등', value: 1 }, { title: '중등', value: 2 }, { title: '고등', value: 3 }];
 
 const getStudnetListQueryKey = (name: string, schoolLevel: number | null, dayOfWeek: number | null, limit: number, page: number) => {
   return ['student-list', { name, schoolLevel, dayOfWeek, limit, page }];
@@ -99,48 +96,23 @@ export default function Student() {
   return (
     <FlexContainer fullHeight fullWidth sx={{ padding: '1rem', paddingLeft: '2rem', flexDirection: 'column', gap: '1rem'}}>
 
-      <FlexBox id='student-filter-section' gap={1}>
-        <FlexBox sx={{ position: 'relative' }}>
-          <input
-            type="text"
-            placeholder="이름으로 검색"
-            value={inputName}
-            onChange={handleSearchNameChange}
-            style={{
-              padding: '0.5rem',
-              paddingRight: '2rem',
-              borderRadius: '4px',
-              border: '1px solid #ccc',
-              width: '200px',
-            }}
-          />
-          {inputName && (<InputXButton onClick={handleClearInput} />)}
-        </FlexBox>
-        <ToggleButtonGroup
-          id='day-of-week-filter'
-          value={dayOfWeek}
-        >
-          {DAY_OF_WEEKS.map((day) => (
-            <ToggleButton
-              key={day.value}
-              value={day.value}
-              onClick={() => handleSearchElementButton('dayOfWeek', day.value)}
-            >
-              {day.title}
-            </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
-        <ToggleButtonGroup id='school-level-filter' value={schoolLevel}>
-          {SCHOOL_LEVELS.map((level) => (
-            <ToggleButton 
-              key={level.value} 
-              value={level.value}
-              onClick={() => handleSearchElementButton('schoolLevel', level.value)}>
-                {level.title}
-              </ToggleButton>
-          )) }
-        </ToggleButtonGroup>
-      </FlexBox>
+      <StudentSearchFilter
+        inputName={inputName}
+        onInputNameChange={(v) => setInputName(v)}
+        onClearName={handleClearInput}
+        dayOfWeek={dayOfWeek}
+        onDayOfWeekChange={(v) => {
+          const params = new URLSearchParams(searchParam);
+          v === null ? params.delete('dayOfWeek') : params.set('dayOfWeek', String(v));
+          setSearchParam(params.toString(), { replace: true });
+        }}
+        schoolLevel={schoolLevel}
+        onSchoolLevelChange={(v) => {
+          const params = new URLSearchParams(searchParam);
+          v === null ? params.delete('schoolLevel') : params.set('schoolLevel', String(v));
+          setSearchParam(params.toString(), { replace: true });
+        }}
+      />
 
       <FlexBox gap={1} sx={{ flexWrap: 'wrap' }}>
         {studentData?.list.map(student => (
