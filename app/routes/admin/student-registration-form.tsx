@@ -210,11 +210,18 @@ export const StudentRegistrationForm = ({ showError, showSuccess, editData, onCo
             ]}
           />
         ) : (
-          <AppleTg>
-            {editData.schedule
-              ? `${mapNumberToDayOfWeek(editData.schedule.dayOfWeek)} ${formatTime12Hour(editData.schedule.startTime)} - ${formatTime12Hour(editData.schedule.endTime)}`
-              : '-'}
-          </AppleTg>
+          <>
+            <AppleTg>
+              {editData.schedule
+                ? `${mapNumberToDayOfWeek(editData.schedule.dayOfWeek)} ${formatTime12Hour(editData.schedule.startTime)} - ${formatTime12Hour(editData.schedule.endTime)}`
+                : '-'}
+            </AppleTg>
+            {editData.scheduleReserved && (
+              <AppleTg sx={{ color: 'red' }}>
+                예약: {mapNumberToDayOfWeek(editData.scheduleReserved.dayOfWeek)} {formatTime12Hour(editData.scheduleReserved.startTime)} - {formatTime12Hour(editData.scheduleReserved.endTime)}
+              </AppleTg>
+            )}
+          </>
         )}
 
         {/* 학교 */}

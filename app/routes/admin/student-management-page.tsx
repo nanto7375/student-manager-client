@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 import EditIcon from "@mui/icons-material/Edit";
 import CloseIcon from "@mui/icons-material/Close";
 import { buildApi } from "~/lib/api-builder";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { StudentSearchFilter } from "../student/components/student-search-filter";
 import { useScheduleList } from "../schedule/page";
 import { formatTime12Hour, mapNumberToDayOfWeek } from "~/lib/utils/time.util";
@@ -26,6 +26,7 @@ type Student = {
   parentPhone: string;
   scheduleId: number;
   schedule?: { id: number; dayOfWeek: number; startTime: string; endTime: string };
+  scheduleReserved?: { id: number; dayOfWeek: number; startTime: string; endTime: string };
 };
 
 type ScheduleForm = {
@@ -58,7 +59,12 @@ const formatSchedule = (schedule: Student['schedule']) => {
 
 // --- Component ---
 
-export const StudentManagementPage = () => {
+type PageProps = {
+  registerOpen?: boolean;
+  onRegisterClose?: () => void;
+};
+
+export const StudentManagementPage = ({ registerOpen, onRegisterClose }: PageProps) => {
   const { error: showError, success: showSuccess } = useGlobalToast();
   const queryClient = useQueryClient();
   const { scheduleList } = useScheduleList();
@@ -88,6 +94,7 @@ export const StudentManagementPage = () => {
         ...(searchDayOfWeek !== null && { dayOfWeek: searchDayOfWeek }),
       },
     }),
+    placeholderData: keepPreviousData,
   });
   const studentList = studentListData?.list ?? [];
   const totalCount = studentListData?.count ?? 0;
@@ -96,9 +103,12 @@ export const StudentManagementPage = () => {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [editData, setEditData] = React.useState<Student | null>(null);
 
-  const openRegisterDrawer = () => { setEditData(null); setDrawerOpen(true); };
+  React.useEffect(() => {
+    if (registerOpen) { setEditData(null); setDrawerOpen(true); }
+  }, [registerOpen]);
+
   const openEditDrawer = (student: Student) => { setEditData(student); setDrawerOpen(true); };
-  const closeDrawer = () => { setDrawerOpen(false); setEditData(null); };
+  const closeDrawer = () => { setDrawerOpen(false); setEditData(null); onRegisterClose?.(); };
 
   // Schedule change dialog
   const [scheduleDialogStudent, setScheduleDialogStudent] = React.useState<Student | null>(null);
@@ -178,17 +188,26 @@ export const StudentManagementPage = () => {
                 </TableHead>
                 <TableBody>
                   {studentList.map((student) => (
-                    <TableRow key={student.id}>
+                    <TableRow key={student.id} sx={{ height: '4rem' }}>
                       <TableCell>{student.name}</TableCell>
                       <TableCell>{student.schoolName}</TableCell>
                       <TableCell>{student.schoolGrade}</TableCell>
                       <TableCell>{student.phone}</TableCell>
                       <TableCell>{student.parentPhone}</TableCell>
                       <TableCell align="center">
-                        {student.schedule && <AppleTg variant="caption">{formatSchedule(student.schedule)}</AppleTg>}
-                        <Button size="small" onClick={() => openScheduleDialog(student)}>
-                          <AppleTg variant="caption">변경</AppleTg>
-                        </Button>
+                        <FlexBox alignItems="center" justifyContent="center" gap={0.5}>
+                          <FlexBox flexDirection="column">
+                            {student.schedule && <AppleTg variant="caption">{formatSchedule(student.schedule)}</AppleTg>}
+                            {student.scheduleReserved && (
+                              <AppleTg variant="caption" sx={{ color: 'red' }}>
+                                {formatSchedule(student.scheduleReserved)}
+                              </AppleTg>
+                            )}
+                          </FlexBox>
+                          <Button size="small" onClick={() => openScheduleDialog(student)}>
+                            <AppleTg variant="caption">변경</AppleTg>
+                          </Button>
+                        </FlexBox>
                       </TableCell>
                       <TableCell align="center">
                         <IconButton size="small" onClick={() => openEditDrawer(student)}>
@@ -202,7 +221,7 @@ export const StudentManagementPage = () => {
             </TableContainer>
 
             {/* Pagination + Register */}
-            <FlexBox alignItems="center" justifyContent="center" fullWidth sx={{ position: 'relative', mt: -1 }}>
+            <FlexBox alignItems="center" justifyContent="center" fullWidth sx={{ mt: -1 }}>
               <TablePagination
                 component="div"
                 count={totalCount}
@@ -212,9 +231,6 @@ export const StudentManagementPage = () => {
                 rowsPerPageOptions={[]}
                 onRowsPerPageChange={() => {}}
               />
-              <Button variant="contained" size="small" onClick={openRegisterDrawer} sx={{ position: 'absolute', right: 0, py: 1.2 }}>
-                <AppleTg>학생 등록</AppleTg>
-              </Button>
             </FlexBox>
           </>
         )}

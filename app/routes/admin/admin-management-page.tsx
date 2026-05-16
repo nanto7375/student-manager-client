@@ -40,7 +40,12 @@ const ADMIN_TABLE_COLUMNS = ['이름', '이메일', '연락처', '역할'] as co
 
 // --- Component ---
 
-export const AdminManagementPage = () => {
+type PageProps = {
+  registerOpen?: boolean;
+  onRegisterClose?: () => void;
+};
+
+export const AdminManagementPage = ({ registerOpen, onRegisterClose }: PageProps) => {
   const { error: showError, success: showSuccess } = useGlobalToast();
 
   // Data
@@ -54,21 +59,17 @@ export const AdminManagementPage = () => {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [editData, setEditData] = React.useState<AdminFormData | null>(null);
 
-  const openRegisterDrawer = () => { setEditData(null); setDrawerOpen(true); };
+  React.useEffect(() => {
+    if (registerOpen) { setEditData(null); setDrawerOpen(true); }
+  }, [registerOpen]);
+
   const openEditDrawer = (admin: Admin) => { setEditData(toAdminFormData(admin)); setDrawerOpen(true); };
-  const closeDrawer = () => { setDrawerOpen(false); setEditData(null); };
+  const closeDrawer = () => { setDrawerOpen(false); setEditData(null); onRegisterClose?.(); };
 
   // Render
   return (
     <FlexContainer>
       <FlexBox flexDirection="column" gap={2} fullWidth>
-        <FlexBox justifyContent="space-between" alignItems="center" fullWidth>
-          <AppleTg>관리자 목록</AppleTg>
-          <Button variant="contained" size="small" onClick={openRegisterDrawer}>
-            <AppleTg>관리자 등록</AppleTg>
-          </Button>
-        </FlexBox>
-
         {isLoading ? (
           <AppleTg>로딩 중...</AppleTg>
         ) : (
