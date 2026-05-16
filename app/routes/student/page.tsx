@@ -16,7 +16,7 @@ type StudentInListType = {
   schoolLevel: number;  // 1: 초등, 2: 중등, 3: 고등
   schoolName: string;
 }
-const getStudentListApi = buildApi<StudentInListType[]>({ path: '/students', method: 'GET' });
+const getStudentListApi = buildApi<{list: StudentInListType[]; count: number}>({ path: '/students', method: 'GET' });
 
 // schoolLevel, schedule, 
 
@@ -45,7 +45,7 @@ export default function Student() {
   const [inputName, setInputName] = React.useState('');
 
   // TODO: 무한스크롤
-  const { data: studentList, error: studentListError, isLoading: studentListLoading } = useQuery({
+  const { data: studentData, error: studentListError, isLoading: studentListLoading } = useQuery({
     queryKey: getStudnetListQueryKey(name, schoolLevel, dayOfWeek, limit, 1),
     queryFn: () => getStudentListApi({ query: { 
       ...(name !== undefined && { name }),
@@ -95,9 +95,9 @@ export default function Student() {
     return () => clearTimeout(timer);
   }, [inputName, setSearchParam]);
 
-  if (studentListLoading || !studentList) return (<FlexContainer padding="1rem" fullHeight fullWidth sx={{ flexDirection: 'column', gap: '1rem' }} center></FlexContainer>);
+  if (studentListLoading || !studentData) return (<FlexContainer padding="1rem" fullHeight fullWidth sx={{ flexDirection: 'column', gap: '1rem' }} center></FlexContainer>);
   return (
-    <FlexContainer fullHeight fullWidth sx={{ padding: '1rem', flexDirection: 'column', gap: '1rem' }}>
+    <FlexContainer fullHeight fullWidth sx={{ padding: '1rem', paddingLeft: '2rem', flexDirection: 'column', gap: '1rem'}}>
 
       <FlexBox id='student-filter-section' gap={1}>
         <FlexBox sx={{ position: 'relative' }}>
@@ -142,8 +142,8 @@ export default function Student() {
         </ToggleButtonGroup>
       </FlexBox>
 
-      <FlexBox sx={{ flexWrap: 'wrap' }}>
-        {studentList?.map(student => (
+      <FlexBox gap={1} sx={{ flexWrap: 'wrap' }}>
+        {studentData?.list.map(student => (
           <StudentCard 
             key={student.id} 
             student={student}
@@ -162,7 +162,6 @@ const StudentCard = ({ student, onClick }: { student: StudentInListType; onClick
       sx={{
       width: '9rem',
       height: '9rem',
-      margin: '0.5rem',
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',

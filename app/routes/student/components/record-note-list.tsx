@@ -1,5 +1,6 @@
 import React from "react"
 import { Tab, Tabs, Button } from "@mui/material"
+import { useSearchParams } from "react-router"
 
 import { FlexBox, FlexContainer } from "~/components/styled-elements"
 import { NoteEditBox } from "./note-edit-box"
@@ -18,7 +19,8 @@ type RecordNoteListProps = {
 export const RecordNoteList = ({ notes, deleteNote, createNote, updateNote }: RecordNoteListProps) => {
   const noteListRef = React.useRef<HTMLDivElement>(null);
 
-  const [selectedTab, setSelectedTab] = React.useState<'assessment' | 'parent-counseling'>('assessment');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedTab = (searchParams.get('tab') as 'assessment' | 'parent-counseling') || 'assessment';
     const recordNotes = React.useMemo(() => {
       return notes.filter(note => note.type === selectedTab);
     }, [notes, selectedTab]);
@@ -103,7 +105,7 @@ export const RecordNoteList = ({ notes, deleteNote, createNote, updateNote }: Re
     <FlexContainer width="100%" sx={{flexDirection: 'column', padding: '1rem 0'}}>
       <Tabs
         value={selectedTab}
-        onChange={(_, newValue) => setSelectedTab(newValue)}
+        onChange={(_, newValue) => setSearchParams({ tab: newValue })}
         sx={{
           boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
           position: 'relative',

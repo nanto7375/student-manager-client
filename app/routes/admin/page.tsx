@@ -1,9 +1,10 @@
-import React from "react";
+import { useSearchParams } from "react-router";
 
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import { useGlobalToast } from "~/providers/toast-provider";
-import { StudentRegistrationForm } from "./student-registration-form";
-import { AdminRegistrationForm } from "./admin-registration-form";
+import { StudentManagementPage } from "./student-management-page";
+import { AdminManagementPage } from "./admin-management-page";
+import { Tab, Tabs } from "@mui/material";
 
 export type ShortAdminDto = {
   id: number;
@@ -15,14 +16,23 @@ export type ShortAdminDto = {
 
 export default function Admin() {
   const {error: showError, success: showSuccess } = useGlobalToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedTab = (searchParams.get('tab') as 'student' | 'admin') || 'student';
 
   return (
-    <FlexContainer flexDirection="column" fullHeight fullWidth sx={{padding: '1rem'}}>
-      <FlexBox width="100%" height="3rem">Admin</FlexBox>
+    <FlexContainer flexDirection="column" fullHeight fullWidth sx={{padding: '1rem', paddingLeft: '2rem'}}>
+      <Tabs 
+        value={selectedTab} 
+        onChange={(_, newValue) => setSearchParams({ tab: newValue })} 
+        sx={{ borderBottom: 1, borderColor: 'divider', marginBottom: '1rem'}}
+      >
+        <Tab label="학생 관리" value="student" />
+        <Tab label="관리자 관리" value="admin" />
+      </Tabs>
 
-      <FlexBox fullWidth fullHeight padding={'1rem'} gap={4}>
-        <StudentRegistrationForm showError={showError} showSuccess={showSuccess} />
-        <AdminRegistrationForm showError={showError} showSuccess={showSuccess} /> 
+      <FlexBox>
+        {selectedTab === 'student' && <StudentManagementPage />}
+        {selectedTab === 'admin' && <AdminManagementPage />}
       </FlexBox>
 
     </FlexContainer>

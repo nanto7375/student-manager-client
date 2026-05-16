@@ -4,6 +4,8 @@ import { FormInput, FormPhone } from "./components/form-components";
 import { Button } from "@mui/material";
 import { AppleTg } from "~/components/typography";
 import { buildApi } from "~/lib/api-builder";
+import { useQueryClient } from "@tanstack/react-query";
+import { adminListQueryKey } from "./admin-management-page";
 
 export enum AdminRoleType {
   SUPER_ADMIN = 'super_admin',
@@ -27,7 +29,15 @@ export const getAdminRoleLevel = (role: AdminRoleType) => {
   }
 };
 
-const defaultAdminForm = () => ({
+export type AdminFormData = {
+  id?: string;
+  name: string;
+  email: string;
+  phone: string[];
+  password: string;
+};
+
+const defaultAdminForm = (): AdminFormData => ({
   name: '',
   email: '',
   phone: ['010', '', ''],
@@ -35,13 +45,33 @@ const defaultAdminForm = () => ({
 });
 
 const registerAdminApi = buildApi({ path: '/admins', method: 'POST' });
+const updateAdminApi = buildApi({ path: '/admins/:id', method: 'PUT' });
 
-export const AdminRegistrationForm = ({showSuccess, showError}) => {
-  const [adminForm, setAdminForm] = React.useState(defaultAdminForm());
+type Props = {
+  showSuccess: (msg: string) => void;
+  showError: (msg: string) => void;
+  editData?: AdminFormData | null;
+  onComplete?: () => void;
+};
+
+export const AdminRegistrationForm = ({ showSuccess, showError, editData, onComplete }: Props) => {
+  const queryClient = useQueryClient();
+  const isEditMode = !!editData?.id;
+
+  const [adminForm, setAdminForm] = React.useState<AdminFormData>(defaultAdminForm());
+
+  React.useEffect(() => {
+    if (editData) {
+      setAdminForm(editData);
+    } else {
+      setAdminForm(defaultAdminForm());
+    }
+  }, [editData]);
 
   const submitButtonDisabled = React.useMemo(() => {
-    return !adminForm.name || !adminForm.email || !adminForm.phone || !adminForm.password;
-  }, [adminForm]);
+    if (isEditMode) return !adminForm.name || !adminForm.email;
+    return !adminForm.name || !adminForm.email || !adminForm.password;
+  }, [adminForm, isEditMode]);
   
   const handleInputChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const copied = { ...adminForm };
@@ -62,40 +92,45 @@ export const AdminRegistrationForm = ({showSuccess, showError}) => {
     setAdminForm(copied);
   }, [adminForm]);
   
-  const handleRegister = React.useCallback(async () => {
+  const handleSubmit = React.useCallback(async () => {
     if (submitButtonDisabled) return;
 
-    // TODO: pasword hash
     try {
       const payload = {
-        name: adminForm.name,
-        email: adminForm.email,
-        phone: adminForm.phone.join('-'),
+        name: adminForm.name || null,
+        email: adminForm.email || null,
+        phone: adminForm.phone.filter(Boolean).length > 1 ? adminForm.phone.join('-') : null,
         role: AdminRoleType.ADMIN,
-        password: adminForm.password,
+        ...(adminForm.password && { password: adminForm.password }),
+      };
+
+      if (isEditMode) {
+        await updateAdminApi({ params: { id: adminForm.id! }, body: payload });
+        showSuccess('관리자 정보가 수정되었습니다.');
+      } else {
+        await registerAdminApi({ body: payload });
+        showSuccess('관리자 등록이 완료되었습니다.');
       }
-      await registerAdminApi({ body: payload });
+
+      queryClient.invalidateQueries({ queryKey: adminListQueryKey() });
       setAdminForm(defaultAdminForm());
-      showSuccess('관리자 등록이 완료되었습니다.');
-    } catch (error) {
-      console.log(error);
-      if (error.message.includes('존재하는')) {
+      onComplete?.();
+    } catch (error: any) {
+      if (error.message?.includes('존재하는')) {
         showError('이미 존재하는 이메일입니다.');
         return;
       }
-      showError('관리자 등록 중 오류가 발생했습니다.');
+      showError(isEditMode ? '관리자 수정 중 오류가 발생했습니다.' : '관리자 등록 중 오류가 발생했습니다.');
     }
-  }, [adminForm, submitButtonDisabled, showError, showSuccess]);
+  }, [adminForm, submitButtonDisabled, showError, showSuccess, isEditMode, queryClient, onComplete]);
 
   return (
     <FlexBox flexDirection="column" gap={1}>
-      <FlexBox flexDirection="column">
-        <FlexBox>관리자 등록</FlexBox>
-      </FlexBox>
-
       <FlexBox flexDirection="column" gap={1.25} fullWidth>
         <FormInput id="name" label="이름" value={adminForm.name} onChange={handleInputChange} />
-        <FormInput id="password" label="비밀번호" value={adminForm.password} onChange={handleInputChange} />
+        {!isEditMode && (
+          <FormInput id="password" label="비밀번호" value={adminForm.password} onChange={handleInputChange} />
+        )}
         <FormInput id="email" label="이메일" value={adminForm.email} onChange={handleInputChange} />
         <FormPhone id="phone" label="연락처" value={adminForm.phone} onChange={handlePhoneChange} />
       </FlexBox>
@@ -103,9 +138,9 @@ export const AdminRegistrationForm = ({showSuccess, showError}) => {
         <Button 
           disabled={submitButtonDisabled} 
           variant="contained" 
-          onClick={handleRegister}
+          onClick={handleSubmit}
         >
-          <AppleTg>등록</AppleTg>
+          <AppleTg>{isEditMode ? '수정' : '등록'}</AppleTg>
         </Button>
       </FlexBox>
     </FlexBox>

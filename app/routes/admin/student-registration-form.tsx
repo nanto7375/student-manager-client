@@ -7,6 +7,8 @@ import { formatTime12Hour, mapNumberToDayOfWeek } from "~/lib/utils/time.util";
 import { AppleTg } from "~/components/typography";
 import dayjs from "dayjs";
 import { buildApi } from "~/lib/api-builder";
+import { useQueryClient } from "@tanstack/react-query";
+import { studentListQueryKey } from "./student-management-page";
 
 type RegisterStudentPayload = {
   name: string;
@@ -51,15 +53,46 @@ const getSchoolGradeList = (level: string): number[] => {
 }
 
 const registerStudentApi = buildApi({ path: '/students', method: 'POST' });
+const updateStudentApi = buildApi({ path: '/students/:id', method: 'PATCH' });
 
-export const StudentRegistrationForm = ({ showError,  showSuccess }) => {
+type Props = {
+  showError: (msg: string) => void;
+  showSuccess: (msg: string) => void;
+  editData?: any;
+  onComplete?: () => void;
+};
+
+export const StudentRegistrationForm = ({ showError, showSuccess, editData, onComplete }: Props) => {
+  const queryClient = useQueryClient();
+  const isEditMode = !!editData?.id;
   const { scheduleList } = useScheduleList();
   const nowYear = React.useMemo(() => dayjs().year(), []);
   const [studentForm, setStudentForm] = React.useState(defaultStudentForm());
 
+  React.useEffect(() => {
+    if (editData) {
+      const phoneParts = editData.phone ? editData.phone.split('-') : ['010', '', ''];
+      const parentPhoneParts = editData.parentPhone ? editData.parentPhone.split('-') : ['010', '', ''];
+      setStudentForm({
+        ...defaultStudentForm(),
+        name: editData.name || '',
+        schoolName: editData.schoolName || '',
+        schoolLevel: editData.schoolLevel?.toString() || '1',
+        schoolGrade: editData.schoolGrade?.toString(),
+        phone: phoneParts,
+        parentPhone: parentPhoneParts,
+        scheduleId: editData.scheduleId?.toString(),
+        note: editData.note || '',
+      });
+    } else {
+      setStudentForm(defaultStudentForm());
+    }
+  }, [editData]);
+
   const submitButtonDisabled = React.useMemo(() => {
+    if (isEditMode) return false;
     return !studentForm.name || !studentForm.scheduleId;
-  }, [studentForm]);
+  }, [studentForm, isEditMode]);
   
   const handleInputChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const copied = { ...studentForm };
@@ -97,63 +130,84 @@ export const StudentRegistrationForm = ({ showError,  showSuccess }) => {
     if (submitButtonDisabled) return;
 
     try {
-      const payload: RegisterStudentPayload = {
-        name: studentForm.name,
-        schoolName: studentForm.schoolName,
-        schoolLevel: Number(studentForm.schoolLevel) || null,
-        schoolGrade: Number(studentForm.schoolGrade) || null,
-        birthYear: studentForm.birthYear,
-        birthDate: `${studentForm.birthMonth && (studentForm.birthMonth < 10 ? '0' + studentForm.birthMonth : studentForm.birthMonth)}${studentForm.birthDay && (studentForm.birthDay < 10 ? '0' + studentForm.birthDay : studentForm.birthDay)}`,
-        phone: studentForm.phone.join('-'),
-        parentPhone: studentForm.parentPhone.join('-'),
-        scheduleId: Number(studentForm.scheduleId),
-        note: studentForm.note,
+      if (isEditMode) {
+        const payload = {
+          schoolName: studentForm.schoolName || null,
+          schoolLevel: Number(studentForm.schoolLevel) || null,
+          schoolGrade: Number(studentForm.schoolGrade) || null,
+          birthYear: studentForm.birthYear || null,
+          birthDate: (studentForm.birthMonth && studentForm.birthDay) ? `${studentForm.birthMonth < 10 ? '0' + studentForm.birthMonth : studentForm.birthMonth}${studentForm.birthDay < 10 ? '0' + studentForm.birthDay : studentForm.birthDay}` : null,
+          phone: studentForm.phone.filter(Boolean).length > 1 ? studentForm.phone.join('-') : null,
+          parentPhone: studentForm.parentPhone.filter(Boolean).length > 1 ? studentForm.parentPhone.join('-') : null,
+        };
+        await updateStudentApi({ params: { id: editData.id }, body: payload });
+        showSuccess('학생 정보가 수정되었습니다.');
+      } else {
+        const payload: RegisterStudentPayload = {
+          name: studentForm.name,
+          schoolName: studentForm.schoolName || null,
+          schoolLevel: Number(studentForm.schoolLevel) || null,
+          schoolGrade: Number(studentForm.schoolGrade) || null,
+          birthYear: studentForm.birthYear || null,
+          birthDate: (studentForm.birthMonth && studentForm.birthDay) ? `${studentForm.birthMonth < 10 ? '0' + studentForm.birthMonth : studentForm.birthMonth}${studentForm.birthDay < 10 ? '0' + studentForm.birthDay : studentForm.birthDay}` : null,
+          phone: studentForm.phone.filter(Boolean).length > 1 ? studentForm.phone.join('-') : null,
+          parentPhone: studentForm.parentPhone.filter(Boolean).length > 1 ? studentForm.parentPhone.join('-') : null,
+          scheduleId: Number(studentForm.scheduleId),
+          note: studentForm.note || null,
+        };
+        await registerStudentApi({ body: payload });
+        showSuccess('학생 등록이 완료되었습니다.');
       }
-    
-      const result = await registerStudentApi({ body: payload });
+
+      queryClient.invalidateQueries({ queryKey: studentListQueryKey() });
       setStudentForm(defaultStudentForm());
-      showSuccess('학생 등록이 완료되었습니다.');
+      onComplete?.();
     } catch (error) {
       console.log(error);
-      showError('학생 등록 중 오류가 발생했습니다.');
+      showError(isEditMode ? '학생 수정 중 오류가 발생했습니다.' : '학생 등록 중 오류가 발생했습니다.');
     }
-  }, [studentForm, submitButtonDisabled, showError, showSuccess]);
+  }, [studentForm, submitButtonDisabled, showError, showSuccess, isEditMode, queryClient, onComplete, editData]);
 
   return (
     <FlexBox flexDirection="column" gap={1}>
-      <FlexBox flexDirection="column">
-        <FlexBox>학생등록</FlexBox>
-      </FlexBox>
       <FlexBox flexDirection="column" gap={1.25} fullWidth>
-        <FormInput id="name" label="이름" value={studentForm.name} onChange={handleInputChange} />
+        {!isEditMode ? (
+          <FormInput id="name" label="이름" value={studentForm.name} onChange={handleInputChange} />
+        ) : (
+          <AppleTg>{editData.name}</AppleTg>
+        )}
 
-        <FormSelect 
-          value={[studentForm.scheduleDayOfWeek, studentForm.scheduleId]} 
-          onChange={handleSelect} 
-          items={[
-            {
-              id: 'scheduleDayOfWeek', 
-              placeholder: '수업 요일', 
-              options: (Array.from({length: 7}, (_, i) => i))
-                .map(num => ({
-                  value: num, 
-                  label: mapNumberToDayOfWeek(num)
-                })
-              )
-            },
-            {
-              id: 'scheduleId', 
-              placeholder: '수업 시간', 
-              options: (scheduleList || [] )
-                .filter(schedule => schedule.dayOfWeek === studentForm.scheduleDayOfWeek)
-                .map(schedule => ({
-                  value: schedule.id, 
-                  label: formatTime12Hour(schedule.startTime) + ' - ' + formatTime12Hour(schedule.endTime)
-                })
-              )
-            }
-          ]} 
-        />
+        {!isEditMode ? (
+          <FormSelect 
+            value={[studentForm.scheduleDayOfWeek, studentForm.scheduleId]} 
+            onChange={handleSelect} 
+            items={[
+              {
+                id: 'scheduleDayOfWeek', 
+                placeholder: '수업 요일', 
+                options: (Array.from({length: 7}, (_, i) => i))
+                  .map(num => ({
+                    value: num, 
+                    label: mapNumberToDayOfWeek(num)
+                  })
+                )
+              },
+              {
+                id: 'scheduleId', 
+                placeholder: '수업 시간', 
+                options: (scheduleList || [] )
+                  .filter(schedule => schedule.dayOfWeek === studentForm.scheduleDayOfWeek)
+                  .map(schedule => ({
+                    value: schedule.id, 
+                    label: formatTime12Hour(schedule.startTime) + ' - ' + formatTime12Hour(schedule.endTime)
+                  })
+                )
+              }
+            ]} 
+          />
+        ) : (
+          <AppleTg>{editData.schedule ? `${mapNumberToDayOfWeek(editData.schedule.dayOfWeek)} ${formatTime12Hour(editData.schedule.startTime)} - ${formatTime12Hour(editData.schedule.endTime)}` : '-'}</AppleTg>
+        )}
 
         <FormSelect 
           value={[studentForm.schoolLevel, studentForm.schoolGrade]} 
@@ -181,7 +235,7 @@ export const StudentRegistrationForm = ({ showError,  showSuccess }) => {
         <FormPhone id="phone" label="학생 연락처" value={studentForm.phone} onChange={handlePhoneChange} />
       </FlexBox>
       <FlexBox>
-        <Button disabled={submitButtonDisabled} variant="contained" onClick={handleSubmit}><AppleTg>등록</AppleTg></Button>
+        <Button disabled={submitButtonDisabled} variant="contained" onClick={handleSubmit}><AppleTg>{isEditMode ? '수정' : '등록'}</AppleTg></Button>
       </FlexBox>
     </FlexBox>
   );
