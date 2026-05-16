@@ -38,7 +38,7 @@ export default function App() {
     } catch (error) {
       console.log(error);
     }
-  }, [])
+  }, [navigate]);
 
   React.useEffect(() => {
     setAdminInfo();

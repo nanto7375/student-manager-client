@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useLocation, useNavigate, useSearchParams } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { styled } from "@mui/material";
 
 import { ROUTES, LEO_TITLE } from "./constants";
