@@ -3,8 +3,7 @@
     "**/*",
     "**/.client/**/*",
     "**/.server/**/*",
-    ".react-router/types/**/*",
-    ".next/types/**/*.ts"
+    ".react-router/types/**/*"
   ],
   "compilerOptions": {
     "lib": [
@@ -37,12 +36,7 @@
     "skipLibCheck": true,
     "strict": false,
     "allowJs": true,
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ]
+    "incremental": true
   },
   "exclude": [
     "node_modules"
