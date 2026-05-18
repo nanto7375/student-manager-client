@@ -26,7 +26,6 @@ type Schedule = {
   endTime: string;
 }
 
-
 type ScheduleReserved = {
   id: number;
   schedule: Schedule;
@@ -309,7 +308,9 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
 
       {/* Edit/Register Drawer */}
       <Drawer anchor="right" open={drawerOpen} onClose={() => {}} disableEnforceFocus>
-        <FlexBox flexDirection="column" alignItems="center" gap={2} padding="2rem" width="25rem">
+        <FlexBox flexDirection="column" alignItems="center" gap={2} padding="2rem" width="25rem" sx={{ position: 'relative' }}>
+          {/* 삭제된 항목: 오버레이로 편집 차단 (X 버튼만 zIndex로 클릭 가능) */}
+          {editData?.deletedAt && <div style={{ position: 'absolute', inset: 0, zIndex: 10, backgroundColor: 'rgba(255,255,255,0.5)' }} />}
           <FlexBox justifyContent="space-between" alignItems="flex-start" fullWidth sx={{ mb: 1 }}>
             <FlexBox flexDirection="column">
               <AppleTg sx={{ fontSize: '1.2rem', fontWeight: 600, mb: 0.75 }}>{editData ? editData.name : '학생 등록'}</AppleTg>
@@ -334,7 +335,7 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
                 </FlexBox>
               )}
             </FlexBox>
-            <IconButton onClick={closeDrawer}>
+            <IconButton onClick={closeDrawer} sx={{ zIndex: 20 }}>
               <CloseIcon />
             </IconButton>
           </FlexBox>

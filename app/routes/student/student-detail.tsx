@@ -5,13 +5,27 @@ import { Tab } from "@mui/material";
 import { AppTabs } from "~/components/app-tabs";
 
 import { buildApi } from "~/lib/api-builder";
+import { mapNumberToDayOfWeek } from "~/lib/utils/time.util";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import { AppleTg } from "~/components/typography";
 import type { ShortAdminDto } from "../admin/page";
 import { RecordNoteList } from "./components/record-note-list";
 import { MemoNoteList } from "./components/memo-note-list";
 
-type StudentInListType = {
+type Schedule = {
+  id: number;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+}
+
+type ScheduleReserved = {
+  id: number;
+  schedule: Schedule;
+  date: string; // YYYYMMDD
+}
+
+type Student = {
   id: number;
   birthDate: string;
   birthYear: string;
@@ -21,9 +35,11 @@ type StudentInListType = {
   schoolName: string;
   phone: string;
   parentPhone: string;
-  schedule: { id: number; dayOfWeek: number; startTime: string; endTime: string };
-  reservedSchedule?: { id: number; schedule: { id: number; dayOfWeek: number; startTime: string; endTime: string }; date: string };
+  schedule: Schedule;
+  scheduleReserved?: ScheduleReserved;
   notes: Note[];
+  registeredAt: Date;
+  deletedAt: Date | null;
 }
 
 export type NoteType = 'note' | 'parent-counseling' | 'fixed-memo' | 'temporary-memo';
@@ -37,7 +53,7 @@ export type Note = {
   updatedAt: Date;
 }
 
-const getStudentApi = buildApi<StudentInListType>({ path: '/students/:studentId', method: 'GET' });
+const getStudentApi = buildApi<Student>({ path: '/students/:studentId', method: 'GET' });
 const createNoteApi = buildApi<Note>({ path: '/students/:studentId/notes', method: 'POST' });
 const updateNoteApi = buildApi<Note>({ path: '/students/:studentId/notes/:noteId', method: 'PATCH' });
 const deleteNoteApi = buildApi<boolean>({path: '/students/:studentId/notes/:noteId', method: 'DELETE'});
@@ -126,11 +142,15 @@ export default function StudentDetail() {
                 whiteSpace: 'nowrap',
               }}
             >
-              {student.birthYear && <AppleTg>{student.birthYear}년생 {student.birthDate ? `${student.birthDate.slice(0,2)}/${student.birthDate.slice(2)}` : ''}</AppleTg>}
-              {student.schedule && <AppleTg>📅 {student.schedule.startTime.slice(0,2)}:{student.schedule.startTime.slice(2)}-{student.schedule.endTime.slice(0,2)}:{student.schedule.endTime.slice(2)}</AppleTg>}
-              {student.reservedSchedule && <AppleTg sx={{ color: 'red' }}>예약 {student.reservedSchedule.schedule.startTime.slice(0,2)}:{student.reservedSchedule.schedule.startTime.slice(2)}-{student.reservedSchedule.schedule.endTime.slice(0,2)}:{student.reservedSchedule.schedule.endTime.slice(2)}</AppleTg>}
-              {student.phone && <AppleTg>📱 {student.phone}</AppleTg>}
-              {student.parentPhone && <AppleTg>📞 {student.parentPhone}</AppleTg>}
+              {student.birthYear && <AppleTg sx={{ fontSize: '0.85rem' }}>{student.birthYear}년생 {student.birthDate ? `${student.birthDate.slice(0,2)}/${student.birthDate.slice(2)}` : ''}</AppleTg>}
+              {student.schedule && (
+                <AppleTg sx={{ fontSize: '0.85rem' }}>
+                  📅 {mapNumberToDayOfWeek(student.schedule.dayOfWeek)} {student.schedule.startTime.slice(0,2)}:{student.schedule.startTime.slice(2)}-{student.schedule.endTime.slice(0,2)}:{student.schedule.endTime.slice(2)}
+                  {student.scheduleReserved && <span style={{ color: 'red' }}> → {mapNumberToDayOfWeek(student.scheduleReserved.schedule.dayOfWeek)} {student.scheduleReserved.schedule.startTime.slice(0,2)}:{student.scheduleReserved.schedule.startTime.slice(2)}-{student.scheduleReserved.schedule.endTime.slice(0,2)}:{student.scheduleReserved.schedule.endTime.slice(2)}</span>}
+                </AppleTg>
+              )}
+              {student.phone && <AppleTg sx={{ fontSize: '0.85rem' }}>📱 {student.phone}</AppleTg>}
+              {student.parentPhone && <AppleTg sx={{ fontSize: '0.85rem' }}>📞 {student.parentPhone}</AppleTg>}
             </FlexBox>
           )}
         </FlexBox>
@@ -158,6 +178,7 @@ export default function StudentDetail() {
               deleteNote={deleteNote}
               notes={notes}
               selectedTab={selectedTab}
+              disabled={!!student.deletedAt}
             />
           </FlexBox>
 
@@ -165,7 +186,8 @@ export default function StudentDetail() {
             <MemoNoteList 
               notes={notes} 
               createNote={createNote} 
-              deleteNote={deleteNote} 
+              deleteNote={deleteNote}
+              disabled={!!student.deletedAt}
             />
           </FlexBox>
         </FlexBox>

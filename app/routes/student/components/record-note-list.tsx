@@ -15,8 +15,9 @@ type RecordNoteListProps = {
   createNote: (note: { value: string, type: NoteType }) => Promise<Note>;
   updateNote: (note: { id: number, value: string }) => Promise<void>;
   selectedTab: 'assessment' | 'parent-counseling';
+  disabled?: boolean;
 }
-export const RecordNoteList = ({ notes, deleteNote, createNote, updateNote, selectedTab }: RecordNoteListProps) => {
+export const RecordNoteList = ({ notes, deleteNote, createNote, updateNote, selectedTab, disabled }: RecordNoteListProps) => {
   const noteListRef = React.useRef<HTMLDivElement>(null);
 
   const recordNotes = React.useMemo(() => {
@@ -111,7 +112,7 @@ export const RecordNoteList = ({ notes, deleteNote, createNote, updateNote, sele
           isInline={false}
         />
       ) : (
-        <AddNoteButton onClick={handleAddClick} disabled={!!editingId} />
+        <AddNoteButton onClick={handleAddClick} disabled={!!editingId || disabled} />
       )}
 
       {/* 평가 목록 */}
@@ -134,6 +135,7 @@ export const RecordNoteList = ({ notes, deleteNote, createNote, updateNote, sele
               editingId={editingId}
               handleEditClick={handleEditClick}
               handleDeleteButtonClick={handleDeleteButtonClick}
+              disabled={disabled}
             />
           )
         ))}

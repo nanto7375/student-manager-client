@@ -18,7 +18,7 @@ type StudentInListType = {
 }
 const getStudentListApi = buildApi<{ list: StudentInListType[]; count: number }>({ path: '/students', method: 'GET' });
 
-const LIMIT = 20;
+const LIMIT = 40;
 
 export default function Student() {
   const navigate = useNavigate();

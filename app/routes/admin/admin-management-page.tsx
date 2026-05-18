@@ -83,13 +83,14 @@ export const AdminManagementPage = ({ registerOpen, onRegisterClose, showDeleted
   // Drawer state
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [editData, setEditData] = React.useState<AdminFormData | null>(null);
+  const [isDeleted, setIsDeleted] = React.useState(false);
 
   React.useEffect(() => {
-    if (registerOpen) { setEditData(null); setDrawerOpen(true); }
+    if (registerOpen) { setEditData(null); setIsDeleted(false); setDrawerOpen(true); }
   }, [registerOpen]);
 
-  const openEditDrawer = (admin: Admin) => { setEditData(toAdminFormData(admin)); setDrawerOpen(true); };
-  const closeDrawer = () => { setDrawerOpen(false); setEditData(null); onRegisterClose?.(); };
+  const openEditDrawer = (admin: Admin) => { setEditData(toAdminFormData(admin)); setIsDeleted(!!admin.deletedAt); setDrawerOpen(true); };
+  const closeDrawer = () => { setDrawerOpen(false); setEditData(null); setIsDeleted(false); onRegisterClose?.(); };
 
   // Render
   return (
@@ -160,10 +161,12 @@ export const AdminManagementPage = ({ registerOpen, onRegisterClose, showDeleted
       </FlexBox>
 
       <Drawer anchor="right" open={drawerOpen} onClose={() => {}}>
-        <FlexBox flexDirection="column" gap={2} padding="2rem" width="25rem">
+        <FlexBox flexDirection="column" gap={2} padding="2rem" width="25rem" sx={{ position: 'relative' }}>
+          {/* 삭제된 항목: 오버레이로 편집 차단 (X 버튼만 zIndex로 클릭 가능) */}
+          {isDeleted && <div style={{ position: 'absolute', inset: 0, zIndex: 10, backgroundColor: 'rgba(255,255,255,0.5)' }} />}
           <FlexBox justifyContent="space-between" alignItems="center" fullWidth sx={{ mb: 2 }}>
             <AppleTg sx={{ fontSize: '1.2rem', fontWeight: 600 }}>{editData ? editData.name : '선생님 등록'}</AppleTg>
-            <IconButton onClick={closeDrawer}>
+            <IconButton onClick={closeDrawer} sx={{ zIndex: 20 }}>
               <CloseIcon />
             </IconButton>
           </FlexBox>

@@ -9,21 +9,22 @@ type MemoNoteListProps = {
   notes: Note[];
   createNote: (params: { value: string; type: string }) => Promise<Note>;
   deleteNote: (noteId: number) => Promise<void>;
+  disabled?: boolean;
 };
 
-export const MemoNoteList = ({ notes, createNote, deleteNote }: MemoNoteListProps) => {
+export const MemoNoteList = ({ notes, createNote, deleteNote, disabled }: MemoNoteListProps) => {
   const fixedMemoNotes = notes.filter(note => note.type === 'fixed-memo');
   const temporaryMemoNotes = notes.filter(note => note.type === 'temporary-memo');
 
   return (
     <FlexContainer fullHeight fullWidth gap={1.5} flexDirection="column">
-      <MemoContainer title="고정 메모" notes={fixedMemoNotes} type="fixed-memo" createNote={createNote} />
-      <MemoContainer title="변동 메모" notes={temporaryMemoNotes} type="temporary-memo" createNote={createNote} />
+      <MemoContainer title="고정 메모" notes={fixedMemoNotes} type="fixed-memo" createNote={createNote} disabled={disabled} />
+      <MemoContainer title="변동 메모" notes={temporaryMemoNotes} type="temporary-memo" createNote={createNote} disabled={disabled} />
     </FlexContainer>
   );
 };
 
-const MemoContainer = ({ title, notes, type, createNote }: { title: string; notes: Note[]; type: NoteType; createNote: (params: { value: string; type: string }) => Promise<Note> }) => {
+const MemoContainer = ({ title, notes, type, createNote, disabled }: { title: string; notes: Note[]; type: NoteType; createNote: (params: { value: string; type: string }) => Promise<Note>; disabled?: boolean }) => {
   const [checked, setChecked] = React.useState<Set<number>>(new Set());
   const [adding, setAdding] = React.useState(false);
   const [inputValue, setInputValue] = React.useState('');
@@ -70,6 +71,7 @@ const MemoContainer = ({ title, notes, type, createNote }: { title: string; note
               size="small"
               checked={checked.has(note.id)}
               onChange={() => toggleCheck(note.id)}
+              disabled={disabled}
             />
             <AppleTg sx={{ textDecoration: checked.has(note.id) ? 'line-through' : 'none', color: checked.has(note.id) ? '#aaa' : 'inherit' }}>
               {note.value}
@@ -77,6 +79,7 @@ const MemoContainer = ({ title, notes, type, createNote }: { title: string; note
           </FlexBox>
         ))}
       </FlexBox>
+      {!disabled && (
       <FlexBox alignItems="center" padding="0.25rem 0.5rem" sx={{ borderTop: '1px solid #eee' }}>
         {adding ? (
           <input
@@ -94,6 +97,7 @@ const MemoContainer = ({ title, notes, type, createNote }: { title: string; note
           </IconButton>
         )}
       </FlexBox>
+      )}
     </FlexBox>
   );
 };

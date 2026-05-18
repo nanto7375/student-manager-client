@@ -1,7 +1,7 @@
 import { FlexBox } from "~/components/styled-elements";
 import { Button } from "@mui/material";
 
-export const NoteContentBox = ({ note, isAdding, editingId, handleEditClick, handleDeleteButtonClick }) => {
+export const NoteContentBox = ({ note, isAdding, editingId, handleEditClick, handleDeleteButtonClick, disabled }: any) => {
   return (
     <FlexBox 
       width="100%"
@@ -15,7 +15,7 @@ export const NoteContentBox = ({ note, isAdding, editingId, handleEditClick, han
           <div>수정일: {new Date(note.updatedAt).toLocaleString('ko-KR')}&nbsp;({note.lastCommenter.name})
           </div>
         </div>
-        {!(isAdding || editingId) && (
+        {!(isAdding || editingId || disabled) && (
           <FlexBox gap={1}>
             <NoteBoxFooterButton title="편집" onClick={() => handleEditClick(note)} />
             <NoteBoxFooterButton title="삭제" onClick={() => handleDeleteButtonClick(note.id)} />
