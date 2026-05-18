@@ -53,13 +53,23 @@ type PageProps = {
 export const AdminManagementPage = ({ registerOpen, onRegisterClose, showDeleted }: PageProps) => {
   const { error: showError, success: showSuccess } = useGlobalToast();
 
-  // Pagination
+  // Pagination & Sort (querystring 기반)
   const [searchParams, setSearchParams] = useSearchParams();
   const page = Number(searchParams.get('page')) || 0; // 0-based (MUI TablePagination 기준)
   const rowsPerPage = Number(searchParams.get('limit')) || 20;
   const sort = searchParams.get('sort') || 'createdAt-asc';
 
   const setPage = (p: number) => setSearchParams(prev => { const params = new URLSearchParams(prev); p > 0 ? params.set('page', String(p)) : params.delete('page'); return params; }, { replace: true });
+
+  // querystring 업데이트 헬퍼 (page 자동 리셋)
+  const updateParams = (updater: (p: URLSearchParams) => void) => {
+    setSearchParams(prev => {
+      const p = new URLSearchParams(prev);
+      updater(p);
+      p.delete('page');
+      return p;
+    }, { replace: true });
+  };
 
   // Data
   const { data: adminListData, isLoading } = useQuery({
@@ -96,12 +106,12 @@ export const AdminManagementPage = ({ registerOpen, onRegisterClose, showDeleted
             rowsPerPageOptions={[]}
             onRowsPerPageChange={() => {}}
           />
-          <Select size="small" value={sort} onChange={(e) => { setSearchParams(prev => { const p = new URLSearchParams(prev); p.set('sort', e.target.value); p.delete('page'); return p; }, { replace: true }); }} sx={{ width: '9rem', textAlign: 'center', '& .MuiSelect-select': { py: '0.4rem' }, '& .MuiOutlinedInput-notchedOutline': { top: 0, legend: { display: 'none' } } }}>
+          <Select size="small" value={sort} onChange={(e) => updateParams(p => p.set('sort', e.target.value))} sx={{ width: '9rem', textAlign: 'center', '& .MuiSelect-select': { py: '0.4rem' }, '& .MuiOutlinedInput-notchedOutline': { top: 0, legend: { display: 'none' } } }}>
             <MenuItem value="createdAt-asc" sx={{ justifyContent: 'center' }}>오래된 등록순</MenuItem>
             <MenuItem value="createdAt-desc" sx={{ justifyContent: 'center' }}>최근 등록순</MenuItem>
             <MenuItem value="name-asc" sx={{ justifyContent: 'center' }}>이름순</MenuItem>
           </Select>
-          <Select size="small" value={rowsPerPage} onChange={(e) => { setSearchParams(prev => { const p = new URLSearchParams(prev); p.set('limit', String(e.target.value)); p.delete('page'); return p; }, { replace: true }); }} sx={{ minWidth: '7rem', textAlign: 'center', '& .MuiSelect-select': { py: '0.4rem' }, '& .MuiOutlinedInput-notchedOutline': { top: 0, legend: { display: 'none' } } }}>
+          <Select size="small" value={rowsPerPage} onChange={(e) => updateParams(p => p.set('limit', String(e.target.value)))} sx={{ minWidth: '7rem', textAlign: 'center', '& .MuiSelect-select': { py: '0.4rem' }, '& .MuiOutlinedInput-notchedOutline': { top: 0, legend: { display: 'none' } } }}>
             {ROWS_PER_PAGE_OPTIONS.map(n => <MenuItem key={n} value={n} sx={{ justifyContent: 'center' }}>{n}개</MenuItem>)}
           </Select>
         </FlexBox>

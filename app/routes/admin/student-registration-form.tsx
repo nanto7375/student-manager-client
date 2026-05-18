@@ -1,8 +1,7 @@
 import React from "react";
 import dayjs from "dayjs";
-import { Button, IconButton, type SelectChangeEvent } from "@mui/material";
+import { Button, type SelectChangeEvent } from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
 import { useScheduleList } from "../schedule/page";
 import { FlexBox } from "~/components/styled-elements";
@@ -68,7 +67,6 @@ const NOW_YEAR = dayjs().year();
 const registerStudentApi = buildApi({ path: '/students', method: 'POST' });
 const updateStudentApi = buildApi({ path: '/students/:id', method: 'PATCH' });
 const deleteStudentApi = buildApi({ path: '/students/:id', method: 'DELETE' });
-const cancelReservedScheduleApi = buildApi({ path: '/schedules/reserved/:reservedId', method: 'DELETE' });
 
 // --- Component ---
 
@@ -77,29 +75,14 @@ type Props = {
   showSuccess: (msg: string) => void;
   editData?: any;
   onComplete?: () => void;
-  onScheduleChange?: () => void;
 };
 
-export const StudentRegistrationForm = ({ showError, showSuccess, editData, onComplete, onScheduleChange }: Props) => {
+export const StudentRegistrationForm = ({ showError, showSuccess, editData, onComplete }: Props) => {
   const queryClient = useQueryClient();
   const isEditMode = !!editData?.id;
   const { scheduleList } = useScheduleList();
   const [form, setForm] = React.useState<StudentForm>(defaultStudentForm());
   const { ConfirmModal: DeleteModal, openConfirmModal: openDeleteModal, closeConfirmModal: closeDeleteModal } = useConfirmModal();
-  const { ConfirmModal: CancelScheduleModal, openConfirmModal: openCancelScheduleModal, closeConfirmModal: closeCancelScheduleModal } = useConfirmModal();
-
-  const handleCancelReservedSchedule = async () => {
-    if (!editData?.scheduleReserved) return;
-    try {
-      await cancelReservedScheduleApi({ params: { reservedId: editData.scheduleReserved.id } });
-      showSuccess('예약 스케줄이 취소되었습니다.');
-      queryClient.invalidateQueries({ queryKey: studentListQueryKey() });
-      closeCancelScheduleModal();
-      onComplete?.();
-    } catch {
-      showError('예약 스케줄 취소 중 오류가 발생했습니다.');
-    }
-  };
 
   const handleDelete = async () => {
     if (!editData?.id) return;
@@ -280,7 +263,6 @@ export const StudentRegistrationForm = ({ showError, showSuccess, editData, onCo
       </FlexBox>
 
       <DeleteModal onConfirm={handleDelete} bodyText="삭제하시겠습니까?" />
-      <CancelScheduleModal onConfirm={handleCancelReservedSchedule} bodyText="예약된 스케줄 변경을 취소하시겠습니까?" />
     </FlexBox>
   );
 };

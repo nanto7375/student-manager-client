@@ -11,7 +11,7 @@ export const FormInput = ({ id, label, value, onChange, type, error }: { id: str
 export const FormPhone = ({ id, label, value, onChange }: { id: string, label: string, value: string[], onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) => {
   return (
     <FlexBox sx={{width: '20rem', gap: 1, justifyContent: 'center'}}>
-      <TextField label={label} type="text" id={id + '/0'} value={value[0]} disabled inputProps={{ style: { textAlign: 'center' } }} />
+      <TextField label={label} type="text" id={id + '/0'} value={value[0]} onChange={onChange} inputProps={{ style: { textAlign: 'center' } }} />
       <TextField type="text" id={id + '/1'} value={value[1]} onChange={onChange} inputProps={{ style: { textAlign: 'center' } }} />
       <TextField type="text" id={id + '/2'} value={value[2]} onChange={onChange} inputProps={{ style: { textAlign: 'center' } }} />
     </FlexBox>

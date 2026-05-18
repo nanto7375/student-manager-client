@@ -106,6 +106,8 @@ export const AdminRegistrationForm = ({ showSuccess, showError, editData, onComp
   };
 
   const myLevel = auth.getMyInfo()?.level ?? 0;
+  const isSelf = isEditMode && form.email === auth.getMyInfo()?.email;
+  const canChangeRole = myLevel >= 4 && !isSelf;
 
   const handleDelete = async () => {
     if (!form.id) return;
@@ -167,7 +169,7 @@ export const AdminRegistrationForm = ({ showSuccess, showError, editData, onComp
     const hashedPassword = form.password ? await hashPassword(form.password) : undefined;
 
     const payload = {
-      name: form.name || null,
+      // name: form.name || null,
       email: form.email || null,
       phone: formatPhone(form.phone),
       role: form.role,
@@ -208,6 +210,7 @@ export const AdminRegistrationForm = ({ showSuccess, showError, editData, onComp
             label="권한"
             value={form.role}
             onChange={(e) => setForm(prev => ({ ...prev, role: e.target.value as AdminRoleType }))}
+            disabled={isEditMode && !canChangeRole}
             sx={{ textAlign: 'center' }}
           >
             <MenuItem value={AdminRoleType.SUPER_ADMIN}>Lv.4 슈퍼 관리자</MenuItem>

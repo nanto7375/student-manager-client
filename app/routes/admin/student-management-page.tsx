@@ -8,7 +8,6 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 import EditIcon from "@mui/icons-material/Edit";
 import CloseIcon from "@mui/icons-material/Close";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { buildApi } from "~/lib/api-builder";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { StudentSearchFilter } from "../student/components/student-search-filter";
@@ -63,7 +62,6 @@ export const studentListQueryKey = () => ['student-list'] as const;
 
 // --- Constants ---
 
-const STUDENT_TABLE_COLUMNS = ['#', '이름', '학교', '학년', '연락처', '부모님 연락처'] as const;
 const ROWS_PER_PAGE_OPTIONS = [10, 20, 50] as const;
 
 const defaultScheduleForm = (): ScheduleForm => ({
@@ -106,24 +104,25 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
-      setSearchParams(prev => {
-        const params = new URLSearchParams(prev);
-        inputName ? params.set('name', inputName) : params.delete('name');
-        params.delete('page');
-        return params;
-      }, { replace: true });
+      updateParams(p => inputName ? p.set('name', inputName) : p.delete('name'));
     }, 700);
     return () => clearTimeout(timer);
   }, [inputName]);
 
-  const handleClearName = () => { setInputName(''); setSearchParams(prev => { const p = new URLSearchParams(prev); p.delete('name'); p.delete('page'); return p; }, { replace: true }); };
-  const handleDayOfWeekChange = (v: number | null) => {
-    setSearchParams(prev => { const p = new URLSearchParams(prev); v !== null ? p.set('dayOfWeek', String(v)) : p.delete('dayOfWeek'); p.delete('page'); return p; }, { replace: true });
+  // querystring 업데이트 헬퍼 (page 자동 리셋)
+  const updateParams = (updater: (p: URLSearchParams) => void) => {
+    setSearchParams(prev => {
+      const p = new URLSearchParams(prev);
+      updater(p);
+      p.delete('page');
+      return p;
+    }, { replace: true });
   };
-  const handleSchoolLevelChange = (v: number | null) => {
-    setSearchParams(prev => { const p = new URLSearchParams(prev); v !== null ? p.set('schoolLevel', String(v)) : p.delete('schoolLevel'); p.delete('page'); return p; }, { replace: true });
-  };
-  const handleRowsPerPageChange = (e: any) => { setSearchParams(prev => { const p = new URLSearchParams(prev); p.set('limit', e.target.value); p.delete('page'); return p; }, { replace: true }); };
+
+  const handleClearName = () => { setInputName(''); updateParams(p => p.delete('name')); };
+  const handleDayOfWeekChange = (v: number | null) => updateParams(p => v !== null ? p.set('dayOfWeek', String(v)) : p.delete('dayOfWeek'));
+  const handleSchoolLevelChange = (v: number | null) => updateParams(p => v !== null ? p.set('schoolLevel', String(v)) : p.delete('schoolLevel'));
+  const handleRowsPerPageChange = (e: any) => updateParams(p => p.set('limit', e.target.value));
 
   // Data
   const { data: studentListData, isLoading } = useQuery({
@@ -229,7 +228,7 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
               rowsPerPageOptions={[]}
               onRowsPerPageChange={() => {}}
             />
-            <Select size="small" value={sort} onChange={(e) => { setSearchParams(prev => { const p = new URLSearchParams(prev); p.set('sort', e.target.value); p.delete('page'); return p; }, { replace: true }); }} sx={{ width: '9rem', textAlign: 'center', '& .MuiSelect-select': { py: '0.4rem' }, '& .MuiOutlinedInput-notchedOutline': { top: 0, legend: { display: 'none' } } }}>
+            <Select size="small" value={sort} onChange={(e) => updateParams(p => p.set('sort', e.target.value))} sx={{ width: '9rem', textAlign: 'center', '& .MuiSelect-select': { py: '0.4rem' }, '& .MuiOutlinedInput-notchedOutline': { top: 0, legend: { display: 'none' } } }}>
               <MenuItem value="registeredAt-asc" sx={{ justifyContent: 'center' }}>오래된 등록순</MenuItem>
               <MenuItem value="registeredAt-desc" sx={{ justifyContent: 'center' }}>최근 등록순</MenuItem>
               <MenuItem value="name-asc" sx={{ justifyContent: 'center' }}>이름순</MenuItem>
@@ -268,8 +267,8 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
                       <TableCell align="center">{student.name}</TableCell>
                       <TableCell align="center">{student.schoolName}</TableCell>
                       <TableCell align="center">{student.schoolGrade}</TableCell>
-                      <TableCell align="center">{student.phone}</TableCell>
-                      <TableCell align="center">{student.parentPhone}</TableCell>
+                      <TableCell align="center">{student.phone && !student.phone.match(/^010-*$/) ? student.phone : '-'}</TableCell>
+                      <TableCell align="center">{student.parentPhone && !student.parentPhone.match(/^010-*$/) ? student.parentPhone : '-'}</TableCell>
                       <TableCell align="center">
                         <FlexBox flexDirection="column" alignItems="center">
                           {student.schedule && <AppleTg sx={{ fontSize: '0.85rem' }}>{formatSchedule(student.schedule)}</AppleTg>}
@@ -341,7 +340,6 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
             showSuccess={showSuccess}
             editData={editData}
             onComplete={closeDrawer}
-            onScheduleChange={() => { if (editData) openScheduleDialog(editData); }}
           />
         </FlexBox>
       </Drawer>
