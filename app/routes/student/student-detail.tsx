@@ -1,6 +1,8 @@
 import React from "react";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useLoaderData } from "react-router";
+import { useLoaderData, useSearchParams } from "react-router";
+import { Tab } from "@mui/material";
+import { AppTabs } from "~/components/app-tabs";
 
 import { buildApi } from "~/lib/api-builder";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
@@ -62,12 +64,8 @@ export default function StudentDetail() {
   }, [student]);
 
   const [infoOpen, setInfoOpen] = React.useState(false);
-
-  const deleteNote = React.useCallback(async (noteId: number) => {
-    await deleteNoteApi({params: {studentId, noteId}});
-    queryClient.invalidateQueries({ queryKey: studentQueryKey(studentId) })
-  }, [studentId])
-
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedTab = (searchParams.get('tab') as 'assessment' | 'parent-counseling') || 'assessment';
 
   const createNote = async ({value, type}: {value: string, type: NoteType}) => {
     const note = await createNoteApi({ 
@@ -86,12 +84,17 @@ export default function StudentDetail() {
     queryClient.invalidateQueries({ queryKey: studentQueryKey(studentId) })
   }
 
+  const deleteNote = React.useCallback(async (noteId: number) => {
+    await deleteNoteApi({params: {studentId, noteId}});
+    queryClient.invalidateQueries({ queryKey: studentQueryKey(studentId) })
+  }, [studentId])
+
   if (studentDetailError || studentDetailLoading) return <FlexContainer padding="1rem" fullHeight fullWidth center></FlexContainer>;
 
   const schoolLevelLabel = student.schoolLevel === 1 ? '초등' : student.schoolLevel === 2 ? '중등' : '고등';
 
   return (
-    <FlexContainer fullHeight fullWidth sx={{ flexDirection: 'column', paddingLeft: '1rem' }} style={{overflowX: 'auto'}}>
+    <FlexContainer fullHeight fullWidth sx={{ flexDirection: 'column' }} style={{overflowX: 'auto'}}>
         <FlexBox
           fullWidth
           padding="1rem 1rem 0 0"
@@ -110,7 +113,9 @@ export default function StudentDetail() {
               sx={{
                 position: 'absolute',
                 top: '100%',
-                left: '1rem',
+                marginTop: '0.5rem',
+                left: '50%',
+                transform: 'translateX(-50%)',
                 zIndex: 10,
                 backgroundColor: 'white',
                 border: '1px solid #e0e0e0',
@@ -130,19 +135,38 @@ export default function StudentDetail() {
           )}
         </FlexBox>
       
+      <AppTabs
+        value={selectedTab}
+        onChange={(_, newValue) => setSearchParams({ tab: newValue })}
+        centered
+        sx={{
+          position: 'relative',
+          zIndex: 1,
+          mt: 2,
+        }}
+      >
+        <Tab label="학생 기록" value="assessment" sx={{ fontSize: '1rem' }} />
+        <Tab label="상담 기록" value="parent-counseling" sx={{ fontSize: '1rem' }} />
+      </AppTabs>
+
       <FlexBox fullHeight fullWidth style={{paddingLeft: '1rem', paddingRight: '0.5rem', overflowY: 'hidden', overflowX: 'auto'}}>
         <FlexBox gap={1.5} fullHeight style={{margin: '0 auto', minWidth: '50rem', maxWidth: '95rem', width: '100%'}}>
-          <FlexBox maxWidth="60rem" minWidth="30rem" fullHeight style={{width: '70%'}}>
+          <FlexBox maxWidth="60rem" minWidth="30rem" fullHeight style={{width: '70%'}} flexDirection="column">
             <RecordNoteList
               createNote={createNote}
               updateNote={updateNote}
               deleteNote={deleteNote}
               notes={notes}
+              selectedTab={selectedTab}
             />
           </FlexBox>
 
-          <FlexBox maxWidth="35rem" minWidth="25rem" fullHeight sx={{ flex:1, overflowY: 'hidden'}}>
-            <MemoNoteList notes={notes} />
+          <FlexBox maxWidth="35rem" minWidth="25rem" height='80%' sx={{ flex:1, overflowY: 'hidden'}}>
+            <MemoNoteList 
+              notes={notes} 
+              createNote={createNote} 
+              deleteNote={deleteNote} 
+            />
           </FlexBox>
         </FlexBox>
       </FlexBox>

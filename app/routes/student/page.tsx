@@ -94,25 +94,27 @@ export default function Student() {
 
   if (studentListLoading || !studentData) return (<FlexContainer padding="1rem" fullHeight fullWidth sx={{ flexDirection: 'column', gap: '1rem' }} center></FlexContainer>);
   return (
-    <FlexContainer fullHeight fullWidth sx={{ padding: '1rem', paddingLeft: '2rem', flexDirection: 'column', gap: '1rem'}}>
+    <FlexContainer fullHeight fullWidth sx={{ flexDirection: 'column', gap: '1rem'}}>
 
-      <StudentSearchFilter
-        inputName={inputName}
-        onInputNameChange={(v) => setInputName(v)}
-        onClearName={handleClearInput}
-        dayOfWeek={dayOfWeek}
-        onDayOfWeekChange={(v) => {
-          const params = new URLSearchParams(searchParam);
-          v === null ? params.delete('dayOfWeek') : params.set('dayOfWeek', String(v));
-          setSearchParam(params.toString(), { replace: true });
-        }}
-        schoolLevel={schoolLevel}
-        onSchoolLevelChange={(v) => {
-          const params = new URLSearchParams(searchParam);
-          v === null ? params.delete('schoolLevel') : params.set('schoolLevel', String(v));
-          setSearchParam(params.toString(), { replace: true });
-        }}
-      />
+      <FlexBox justifyContent="center" fullWidth sx={{ mb: 2 }}>
+        <StudentSearchFilter
+          inputName={inputName}
+          onInputNameChange={(v) => setInputName(v)}
+          onClearName={handleClearInput}
+          dayOfWeek={dayOfWeek}
+          onDayOfWeekChange={(v) => {
+            const params = new URLSearchParams(searchParam);
+            v === null ? params.delete('dayOfWeek') : params.set('dayOfWeek', String(v));
+            setSearchParam(params.toString(), { replace: true });
+          }}
+          schoolLevel={schoolLevel}
+          onSchoolLevelChange={(v) => {
+            const params = new URLSearchParams(searchParam);
+            v === null ? params.delete('schoolLevel') : params.set('schoolLevel', String(v));
+            setSearchParam(params.toString(), { replace: true });
+          }}
+        />
+      </FlexBox>
 
       <FlexBox gap={1} sx={{ flexWrap: 'wrap' }}>
         {studentData?.list.map(student => (

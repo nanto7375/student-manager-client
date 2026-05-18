@@ -57,7 +57,7 @@ export const StudentSearchFilter = ({
   onSchoolLevelChange,
   children,
 }: Props) => (
-  <FlexBox gap={1} alignItems="center" fullWidth>
+  <FlexBox gap={1} alignItems="center">
     <FlexBox sx={{ position: 'relative' }}>
       <input
         type="text"

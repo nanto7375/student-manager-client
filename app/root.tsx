@@ -46,10 +46,16 @@ export default function App() {
   }, [setAdminInfo]);
 
   return (
-    <FlexContainer style={{ minWidth: '48rem', height: '100%'}}>
-      {(pathname !== ROUTES.SIGNIN && loaded) && <SideBar />}
-      <FlexBox style={{flex: 1, overflow: 'auto'}}>
-        <Outlet />
+    <FlexContainer flexDirection="column" style={{ minWidth: '48rem', height: '100%'}}>
+      {/* 공통 최대 너비 wrapper */}
+      <FlexBox flexDirection="column" style={{ maxWidth: '95rem', width: '100%', height: '100%', margin: '0 auto' }}>
+        {/* 상단 네비게이션 바 (로그인 페이지 제외) */}
+        {(pathname !== ROUTES.SIGNIN && loaded) && <SideBar />}
+
+        {/* 콘텐츠 영역 */}
+        <FlexBox flexDirection="column" style={{flex: 1, overflow: 'auto', margin: '0.5rem 0', padding: '1rem 2rem', boxShadow: '0 0 20px rgba(0,0,0,0.06)', borderRadius: '8px'}}>
+          <Outlet />
+        </FlexBox>
       </FlexBox>
     </FlexContainer>
   );

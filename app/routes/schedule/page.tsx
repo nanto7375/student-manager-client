@@ -48,7 +48,7 @@ export default function Schedule() {
         // foldSidebar={() => setSidebarFolded(true)} 
       />  
       
-      <FlexContainer flexDirection="column"> 
+      <FlexContainer flexDirection="column" sx={{ flex: 1 }}> 
         {/* {sidebarFolded && 
           <FlexBox 
             justifyContent="center" 

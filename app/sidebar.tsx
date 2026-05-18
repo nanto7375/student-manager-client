@@ -1,21 +1,14 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router";
-import { styled } from "@mui/material";
 
 import { ROUTES, LEO_TITLE } from "./constants";
 import { AdminRoleType } from "./constants/type";
 import { tokenManager } from "./lib/token-manger";
 
-import { FlexBox, FlexContainer } from "./components/styled-elements";
+import { FlexBox } from "./components/styled-elements";
 import { AppleTg } from "./components/typography";
-// import { ConfirmModal } from "./components/confirm-modal";
 import { useConfirmModal } from "./hooks/use-confirm-modal";
 import { auth } from "./lib/auth";
-
-const LinkFullSize = styled(Link)({
-  width: '100%',
-  height: '100%',
-});
 
 export const buttonHoverEffect = {
   transition: 'all',
@@ -75,66 +68,55 @@ export default function SideBar() {
   }, []);
 
   return (
-    <FlexContainer 
-      width="7rem" 
-      fullHeight 
-      flexDirection="column" 
-      justifyContent="space-between" 
-      alignItems="center" 
+    <FlexBox
+      fullWidth
+      justifyContent="space-between"
+      alignItems="center"
       sx={{
-        boxShadow: '2px 0 6px rgba(0,0,0,0.1)',
+        height: '3rem',
+        padding: '0 2rem',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+        zIndex: 10,
       }}
     >
-
-      <FlexBox id='main-menu' fullWidth flexDirection="column" center>
-        <FlexBox fullWidth height="3rem" center sx={{marginBottom: '0.5rem', boxShadow: '0 4px 8px rgba(0,0,0,0.1)'}}>
-          <Link to={ROUTES.HOME} style={{cursor: 'pointer'}}>
-            <AppleTg sx={{fontSize: '0.9rem', color: 'primary.main', fontWeight: '600'}}>{LEO_TITLE.kor}</AppleTg>
-          </Link>
-        </FlexBox>
-        <FlexBox flexDirection="column" fullWidth center>
-          {MENU_PAGE_LIST.map((menu) => (<LinkFullSize 
-            to={{
-              pathname: menu.path,
-              // pathname: pathname.includes(menu.path) ? pathname : menu.path, 
-              // search: searchParams.toString()
-            }} 
-            key={menu.name}
-          >
-            <FlexBox width="100%" height="3rem" center button sx={buttonHoverEffect}>
-              <AppleTg 
-                variant={selectedMenu === menu.name ? 'appleSDGothicNeoB' : 'appleSDGothicNeoM'} 
-                sx={{fontSize: '1rem', color: selectedMenu === menu.name ? 'black' : 'gray'}}
-              >
-                {menu.label}
-              </AppleTg>
-            </FlexBox>
-          </LinkFullSize>))}
-        </FlexBox>
-      </FlexBox>
-
-      <FlexBox id='bottom-menu' flexDirection="column" fullWidth center sx={{marginBottom: '0.5rem'}}>
-        <FlexBox flexDirection="column" fullWidth center sx={{marginBottom: '1rem'}}>
-          <FlexBox sx={{marginBottom: '0.2rem'}}>
-            <AppleTg  color="secondary.main" sx={{fontSize: '0.9rem', fontWeight: '600'}}>
-              {user?.email.split("@")[0]}
+      {/* 로고 + 메뉴 */}
+      <FlexBox alignItems="center" gap={2}>
+        <Link to={ROUTES.HOME} style={{cursor: 'pointer', textDecoration: 'none'}}>
+          <AppleTg sx={{fontSize: '0.9rem', color: 'primary.main', fontWeight: '600'}}>{LEO_TITLE.kor}</AppleTg>
+        </Link>
+        {MENU_PAGE_LIST.map((menu) => (
+          <Link to={menu.path} key={menu.name} style={{textDecoration: 'none'}}>
+            <AppleTg
+              variant={selectedMenu === menu.name ? 'appleSDGothicNeoB' : 'appleSDGothicNeoM'}
+              sx={{fontSize: '0.9rem', color: selectedMenu === menu.name ? 'black' : 'gray', ...buttonHoverEffect, padding: '0.4rem 0.6rem'}}
+            >
+              {menu.label}
             </AppleTg>
-          </FlexBox>
-          {isAdmin && <LinkFullSize to={ADMIN_PAGE.path}>
-            <FlexBox width="100%" height="2.5rem" center button sx={{...buttonHoverEffect, backgroundColor: selectedMenu === ADMIN_PAGE.name ? '#e9e9e9' : 'white'}}>
-                <AppleTg  sx={{fontSize: '0.9rem', color: selectedMenu === ADMIN_PAGE.name ? 'black' : 'gray'}}>{ADMIN_PAGE.label}</AppleTg>
-            </FlexBox>
-          </LinkFullSize>}
-        </FlexBox>
-        <FlexBox fullWidth height="2.5rem" center button sx={buttonHoverEffect} onClick={handleSignoutClick}>
-          <AppleTg  sx={{fontSize: '0.9rem', color: 'gray'}}>로그아웃</AppleTg>
+          </Link>
+        ))}
+      </FlexBox>
+
+      {/* 유저 정보 + 관리자 + 로그아웃 */}
+      <FlexBox alignItems="center" gap={1.5}>
+        <AppleTg color="secondary.main" sx={{fontSize: '0.85rem', fontWeight: '600'}}>
+          {user?.email.split("@")[0]}
+        </AppleTg>
+        {isAdmin && (
+          <Link to={ADMIN_PAGE.path} style={{textDecoration: 'none'}}>
+            <AppleTg sx={{fontSize: '0.85rem', color: selectedMenu === ADMIN_PAGE.name ? 'black' : 'gray', ...buttonHoverEffect, padding: '0.3rem 0.5rem'}}>
+              {ADMIN_PAGE.label}
+            </AppleTg>
+          </Link>
+        )}
+        <FlexBox button sx={{...buttonHoverEffect, padding: '0.3rem 0.5rem'}} onClick={handleSignoutClick}>
+          <AppleTg sx={{fontSize: '0.85rem', color: 'gray'}}>로그아웃</AppleTg>
         </FlexBox>
       </FlexBox>
 
-      <ConfirmModal 
-        bodyText="로그아웃 하시겠습니까?" 
-        onConfirm={handleSignout} 
+      <ConfirmModal
+        bodyText="로그아웃 하시겠습니까?"
+        onConfirm={handleSignout}
       />
-    </FlexContainer>
+    </FlexBox>
   );
 }

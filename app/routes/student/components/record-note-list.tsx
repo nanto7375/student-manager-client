@@ -1,6 +1,5 @@
 import React from "react"
-import { Tab, Tabs, Button } from "@mui/material"
-import { useSearchParams } from "react-router"
+import { Button } from "@mui/material"
 
 import { FlexBox, FlexContainer } from "~/components/styled-elements"
 import { NoteEditBox } from "./note-edit-box"
@@ -15,16 +14,14 @@ type RecordNoteListProps = {
   deleteNote: (noteId: number) => void;
   createNote: (note: { value: string, type: NoteType }) => Promise<Note>;
   updateNote: (note: { id: number, value: string }) => Promise<void>;
+  selectedTab: 'assessment' | 'parent-counseling';
 }
-export const RecordNoteList = ({ notes, deleteNote, createNote, updateNote }: RecordNoteListProps) => {
+export const RecordNoteList = ({ notes, deleteNote, createNote, updateNote, selectedTab }: RecordNoteListProps) => {
   const noteListRef = React.useRef<HTMLDivElement>(null);
 
-  const [searchParams, setSearchParams] = useSearchParams();
-  const selectedTab = (searchParams.get('tab') as 'assessment' | 'parent-counseling') || 'assessment';
-    const recordNotes = React.useMemo(() => {
+  const recordNotes = React.useMemo(() => {
       return notes.filter(note => note.type === selectedTab);
     }, [notes, selectedTab]);
-
 
   const [isAdding, setIsAdding] = React.useState(false);
   const [editingId, setEditingId] = React.useState<number | null>(null);
@@ -102,36 +99,23 @@ export const RecordNoteList = ({ notes, deleteNote, createNote, updateNote }: Re
   
 
   return (
-    <FlexContainer width="100%" sx={{flexDirection: 'column', padding: '1rem 0'}}>
-      <Tabs
-        value={selectedTab}
-        onChange={(_, newValue) => setSearchParams({ tab: newValue })}
-        sx={{
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-          position: 'relative',
-          zIndex: 1,
-        }}
-      >
-        <Tab label="학생 기록" value="assessment" sx={{ fontSize: '1rem' }} />
-        <Tab label="상담 기록" value="parent-counseling" sx={{ fontSize: '1rem' }} />
-      </Tabs>
+    <FlexContainer width="100%" fullHeight sx={{flexDirection: 'column', overflow: 'hidden'}}>
+      {/* 기록 추가 영역 (상단 고정) */}
+      {isAdding ? (
+        <NoteEditBox
+          value={recordingNote.value}
+          onChange={handleTextareaChange}
+          onSave={handleSaveClick}
+          onCancel={handleCancelButtonClick}
+          placeholder="기록을 입력하세요"
+          isInline={false}
+        />
+      ) : (
+        <AddNoteButton onClick={handleAddClick} disabled={!!editingId} />
+      )}
 
       {/* 평가 목록 */}
-      <FlexBox ref={noteListRef} flexDirection='column' alignItems='flex-start' sx={{overflow: 'auto', padding: '1rem 0'}} gap={1}>
-        {/* 기록 추가 영역 */}
-        {(isAdding ? (
-          <NoteEditBox
-            value={recordingNote.value}
-            onChange={handleTextareaChange}
-            onSave={handleSaveClick}
-            onCancel={handleCancelButtonClick}
-            placeholder="기록을 입력하세요"
-            isInline={false}
-          />
-        ) : (
-          <AddNoteButton onClick={handleAddClick} disabled={!!editingId} />
-        ))}
-
+      <FlexBox ref={noteListRef} flexDirection='column' alignItems='flex-start' sx={{overflow: 'auto', mt: 1.5, '&::-webkit-scrollbar': { width: '6px' }, '&::-webkit-scrollbar-thumb': { backgroundColor: '#ccc', borderRadius: '3px' }}} gap={1}>
         {recordNotes.map((note) => (
           editingId === note.id ? (
             <NoteEditBox
@@ -177,6 +161,7 @@ export const AddNoteButton = ({ onClick, disabled = false }: AddNoteButtonProps)
         borderRadius: '8px',
         border: '1px solid #ddd',
         color: '#666',
+        boxShadow: '0 3px 6px rgba(0,0,0,0.08)',
         '&:hover': {
           border: '1px solid #999',
           backgroundColor: 'action.hover',
