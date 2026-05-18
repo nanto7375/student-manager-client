@@ -44,9 +44,10 @@ const ROWS_PER_PAGE_OPTIONS = [10, 20, 50] as const;
 type PageProps = {
   registerOpen?: boolean;
   onRegisterClose?: () => void;
+  showDeleted?: boolean;
 };
 
-export const AdminManagementPage = ({ registerOpen, onRegisterClose }: PageProps) => {
+export const AdminManagementPage = ({ registerOpen, onRegisterClose, showDeleted }: PageProps) => {
   const { error: showError, success: showSuccess } = useGlobalToast();
 
   // Pagination
@@ -55,8 +56,8 @@ export const AdminManagementPage = ({ registerOpen, onRegisterClose }: PageProps
 
   // Data
   const { data: adminListData, isLoading } = useQuery({
-    queryKey: [...adminListQueryKey(), page, rowsPerPage],
-    queryFn: () => getAdminListApi({ query: { page: page + 1, limit: rowsPerPage } }),
+    queryKey: [...adminListQueryKey(), page, rowsPerPage, showDeleted],
+    queryFn: () => getAdminListApi({ query: { page: page + 1, limit: rowsPerPage, ...(!showDeleted && { status: 'active' }) } }),
     placeholderData: keepPreviousData,
   });
   const adminList = adminListData?.list ?? [];

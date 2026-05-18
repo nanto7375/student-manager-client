@@ -1,12 +1,13 @@
 import React from "react";
 import { useSearchParams } from "react-router";
-import { Button, Tab } from "@mui/material";
+import { Button, Tab, FormControlLabel, Switch } from "@mui/material";
 import { AppTabs } from "~/components/app-tabs";
 
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import { StudentManagementPage } from "./student-management-page";
 import { AdminManagementPage } from "./admin-management-page";
 import { AppleTg } from "~/components/typography";
+import { auth } from "~/lib/auth";
 
 export type ShortAdminDto = {
   id: number;
@@ -20,6 +21,8 @@ export default function Admin() {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedTab = (searchParams.get('tab') as 'student' | 'admin') || 'student';
   const [registerOpen, setRegisterOpen] = React.useState(false);
+  const [showDeleted, setShowDeleted] = React.useState(false);
+  const myLevel = auth.getMyInfo()?.level ?? 0;
 
   const handleRegisterClick = () => setRegisterOpen(true);
   const handleRegisterClose = () => setRegisterOpen(false);
@@ -35,14 +38,22 @@ export default function Admin() {
           <Tab label="학생 관리" value="student" />
           <Tab label="선생님 관리" value="admin" />
         </AppTabs>
-        <Button variant="contained" size="small" onClick={handleRegisterClick} sx={{ py: 0.7, minWidth: '7rem' }}>
-          <AppleTg>{selectedTab === 'student' ? '학생 등록' : '선생님 등록'}</AppleTg>
-        </Button>
+        <FlexBox alignItems="center" gap={1}>
+          {myLevel >= 3 && (
+            <FormControlLabel
+              control={<Switch size="small" checked={showDeleted} onChange={(e) => setShowDeleted(e.target.checked)} />}
+              label={<AppleTg sx={{ fontSize: '0.85rem' }}>삭제 포함</AppleTg>}
+            />
+          )}
+          <Button variant="contained" size="small" onClick={handleRegisterClick} sx={{ py: 0.7, minWidth: '7rem' }}>
+            <AppleTg>{selectedTab === 'student' ? '학생 등록' : '선생님 등록'}</AppleTg>
+          </Button>
+        </FlexBox>
       </FlexBox>
 
       <FlexBox fullWidth>
-        {selectedTab === 'student' && <StudentManagementPage registerOpen={registerOpen} onRegisterClose={handleRegisterClose} />}
-        {selectedTab === 'admin' && <AdminManagementPage registerOpen={registerOpen} onRegisterClose={handleRegisterClose} />}
+        {selectedTab === 'student' && <StudentManagementPage registerOpen={registerOpen} onRegisterClose={handleRegisterClose} showDeleted={showDeleted} />}
+        {selectedTab === 'admin' && <AdminManagementPage registerOpen={registerOpen} onRegisterClose={handleRegisterClose} showDeleted={showDeleted} />}
       </FlexBox>
     </FlexContainer>
   );

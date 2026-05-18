@@ -48,6 +48,7 @@ export default function Student() {
       ...(name !== undefined && { name }),
       ...(schoolLevel !== undefined && { schoolLevel }),
       ...(dayOfWeek !== undefined && { dayOfWeek }),
+      status: 'active',
       limit, 
       page: 1 
     } }),

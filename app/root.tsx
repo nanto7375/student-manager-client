@@ -53,7 +53,7 @@ export default function App() {
 
         {/* 콘텐츠 영역 */}
         <FlexBox flexDirection="column" style={{flex: 1, overflow: 'auto', margin: '0.5rem 0', padding: '1rem 2rem', boxShadow: '0 0 20px rgba(0,0,0,0.06)', borderRadius: '0.5rem'}}>
-          <Outlet />
+          {loaded && <Outlet />}
         </FlexBox>
       </FlexBox>
     </FlexContainer>

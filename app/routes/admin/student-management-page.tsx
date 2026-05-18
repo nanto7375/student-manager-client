@@ -1,5 +1,5 @@
 import React from "react";
-import { useSearchParams } from "react-router";
+import { useSearchParams, useNavigate } from "react-router";
 import { useGlobalToast } from "~/providers/toast-provider";
 import { StudentRegistrationForm } from "./student-registration-form";
 import { FlexContainer, FlexBox } from "~/components/styled-elements";
@@ -7,6 +7,7 @@ import { AppleTg } from "~/components/typography";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Drawer, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TablePagination, Select, MenuItem } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import CloseIcon from "@mui/icons-material/Close";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { buildApi } from "~/lib/api-builder";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { StudentSearchFilter } from "../student/components/student-search-filter";
@@ -65,10 +66,12 @@ const formatSchedule = (schedule: Student['schedule']) => {
 type PageProps = {
   registerOpen?: boolean;
   onRegisterClose?: () => void;
+  showDeleted?: boolean;
 };
 
-export const StudentManagementPage = ({ registerOpen, onRegisterClose }: PageProps) => {
+export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDeleted }: PageProps) => {
   const { error: showError, success: showSuccess } = useGlobalToast();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { scheduleList } = useScheduleList();
 
@@ -107,7 +110,7 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose }: PagePro
 
   // Data
   const { data: studentListData, isLoading } = useQuery({
-    queryKey: [...studentListQueryKey(), page, rowsPerPage, searchName, searchSchoolLevel, searchDayOfWeek],
+    queryKey: [...studentListQueryKey(), page, rowsPerPage, searchName, searchSchoolLevel, searchDayOfWeek, showDeleted],
     queryFn: () => getStudentListApi({
       query: {
         page: page + 1,
@@ -115,6 +118,7 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose }: PagePro
         ...(searchName && { name: searchName }),
         ...(searchSchoolLevel && { schoolLevel: searchSchoolLevel }),
         ...(searchDayOfWeek !== null && { dayOfWeek: searchDayOfWeek }),
+        ...(!showDeleted && { status: 'active' }),
       },
     }),
     placeholderData: keepPreviousData,
@@ -213,7 +217,8 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose }: PagePro
                     <TableCell align="center" width="15%">연락처</TableCell>
                     <TableCell align="center" width="15%">부모님 연락처</TableCell>
                     <TableCell align="center" width="25%">스케줄</TableCell>
-                    <TableCell align="center" width="10%">편집</TableCell>
+                    <TableCell align="center" width="8%">편집</TableCell>
+                    <TableCell align="center" width="8%">상세</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -243,6 +248,11 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose }: PagePro
                       <TableCell align="center">
                         <IconButton onClick={() => openEditDrawer(student)} sx={{ width: '4rem', borderRadius: '0.25rem' }}>
                           <EditIcon fontSize="small" />
+                        </IconButton>
+                      </TableCell>
+                      <TableCell align="center">
+                        <IconButton onClick={() => navigate(`/student/${student.id}`)} sx={{ width: '4rem', borderRadius: '0.25rem' }}>
+                          <OpenInNewIcon fontSize="small" />
                         </IconButton>
                       </TableCell>
                     </TableRow>
