@@ -193,7 +193,7 @@ export default function StudentActivityRecords() {
           <TableBody sx={{}}>
             {[...activityRecords, ...activityRecords, ...activityRecords, ...activityRecords, ...activityRecords, ...activityRecords].map((activityRecord) => (
               <TableRow key={activityRecord.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                <TableCell align="center"><AppleTg sx={{fontSize: '0.9rem'}}><div>{activityRecord.student.name}</div><div>({activityRecord.student.schoolName.replace('초등학교', '초').replace('중학교', '중').replace('고등학교', '고')} {activityRecord.student.schoolGrade}학년)</div></AppleTg></TableCell>
+                <TableCell align="center"><AppleTg component="div" sx={{fontSize: '0.9rem'}}><div>{activityRecord.student.name}</div><div>({activityRecord.student.schoolName.replace('초등학교', '초').replace('중학교', '중').replace('고등학교', '고')} {activityRecord.student.schoolGrade}학년)</div></AppleTg></TableCell>
                 <TableCell align="center">
                   <ActivityRecordButton 
                     value={activityRecord.attendance} 
@@ -271,7 +271,7 @@ type ActivityRecordButtonProps = {
   disabledBgColor?: string;
   fontColor?: string;
 }
-const ActivityRecordButton = ({ value, buttonTextOn, buttonTextOff, onClick, mainBgColor='primary', disabledBgColor='grey.500', fontColor='white' }: ActivityRecordButtonProps) => {
+const ActivityRecordButton = ({ value, buttonTextOn, buttonTextOff, onClick, mainBgColor='white', disabledBgColor='grey.500', fontColor='black' }: ActivityRecordButtonProps) => {
   return (
     <Button 
       variant="contained" 

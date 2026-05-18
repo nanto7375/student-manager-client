@@ -1,4 +1,4 @@
-import { ToggleButtonGroup, ToggleButton, IconButton } from "@mui/material";
+import { ToggleButtonGroup, ToggleButton, IconButton, TextField } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { FlexBox } from "~/components/styled-elements";
 import { InputXButton } from "~/components/input-x-button";
@@ -39,17 +39,23 @@ type Props = {
 const toggleValue = (current: number | null | undefined, next: number) =>
   current === next ? null : next;
 
-// --- Component ---
+// --- Styles ---
 
-const INPUT_STYLE = {
-  padding: '0.5rem',
-  paddingRight: '2rem',
-  borderRadius: '0.25rem',
-  border: '1px solid rgba(0, 0, 0, 0.12)',
-  width: '12.5rem',
-  height: '3rem',
-  boxSizing: 'border-box' as const,
+const TOGGLE_GROUP_SX = {
+  '& .MuiToggleButton-root:hover': { backgroundColor: 'rgba(3, 102, 53, 0.04)' },
+  '& .Mui-selected': { backgroundColor: 'rgba(3, 102, 53, 0.2) !important' },
 } as const;
+
+const TEXT_FIELD_SX = {
+  width: '12.5rem',
+  '& .MuiOutlinedInput-root': {
+    height: '3rem !important',
+    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#036635' },
+    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0, 0, 0, 0.12)' },
+  },
+} as const;
+
+// --- Component ---
 
 export const StudentSearchFilter = ({
   inputName,
@@ -66,7 +72,7 @@ export const StudentSearchFilter = ({
 
   return (
     <FlexBox gap={1} alignItems="center">
-      <ToggleButtonGroup value={dayOfWeek}>
+      <ToggleButtonGroup value={dayOfWeek} sx={TOGGLE_GROUP_SX}>
         {DAY_OF_WEEKS.map(({ title, value }) => (
           <ToggleButton key={value} value={value} onClick={() => onDayOfWeekChange(toggleValue(dayOfWeek, value))}>
             {title}
@@ -74,7 +80,7 @@ export const StudentSearchFilter = ({
         ))}
       </ToggleButtonGroup>
 
-      <ToggleButtonGroup value={schoolLevel}>
+      <ToggleButtonGroup value={schoolLevel} sx={TOGGLE_GROUP_SX}>
         {SCHOOL_LEVELS.map(({ title, value }) => (
           <ToggleButton key={value} value={value} onClick={() => onSchoolLevelChange(toggleValue(schoolLevel, value))}>
             {title}
@@ -83,12 +89,12 @@ export const StudentSearchFilter = ({
       </ToggleButtonGroup>
 
       <FlexBox sx={{ position: 'relative' }}>
-        <input
-          type="text"
+        <TextField
+          size="small"
           placeholder="이름으로 검색"
           value={inputName}
           onChange={(e) => onInputNameChange(e.target.value)}
-          style={INPUT_STYLE}
+          sx={TEXT_FIELD_SX}
         />
         {inputName && <InputXButton onClick={onClearName} />}
       </FlexBox>
