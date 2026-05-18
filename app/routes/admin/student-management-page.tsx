@@ -308,7 +308,7 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
       </FlexBox>
 
       {/* Edit/Register Drawer */}
-      <Drawer anchor="right" open={drawerOpen} onClose={() => {}}>
+      <Drawer anchor="right" open={drawerOpen} onClose={() => {}} disableEnforceFocus>
         <FlexBox flexDirection="column" alignItems="center" gap={2} padding="2rem" width="25rem">
           <FlexBox justifyContent="space-between" alignItems="flex-start" fullWidth sx={{ mb: 1 }}>
             <FlexBox flexDirection="column">
@@ -318,7 +318,7 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
                   <AppleTg sx={{ fontSize: '0.85rem', color: '#666' }}>
                     {formatSchedule(editData.schedule)}
                   </AppleTg>
-                  <IconButton size="small" onClick={() => openScheduleDialog(editData)}>
+                  <IconButton size="small" onClick={(e) => { (e.currentTarget as HTMLElement).blur(); openScheduleDialog(editData); }}>
                     <EditIcon style={{ fontSize: '1rem' }} htmlColor="#999" />
                   </IconButton>
                 </FlexBox>
@@ -348,7 +348,7 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
       </Drawer>
 
       {/* Schedule Change Dialog */}
-      <Dialog open={!!scheduleDialogStudent} onClose={closeScheduleDialog}>
+      <Dialog open={!!scheduleDialogStudent} onClose={closeScheduleDialog} disableRestoreFocus>
         <DialogTitle>스케줄 변경 - {scheduleDialogStudent?.name}</DialogTitle>
         <DialogContent>
           <FlexBox flexDirection="column" gap={1} padding="1rem 0 0 0">

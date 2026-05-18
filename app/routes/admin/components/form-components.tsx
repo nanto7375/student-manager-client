@@ -32,13 +32,16 @@ type FormSelectProps = {
 export const FormSelect = ({ value, onChange, items }: FormSelectProps) => {
   return (
     <FlexBox sx={{width: '20rem', gap: 1}}>
-      {items.map((item, index) => (
+      {items.map((item, index) => {
+        const rawValue = (value[index] === 0) ? 0 : value[index] || item.defaultValue || '';
+        const validValue = rawValue === '' || item.options.some(opt => String(opt.value) === String(rawValue)) ? rawValue : '';
+        return (
         <FormControl key={item.id} fullWidth sx={{minWidth: 0}}>
           <InputLabel id={item.id}>{item.placeholder}</InputLabel>
           <Select 
             labelId={item.id} 
             label={item.placeholder} 
-            value={(value[index] === 0) ? 0 : value[index] || item.defaultValue || ''} 
+            value={validValue} 
             onChange={(e: SelectChangeEvent) => onChange(e, item.id)} 
             sx={{
               width: '100%',
@@ -57,7 +60,7 @@ export const FormSelect = ({ value, onChange, items }: FormSelectProps) => {
             ))}
           </Select>
         </FormControl>
-      ))}
+      )})}
     </FlexBox>
   )
 };
