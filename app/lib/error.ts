@@ -1,9 +1,3 @@
-export const UNSTABLE_NETWORK_ERROR_CODE = 1000;
-export const FETCH_JSON_ERROR_CODE = 1001;
-export const TOKEN_EXPIRED_ERROR_CODE = 4011;
-export const UNAUTHORIZED_ERRROR_CODE = 4012;
-export const TOKEN_NOT_FOUND_ERROR_CODE = 4013;
-
 declare global {
   interface Error {
     code?: number;

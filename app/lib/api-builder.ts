@@ -1,7 +1,8 @@
-import { FETCH_JSON_ERROR_CODE, UNSTABLE_NETWORK_ERROR_CODE, hasErrorMessage } from '~/lib/error';
+import { hasErrorMessage } from '~/lib/error';
 import { RefreshProcessor } from './pending-request'
 import { BASE_URL } from '~/constants';
 import { tokenManager } from './token-manger';
+import { globalErrorHandler } from '~/providers/error-handler-provider';
 
 type BuildApiParams = {
   path: string;
@@ -49,12 +50,11 @@ export const buildApi = <T = unknown>({ path, method, credentials }: BuildApiPar
         path,
         method,
         status: 400,
-        code: UNSTABLE_NETWORK_ERROR_CODE,
         message: 'fetch error: ' + (hasErrorMessage(error) ? error.message : JSON.stringify(error)),
       };
     }
 
-    let data: { code: number; message: T };
+    let data: { message: T };
     try {
       data = await response.json();
     } catch (error) {
@@ -62,7 +62,6 @@ export const buildApi = <T = unknown>({ path, method, credentials }: BuildApiPar
         path,
         method,
         status: 400,
-        code: FETCH_JSON_ERROR_CODE,
         message: 'response json error: ' + (hasErrorMessage(error) ? error.message : JSON.stringify(error)),
       };
     }
@@ -71,7 +70,10 @@ export const buildApi = <T = unknown>({ path, method, credentials }: BuildApiPar
       if (data.message === 'token-expired') {
         return processRequestWithRefresh(() => api({ params, query, body, headers })) as Promise<T>;
       }
-      throw { path, method, status: response.status, message: data.message, code: data.code };
+      if (data.message === 'level-too-low') {
+        globalErrorHandler({ message: '재로그인 후 다시 시도해주세요.' });
+      }
+      throw { path, method, status: response.status, message: data.message };
     }
 
     return data.message;

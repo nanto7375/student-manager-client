@@ -7,7 +7,6 @@ import { Button, Checkbox, TextField } from "@mui/material";
 import { ROUTES } from "~/constants";
 import { LEO_TITLE } from "~/constants";
 import { convertKoreanToEnglish, emailRegex, removeSpace } from "~/lib/utils/string.util";
-import { UNAUTHORIZED_ERRROR_CODE } from "~/lib/error";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import { auth } from "~/lib/auth";
 
@@ -15,9 +14,13 @@ const SIGNIN_INPUT_FIELD_WIDTH = '18rem';
 const SAVED_EMAIL_KEY = 'saved-email';
 const SIGNIN_ERROR_CASES = {
   authenticationFailed: {
-    code: UNAUTHORIZED_ERRROR_CODE,
-    message: '아이디 또는 비밀번호가 올바르지 않습니다.',
+    message: 'too-many-failed',
+    messageForShow: '아이디 또는 비밀번호가 올바르지 않습니다.',
   },
+  deletedAccount: {
+    message: 'deleted-account',
+    messageForShow: '삭제된 계정입니다. 관리자에게 문의하세요.',
+  }
 };
 
 const validateEmail = (value: string) => emailRegex.test(value);
@@ -75,8 +78,10 @@ export default function Signin() {
       await auth.signin(email, password);
       navigate(redirect || ROUTES.HOME);
     } catch (error: any) {
-      if (error.code === SIGNIN_ERROR_CASES.authenticationFailed.code) {
-        setInputError({ hasError: true, message: SIGNIN_ERROR_CASES.authenticationFailed.message });
+      if (error.message === SIGNIN_ERROR_CASES.authenticationFailed.message) {
+        setInputError({ hasError: true, message: SIGNIN_ERROR_CASES.authenticationFailed.messageForShow });
+      } else if (error.message === SIGNIN_ERROR_CASES.deletedAccount.message) {
+        setInputError({ hasError: true, message: SIGNIN_ERROR_CASES.deletedAccount.messageForShow });
       }
     }
   }, [email, password, isSaveEmail, redirect]);
