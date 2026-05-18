@@ -1,4 +1,5 @@
 import React from "react";
+import { useSearchParams } from "react-router";
 import { useGlobalToast } from "~/providers/toast-provider";
 import { StudentRegistrationForm } from "./student-registration-form";
 import { FlexContainer, FlexBox } from "~/components/styled-elements";
@@ -27,6 +28,8 @@ type Student = {
   scheduleId: number;
   schedule?: { id: number; dayOfWeek: number; startTime: string; endTime: string };
   scheduleReserved?: { id: number; dayOfWeek: number; startTime: string; endTime: string };
+  createdAt: Date;
+  deletedAt: Date;
 };
 
 type ScheduleForm = {
@@ -43,7 +46,7 @@ export const studentListQueryKey = () => ['student-list'] as const;
 
 // --- Constants ---
 
-const STUDENT_TABLE_COLUMNS = ['이름', '학교', '학년', '연락처', '부모님 연락처'] as const;
+const STUDENT_TABLE_COLUMNS = ['#', '이름', '학교', '학년', '연락처', '부모님 연락처'] as const;
 const ROWS_PER_PAGE_OPTIONS = [10, 20, 50] as const;
 
 const defaultScheduleForm = (): ScheduleForm => ({
@@ -69,18 +72,38 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose }: PagePro
   const queryClient = useQueryClient();
   const { scheduleList } = useScheduleList();
 
-  // Search & Pagination
+  // Search & Pagination (querystring 기반)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchName = searchParams.get('name') || '';
+  const searchSchoolLevel = searchParams.get('schoolLevel') ? Number(searchParams.get('schoolLevel')) : null;
+  const searchDayOfWeek = searchParams.has('dayOfWeek') ? Number(searchParams.get('dayOfWeek')) : null;
+
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(20);
-  const [inputName, setInputName] = React.useState('');
-  const [searchName, setSearchName] = React.useState('');
-  const [searchSchoolLevel, setSearchSchoolLevel] = React.useState<number | null>(null);
-  const [searchDayOfWeek, setSearchDayOfWeek] = React.useState<number | null>(null);
+  const [inputName, setInputName] = React.useState(searchName);
 
   React.useEffect(() => {
-    const timer = setTimeout(() => { setSearchName(inputName); setPage(0); }, 700);
+    const timer = setTimeout(() => {
+      setSearchParams(prev => {
+        const params = new URLSearchParams(prev);
+        inputName ? params.set('name', inputName) : params.delete('name');
+        return params;
+      }, { replace: true });
+      setPage(0);
+    }, 700);
     return () => clearTimeout(timer);
   }, [inputName]);
+
+  const handleClearName = () => { setInputName(''); setSearchParams(prev => { const p = new URLSearchParams(prev); p.delete('name'); return p; }, { replace: true }); setPage(0); };
+  const handleDayOfWeekChange = (v: number | null) => {
+    setSearchParams(prev => { const p = new URLSearchParams(prev); v !== null ? p.set('dayOfWeek', String(v)) : p.delete('dayOfWeek'); return p; }, { replace: true });
+    setPage(0);
+  };
+  const handleSchoolLevelChange = (v: number | null) => {
+    setSearchParams(prev => { const p = new URLSearchParams(prev); v !== null ? p.set('schoolLevel', String(v)) : p.delete('schoolLevel'); return p; }, { replace: true });
+    setPage(0);
+  };
+  const handleRowsPerPageChange = (e: any) => { setRowsPerPage(Number(e.target.value)); setPage(0); };
 
   // Data
   const { data: studentListData, isLoading } = useQuery({
@@ -144,17 +167,10 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose }: PagePro
     }
   };
 
-  // Search handlers
-  const resetPage = () => setPage(0);
-  const handleClearName = () => { setInputName(''); setSearchName(''); resetPage(); };
-  const handleDayOfWeekChange = (v: number | null) => { setSearchDayOfWeek(v); resetPage(); };
-  const handleSchoolLevelChange = (v: number | null) => { setSearchSchoolLevel(v); resetPage(); };
-  const handleRowsPerPageChange = (e: any) => { setRowsPerPage(Number(e.target.value)); resetPage(); };
-
   // Render
   return (
     <FlexContainer>
-      <FlexBox flexDirection="column" gap={2} fullWidth>
+      <FlexBox flexDirection="column" gap={1} fullWidth>
         {/* Search Filters */}
         <StudentSearchFilter
           inputName={inputName}
@@ -165,8 +181,17 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose }: PagePro
           schoolLevel={searchSchoolLevel}
           onSchoolLevelChange={handleSchoolLevelChange}
         >
-          <FlexBox sx={{ marginLeft: 'auto' }}>
-            <Select size="small" value={rowsPerPage} onChange={handleRowsPerPageChange} sx={{ '& .MuiOutlinedInput-notchedOutline legend': { display: 'none' } }}>
+          <FlexBox sx={{ marginLeft: 'auto' }} alignItems="center">
+            <TablePagination
+              component="div"
+              count={totalCount}
+              page={page}
+              onPageChange={(_, newPage) => setPage(newPage)}
+              rowsPerPage={rowsPerPage}
+              rowsPerPageOptions={[]}
+              onRowsPerPageChange={() => {}}
+            />
+            <Select size="small" value={rowsPerPage} onChange={handleRowsPerPageChange} sx={{ minWidth: '7rem', textAlign: 'center', '& .MuiSelect-select': { py: '0.4rem' }, '& .MuiOutlinedInput-notchedOutline': { top: 0, legend: { display: 'none' } } }}>
               {ROWS_PER_PAGE_OPTIONS.map(n => <MenuItem key={n} value={n}>{n}개</MenuItem>)}
             </Select>
           </FlexBox>
@@ -181,19 +206,25 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose }: PagePro
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    {STUDENT_TABLE_COLUMNS.map(col => <TableCell key={col}>{col}</TableCell>)}
-                    <TableCell align="center">스케줄</TableCell>
-                    <TableCell align="center">편집</TableCell>
+                    <TableCell align="center" width="5%">#</TableCell>
+                    <TableCell align="center" width="10%">이름</TableCell>
+                    <TableCell align="center" width="12%">학교</TableCell>
+                    <TableCell align="center" width="8%">학년</TableCell>
+                    <TableCell align="center" width="15%">연락처</TableCell>
+                    <TableCell align="center" width="15%">부모님 연락처</TableCell>
+                    <TableCell align="center" width="25%">스케줄</TableCell>
+                    <TableCell align="center" width="10%">편집</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {studentList.map((student) => (
+                  {studentList.map((student, index) => (
                     <TableRow key={student.id} sx={{ height: '4rem' }}>
-                      <TableCell>{student.name}</TableCell>
-                      <TableCell>{student.schoolName}</TableCell>
-                      <TableCell>{student.schoolGrade}</TableCell>
-                      <TableCell>{student.phone}</TableCell>
-                      <TableCell>{student.parentPhone}</TableCell>
+                      <TableCell align="center">{index + 1}</TableCell>
+                      <TableCell align="center">{student.name}</TableCell>
+                      <TableCell align="center">{student.schoolName}</TableCell>
+                      <TableCell align="center">{student.schoolGrade}</TableCell>
+                      <TableCell align="center">{student.phone}</TableCell>
+                      <TableCell align="center">{student.parentPhone}</TableCell>
                       <TableCell align="center">
                         <FlexBox alignItems="center" justifyContent="center" gap={0.5}>
                           <FlexBox flexDirection="column">
@@ -210,7 +241,7 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose }: PagePro
                         </FlexBox>
                       </TableCell>
                       <TableCell align="center">
-                        <IconButton size="small" onClick={() => openEditDrawer(student)}>
+                        <IconButton onClick={() => openEditDrawer(student)} sx={{ width: '4rem', borderRadius: '0.25rem' }}>
                           <EditIcon fontSize="small" />
                         </IconButton>
                       </TableCell>
@@ -219,28 +250,15 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose }: PagePro
                 </TableBody>
               </Table>
             </TableContainer>
-
-            {/* Pagination + Register */}
-            <FlexBox alignItems="center" justifyContent="center" fullWidth sx={{ mt: -1 }}>
-              <TablePagination
-                component="div"
-                count={totalCount}
-                page={page}
-                onPageChange={(_, newPage) => setPage(newPage)}
-                rowsPerPage={rowsPerPage}
-                rowsPerPageOptions={[]}
-                onRowsPerPageChange={() => {}}
-              />
-            </FlexBox>
           </>
         )}
       </FlexBox>
 
       {/* Edit/Register Drawer */}
       <Drawer anchor="right" open={drawerOpen} onClose={() => {}}>
-        <FlexBox flexDirection="column" gap={2} padding="2rem" width="400px">
-          <FlexBox justifyContent="space-between" alignItems="center" fullWidth>
-            <AppleTg>{editData ? '학생 수정' : '학생 등록'}</AppleTg>
+        <FlexBox flexDirection="column" alignItems="center" gap={2} padding="2rem" width="25rem">
+          <FlexBox justifyContent="space-between" alignItems="center" fullWidth sx={{ mb: 2 }}>
+            <AppleTg sx={{ fontSize: '1.2rem', fontWeight: 600 }}>{editData ? editData.name : '학생 등록'}</AppleTg>
             <IconButton onClick={closeDrawer}>
               <CloseIcon />
             </IconButton>

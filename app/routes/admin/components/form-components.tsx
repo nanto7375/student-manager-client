@@ -2,18 +2,18 @@ import { FormControl, InputLabel, MenuItem, Select, TextField, type SelectChange
 import { FlexBox } from "~/components/styled-elements";
 import { AppleTg } from "~/components/typography";
 
-export const FormInput = ({ id, label, value, onChange }: { id: string, label: string, value: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) => {
+export const FormInput = ({ id, label, value, onChange, type, error }: { id: string, label: string, value: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, type?: string, error?: boolean }) => {
   return (
-    <FlexBox sx={{width: '20rem'}}><TextField label={label} id={id} value={value} onChange={onChange} fullWidth /></FlexBox>
+    <FlexBox sx={{width: '20rem'}}><TextField label={label} id={id} value={value} onChange={onChange} type={type} error={error} fullWidth /></FlexBox>
   )
 };
 
 export const FormPhone = ({ id, label, value, onChange }: { id: string, label: string, value: string[], onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) => {
   return (
     <FlexBox sx={{width: '20rem', gap: 1, justifyContent: 'center'}}>
-      <TextField label={label} type="text" id={id + '/0'} value={value[0]} onChange={onChange} />
-      <TextField type="text" id={id + '/1'} value={value[1]} onChange={onChange} />
-      <TextField type="text" id={id + '/2'} value={value[2]} onChange={onChange} />
+      <TextField label={label} type="text" id={id + '/0'} value={value[0]} disabled inputProps={{ style: { textAlign: 'center' } }} />
+      <TextField type="text" id={id + '/1'} value={value[1]} onChange={onChange} inputProps={{ style: { textAlign: 'center' } }} />
+      <TextField type="text" id={id + '/2'} value={value[2]} onChange={onChange} inputProps={{ style: { textAlign: 'center' } }} />
     </FlexBox>
   )
 };

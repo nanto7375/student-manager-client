@@ -42,9 +42,9 @@ const toggleValue = (current: number | null | undefined, next: number) =>
 const INPUT_STYLE = {
   padding: '0.5rem',
   paddingRight: '2rem',
-  borderRadius: '4px',
+  borderRadius: '0.25rem',
   border: '1px solid #ccc',
-  width: '200px',
+  width: '12.5rem',
 } as const;
 
 export const StudentSearchFilter = ({

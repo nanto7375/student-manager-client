@@ -53,12 +53,12 @@ const MemoContainer = ({ title, notes, type, createNote }: { title: string; note
       flexDirection="column"
       height="50%"
       fullWidth
-      sx={{ borderRadius: '8px', border: '1px solid #ddd', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', overflow: 'hidden', flex: 1, minHeight: 0 }}
+      sx={{ borderRadius: '0.5rem', border: '1px solid #ddd', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', overflow: 'hidden', flex: 1, minHeight: 0 }}
     >
       <FlexBox padding="0.5rem 1rem" sx={{ borderBottom: '1px solid #eee' }}>
-        <AppleTg sx={{ fontWeight: 600 }}>{title}</AppleTg>
+        <AppleTg sx={{ fontWeight: 500, color: '#555' }}>{title}</AppleTg>
       </FlexBox>
-      <FlexBox flexDirection="column" sx={{ overflowY: 'auto', flex: 1, py: 0.5, '&::-webkit-scrollbar': { width: '6px' }, '&::-webkit-scrollbar-thumb': { backgroundColor: '#ccc', borderRadius: '3px' } }}>
+      <FlexBox flexDirection="column" sx={{ overflowY: 'auto', flex: 1, py: 0.5, '&::-webkit-scrollbar': { width: '0.375rem' }, '&::-webkit-scrollbar-thumb': { backgroundColor: '#ccc', borderRadius: '0.1875rem' } }}>
         {notes.map(note => (
           <FlexBox
             key={note.id}

@@ -26,16 +26,17 @@ export default function Admin() {
 
   return (
     <FlexContainer flexDirection="column" fullHeight fullWidth>
-      <FlexBox justifyContent="space-between" alignItems="center" fullWidth>
+      <FlexBox justifyContent="space-between" alignItems="center" fullWidth sx={{ mb: 1.5 }}>
         <AppTabs
           value={selectedTab}
           onChange={(_, newValue) => { setSearchParams({ tab: newValue }); setRegisterOpen(false); }}
+          sx={{ mb: 0 }}
         >
           <Tab label="학생 관리" value="student" />
-          <Tab label="관리자 관리" value="admin" />
+          <Tab label="선생님 관리" value="admin" />
         </AppTabs>
-        <Button variant="contained" size="small" onClick={handleRegisterClick} sx={{ py: 1.2, minWidth: '7rem' }}>
-          <AppleTg>{selectedTab === 'student' ? '학생 등록' : '관리자 등록'}</AppleTg>
+        <Button variant="contained" size="small" onClick={handleRegisterClick} sx={{ py: 0.7, minWidth: '7rem' }}>
+          <AppleTg>{selectedTab === 'student' ? '학생 등록' : '선생님 등록'}</AppleTg>
         </Button>
       </FlexBox>
 

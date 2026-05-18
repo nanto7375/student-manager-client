@@ -1,11 +1,11 @@
 import React from "react";
 import { FlexContainer, FlexBox } from "~/components/styled-elements";
-import { AdminRegistrationForm, type AdminFormData } from "./admin-registration-form";
+import { AdminRegistrationForm, AdminRoleType, type AdminFormData } from "./admin-registration-form";
 import { useGlobalToast } from "~/providers/toast-provider";
 import { buildApi } from "~/lib/api-builder";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { AppleTg } from "~/components/typography";
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Drawer, IconButton } from "@mui/material";
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Drawer, IconButton, TablePagination, Select, MenuItem } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import CloseIcon from "@mui/icons-material/Close";
 
@@ -32,11 +32,12 @@ const toAdminFormData = (admin: Admin): AdminFormData => ({
   email: admin.email,
   phone: admin.phone ? admin.phone.split('-') : ['010', '', ''],
   password: '',
+  role: admin.role as AdminRoleType,
 });
 
 // --- Constants ---
 
-const ADMIN_TABLE_COLUMNS = ['이름', '이메일', '연락처', '역할'] as const;
+const ROWS_PER_PAGE_OPTIONS = [10, 20, 50] as const;
 
 // --- Component ---
 
@@ -48,12 +49,18 @@ type PageProps = {
 export const AdminManagementPage = ({ registerOpen, onRegisterClose }: PageProps) => {
   const { error: showError, success: showSuccess } = useGlobalToast();
 
+  // Pagination
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(20);
+
   // Data
   const { data: adminListData, isLoading } = useQuery({
-    queryKey: adminListQueryKey(),
-    queryFn: () => getAdminListApi(),
+    queryKey: [...adminListQueryKey(), page, rowsPerPage],
+    queryFn: () => getAdminListApi({ query: { page: page + 1, limit: rowsPerPage } }),
+    placeholderData: keepPreviousData,
   });
   const adminList = adminListData?.list ?? [];
+  const totalCount = adminListData?.count ?? 0;
 
   // Drawer state
   const [drawerOpen, setDrawerOpen] = React.useState(false);
@@ -69,42 +76,62 @@ export const AdminManagementPage = ({ registerOpen, onRegisterClose }: PageProps
   // Render
   return (
     <FlexContainer>
-      <FlexBox flexDirection="column" gap={2} fullWidth>
-        {isLoading ? (
-          <AppleTg>로딩 중...</AppleTg>
-        ) : (
-          <TableContainer component={Paper}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  {ADMIN_TABLE_COLUMNS.map((col) => <TableCell key={col}>{col}</TableCell>)}
-                  <TableCell align="center">편집</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {adminList.map((admin) => (
-                  <TableRow key={admin.id}>
-                    <TableCell>{admin.name}</TableCell>
-                    <TableCell>{admin.email}</TableCell>
-                    <TableCell>{admin.phone}</TableCell>
-                    <TableCell>{admin.role}</TableCell>
-                    <TableCell align="center">
-                      <IconButton size="small" onClick={() => openEditDrawer(admin)}>
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </TableCell>
+      <FlexBox flexDirection="column" gap={1} fullWidth>
+        {/* RowsPerPage + Pagination */}
+        <FlexBox justifyContent="flex-end" alignItems="center" fullWidth>
+          <TablePagination
+            component="div"
+            count={totalCount}
+            page={page}
+            onPageChange={(_, newPage) => setPage(newPage)}
+            rowsPerPage={rowsPerPage}
+            rowsPerPageOptions={[]}
+            onRowsPerPageChange={() => {}}
+          />
+          <Select size="small" value={rowsPerPage} onChange={(e) => { setRowsPerPage(Number(e.target.value)); setPage(0); }} sx={{ minWidth: '7rem', textAlign: 'center', '& .MuiSelect-select': { py: '0.4rem' }, '& .MuiOutlinedInput-notchedOutline': { top: 0, legend: { display: 'none' } } }}>
+            {ROWS_PER_PAGE_OPTIONS.map(n => <MenuItem key={n} value={n}>{n}개</MenuItem>)}
+          </Select>
+        </FlexBox>
+
+        {/* Table */}
+          <>
+            <TableContainer component={Paper}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell align="center" width="5%">#</TableCell>
+                    <TableCell align="center" width="15%">이름</TableCell>
+                    <TableCell align="center" width="30%">이메일</TableCell>
+                    <TableCell align="center" width="20%">연락처</TableCell>
+                    <TableCell align="center" width="15%">권한</TableCell>
+                    <TableCell align="center" width="15%">편집</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
+                </TableHead>
+                <TableBody>
+                  {adminList.map((admin, index) => (
+                    <TableRow key={admin.id} sx={{ height: '4rem' }}>
+                      <TableCell align="center">{page * rowsPerPage + index + 1}</TableCell>
+                      <TableCell align="center">{admin.name}</TableCell>
+                      <TableCell align="center">{admin.email}</TableCell>
+                      <TableCell align="center">{admin.phone}</TableCell>
+                      <TableCell align="center">{admin.role}</TableCell>
+                      <TableCell align="center">
+                        <IconButton onClick={() => openEditDrawer(admin)} sx={{ width: '4rem', borderRadius: '0.25rem' }}>
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </>
       </FlexBox>
 
       <Drawer anchor="right" open={drawerOpen} onClose={() => {}}>
-        <FlexBox flexDirection="column" gap={2} padding="2rem" width="400px">
-          <FlexBox justifyContent="space-between" alignItems="center" fullWidth>
-            <AppleTg>{editData ? '관리자 수정' : '관리자 등록'}</AppleTg>
+        <FlexBox flexDirection="column" gap={2} padding="2rem" width="25rem">
+          <FlexBox justifyContent="space-between" alignItems="center" fullWidth sx={{ mb: 2 }}>
+            <AppleTg sx={{ fontSize: '1.2rem', fontWeight: 600 }}>{editData ? editData.name : '선생님 등록'}</AppleTg>
             <IconButton onClick={closeDrawer}>
               <CloseIcon />
             </IconButton>

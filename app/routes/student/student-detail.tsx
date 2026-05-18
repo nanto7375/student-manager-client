@@ -119,7 +119,7 @@ export default function StudentDetail() {
                 zIndex: 10,
                 backgroundColor: 'white',
                 border: '1px solid #e0e0e0',
-                borderRadius: '8px',
+                borderRadius: '0.5rem',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                 padding: '0.75rem 1.25rem',
                 color: '#555',

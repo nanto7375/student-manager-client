@@ -80,35 +80,41 @@ export default function SideBar() {
       }}
     >
       {/* 로고 + 메뉴 */}
-      <FlexBox alignItems="center" gap={2}>
-        <Link to={ROUTES.HOME} style={{cursor: 'pointer', textDecoration: 'none'}}>
+      <FlexBox alignItems="center" gap={0} fullHeight>
+        <Link to={ROUTES.HOME} style={{cursor: 'pointer', textDecoration: 'none', height: '100%', display: 'flex', alignItems: 'center', paddingRight: '1.5rem'}}>
           <AppleTg sx={{fontSize: '0.9rem', color: 'primary.main', fontWeight: '600'}}>{LEO_TITLE.kor}</AppleTg>
         </Link>
         {MENU_PAGE_LIST.map((menu) => (
-          <Link to={menu.path} key={menu.name} style={{textDecoration: 'none'}}>
-            <AppleTg
-              variant={selectedMenu === menu.name ? 'appleSDGothicNeoB' : 'appleSDGothicNeoM'}
-              sx={{fontSize: '0.9rem', color: selectedMenu === menu.name ? 'black' : 'gray', ...buttonHoverEffect, padding: '0.4rem 0.6rem'}}
-            >
-              {menu.label}
-            </AppleTg>
+          <Link to={menu.path} key={menu.name} style={{textDecoration: 'none', height: '100%'}}>
+            <FlexBox fullHeight alignItems="center" sx={{padding: '0 1rem', ...buttonHoverEffect}}>
+              <AppleTg
+                variant={selectedMenu === menu.name ? 'appleSDGothicNeoB' : 'appleSDGothicNeoM'}
+                sx={{fontSize: '0.9rem', color: selectedMenu === menu.name ? 'black' : 'gray'}}
+              >
+                {menu.label}
+              </AppleTg>
+            </FlexBox>
           </Link>
         ))}
       </FlexBox>
 
       {/* 유저 정보 + 관리자 + 로그아웃 */}
-      <FlexBox alignItems="center" gap={1.5}>
-        <AppleTg color="secondary.main" sx={{fontSize: '0.85rem', fontWeight: '600'}}>
-          {user?.email.split("@")[0]}
-        </AppleTg>
+      <FlexBox alignItems="center" gap={0} fullHeight>
+        <FlexBox fullHeight alignItems="center" sx={{ padding: '0 1rem' }}>
+          <AppleTg color="secondary.main" sx={{fontSize: '0.85rem', fontWeight: '600'}}>
+            {user?.email.split("@")[0]}
+          </AppleTg>
+        </FlexBox>
         {isAdmin && (
-          <Link to={ADMIN_PAGE.path} style={{textDecoration: 'none'}}>
-            <AppleTg sx={{fontSize: '0.85rem', color: selectedMenu === ADMIN_PAGE.name ? 'black' : 'gray', ...buttonHoverEffect, padding: '0.3rem 0.5rem'}}>
-              {ADMIN_PAGE.label}
-            </AppleTg>
+          <Link to={ADMIN_PAGE.path} style={{textDecoration: 'none', height: '100%'}}>
+            <FlexBox fullHeight alignItems="center" sx={{padding: '0 1rem', ...buttonHoverEffect}}>
+              <AppleTg sx={{fontSize: '0.85rem', color: selectedMenu === ADMIN_PAGE.name ? 'black' : 'gray'}}>
+                {ADMIN_PAGE.label}
+              </AppleTg>
+            </FlexBox>
           </Link>
         )}
-        <FlexBox button sx={{...buttonHoverEffect, padding: '0.3rem 0.5rem'}} onClick={handleSignoutClick}>
+        <FlexBox fullHeight alignItems="center" button sx={{padding: '0 1rem', ...buttonHoverEffect}} onClick={handleSignoutClick}>
           <AppleTg sx={{fontSize: '0.85rem', color: 'gray'}}>로그아웃</AppleTg>
         </FlexBox>
       </FlexBox>

@@ -41,8 +41,7 @@ export default function App() {
   }, [navigate]);
 
   React.useEffect(() => {
-    setAdminInfo();
-    setLoaded(true);
+    setAdminInfo().then(() => setLoaded(true));
   }, [setAdminInfo]);
 
   return (
@@ -53,7 +52,7 @@ export default function App() {
         {(pathname !== ROUTES.SIGNIN && loaded) && <SideBar />}
 
         {/* 콘텐츠 영역 */}
-        <FlexBox flexDirection="column" style={{flex: 1, overflow: 'auto', margin: '0.5rem 0', padding: '1rem 2rem', boxShadow: '0 0 20px rgba(0,0,0,0.06)', borderRadius: '8px'}}>
+        <FlexBox flexDirection="column" style={{flex: 1, overflow: 'auto', margin: '0.5rem 0', padding: '1rem 2rem', boxShadow: '0 0 20px rgba(0,0,0,0.06)', borderRadius: '0.5rem'}}>
           <Outlet />
         </FlexBox>
       </FlexBox>

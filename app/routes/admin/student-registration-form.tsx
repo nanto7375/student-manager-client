@@ -1,14 +1,16 @@
 import React from "react";
+import dayjs from "dayjs";
 import { Button, type SelectChangeEvent } from "@mui/material";
+import { useQueryClient } from "@tanstack/react-query";
+
 import { useScheduleList } from "../schedule/page";
 import { FlexBox } from "~/components/styled-elements";
 import { FormInput, FormPhone, FormSelect } from "./components/form-components";
 import { formatTime12Hour, mapNumberToDayOfWeek } from "~/lib/utils/time.util";
 import { AppleTg } from "~/components/typography";
-import dayjs from "dayjs";
 import { buildApi } from "~/lib/api-builder";
-import { useQueryClient } from "@tanstack/react-query";
 import { studentListQueryKey } from "./student-management-page";
+import { useConfirmModal } from "~/hooks/use-confirm-modal";
 
 // --- Types ---
 
@@ -64,6 +66,7 @@ const NOW_YEAR = dayjs().year();
 
 const registerStudentApi = buildApi({ path: '/students', method: 'POST' });
 const updateStudentApi = buildApi({ path: '/students/:id', method: 'PATCH' });
+const deleteStudentApi = buildApi({ path: '/students/:id', method: 'DELETE' });
 
 // --- Component ---
 
@@ -79,6 +82,20 @@ export const StudentRegistrationForm = ({ showError, showSuccess, editData, onCo
   const isEditMode = !!editData?.id;
   const { scheduleList } = useScheduleList();
   const [form, setForm] = React.useState<StudentForm>(defaultStudentForm());
+  const { ConfirmModal: DeleteModal, openConfirmModal: openDeleteModal, closeConfirmModal: closeDeleteModal } = useConfirmModal();
+
+  const handleDelete = async () => {
+    if (!editData?.id) return;
+    try {
+      await deleteStudentApi({ params: { id: editData.id } });
+      showSuccess('학생이 삭제되었습니다.');
+      queryClient.invalidateQueries({ queryKey: studentListQueryKey() });
+      closeDeleteModal();
+      onComplete?.();
+    } catch {
+      showError('학생 삭제 중 오류가 발생했습니다.');
+    }
+  };
 
   React.useEffect(() => {
     if (editData) {
@@ -88,8 +105,8 @@ export const StudentRegistrationForm = ({ showError, showSuccess, editData, onCo
         schoolName: editData.schoolName || '',
         schoolLevel: editData.schoolLevel?.toString() || '1',
         schoolGrade: editData.schoolGrade?.toString(),
-        phone: editData.phone?.split('-') ?? ['010', '', ''],
-        parentPhone: editData.parentPhone?.split('-') ?? ['010', '', ''],
+        phone: editData.phone ? editData.phone.split('-') : ['010', '', ''],
+        parentPhone: editData.parentPhone ? editData.parentPhone.split('-') : ['010', '', ''],
         scheduleId: editData.scheduleId?.toString(),
         note: editData.note || '',
       });
@@ -192,12 +209,8 @@ export const StudentRegistrationForm = ({ showError, showSuccess, editData, onCo
   return (
     <FlexBox flexDirection="column" gap={1}>
       <FlexBox flexDirection="column" gap={1.25} fullWidth>
-        {/* 이름 (편집 시 읽기 전용) */}
-        {!isEditMode ? (
-          <FormInput id="name" label="이름" value={form.name} onChange={handleInputChange} />
-        ) : (
-          <AppleTg>{editData.name}</AppleTg>
-        )}
+        {/* 이름 (등록 시에만) */}
+        {!isEditMode && <FormInput id="name" label="이름" value={form.name} onChange={handleInputChange} />}
 
         {/* 수업 선택 (편집 시 읽기 전용) */}
         {!isEditMode ? (
@@ -251,11 +264,18 @@ export const StudentRegistrationForm = ({ showError, showSuccess, editData, onCo
         <FormPhone id="phone" label="학생 연락처" value={form.phone} onChange={handlePhoneChange} />
       </FlexBox>
 
-      <FlexBox>
-        <Button disabled={isSubmitDisabled} variant="contained" onClick={handleSubmit}>
+      <FlexBox flexDirection="column" alignItems="center" gap={0.75} sx={{ mt: 2 }}>
+        <Button disabled={isSubmitDisabled} variant="contained" onClick={handleSubmit} sx={{ width: '20rem', height: '2.8rem' }}>
           <AppleTg>{isEditMode ? '수정' : '등록'}</AppleTg>
         </Button>
+        {isEditMode && (
+          <Button variant="outlined" color="error" onClick={openDeleteModal} sx={{ width: '20rem', height: '2.8rem' }}>
+            <AppleTg>삭제</AppleTg>
+          </Button>
+        )}
       </FlexBox>
+
+      <DeleteModal onConfirm={handleDelete} bodyText="삭제하시겠습니까?" />
     </FlexBox>
   );
 };

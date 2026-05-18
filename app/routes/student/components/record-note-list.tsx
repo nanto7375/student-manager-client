@@ -115,7 +115,7 @@ export const RecordNoteList = ({ notes, deleteNote, createNote, updateNote, sele
       )}
 
       {/* 평가 목록 */}
-      <FlexBox ref={noteListRef} flexDirection='column' alignItems='flex-start' sx={{overflow: 'auto', mt: 1.5, '&::-webkit-scrollbar': { width: '6px' }, '&::-webkit-scrollbar-thumb': { backgroundColor: '#ccc', borderRadius: '3px' }}} gap={1}>
+      <FlexBox ref={noteListRef} flexDirection='column' alignItems='flex-start' sx={{overflow: 'auto', mt: 1.5, '&::-webkit-scrollbar': { width: '0.375rem' }, '&::-webkit-scrollbar-thumb': { backgroundColor: '#ccc', borderRadius: '0.1875rem' }}} gap={1}>
         {recordNotes.map((note) => (
           editingId === note.id ? (
             <NoteEditBox
@@ -158,7 +158,7 @@ export const AddNoteButton = ({ onClick, disabled = false }: AddNoteButtonProps)
       sx={{
         width: '100%',
         padding: '0.8rem',
-        borderRadius: '8px',
+        borderRadius: '0.5rem',
         border: '1px solid #ddd',
         color: '#666',
         boxShadow: '0 3px 6px rgba(0,0,0,0.08)',

@@ -76,6 +76,7 @@ const theme = createTheme({
     },
   },
   typography: {
+    fontFamily: 'AppleSDGothicNeo-M, "Noto Sans CJK KR-M", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif',
     appleSDGothicNeoEB,
     appleSDGothicNeoB,
     appleSDGothicNeoM,

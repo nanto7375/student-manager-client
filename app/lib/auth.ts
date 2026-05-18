@@ -1,23 +1,48 @@
 import { buildApi } from "./api-builder";
 import { tokenManager } from "./token-manger";
+import { hashPassword } from "./utils/crypto.util";
+
+export enum AdminRoleType {
+  SUPER_ADMIN = 'super_admin',
+  ADMIN = 'admin',
+  MANAGER = 'manager',
+  STAFF = 'staff',
+}
+
+export const getAdminRoleLevel = (role: AdminRoleType) => {
+  switch (role) {
+    case AdminRoleType.SUPER_ADMIN:
+      return 4;
+    case AdminRoleType.ADMIN:
+      return 3;
+    case AdminRoleType.MANAGER:
+      return 2;
+    case AdminRoleType.STAFF:
+      return 1;
+    default:
+      return 0;
+  }
+};
 
 export type Admin = {
   email: string;
   name: string;
-  role: string;
+  role: AdminRoleType;
   isActive: boolean;
 };
+
+type MyInfo = Admin & {level: number};
 
 const signinApi = buildApi<{ admin: Admin; accessToken: string }>({ path: '/auth/signin', method: 'POST', credentials: 'include' });
 const signoutApi = buildApi({ path: '/auth/signout', method: 'POST', credentials: 'include' });
 
 // TODO: provider로 처리해야 할지 고민
 class Auth {
-  private readonly MY_INFO_KEY = 'me';
-  private myInfo: Admin | null = null;
+  private myInfo: MyInfo | null = null;
 
   signin = async (email: string, password: string) => {
-    const result = await signinApi({ body: { email, password } });
+    const hashedPassword = await hashPassword(password);
+    const result = await signinApi({ body: { email, password: hashedPassword } });
     tokenManager.setAccessToken(result.accessToken);
     this.setMyInfo(result.admin);
   }
@@ -25,23 +50,18 @@ class Auth {
   signout = async () => {
     await signoutApi();
     tokenManager.clearAccessToken();
-    this.setMyInfo(null);
+    this.myInfo = null;
   }
 
   setMyInfo(admin: Admin | null) {
-    sessionStorage.setItem(this.MY_INFO_KEY, JSON.stringify(admin));
-    this.myInfo = admin;
+    this.myInfo = admin ? { ...admin, level: getAdminRoleLevel(admin.role) } : null;
   }
 
   getMyInfo() {
-    if (this.myInfo) return this.myInfo;
-    const admin = sessionStorage.getItem(this.MY_INFO_KEY);
-    this.myInfo = admin ? JSON.parse(admin) : null;
     return this.myInfo;
   }
 
   clearMyInfo() {
-    sessionStorage.removeItem(this.MY_INFO_KEY);
     this.myInfo = null;
   }
 }
