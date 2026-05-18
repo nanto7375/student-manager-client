@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 import EditIcon from "@mui/icons-material/Edit";
 import CloseIcon from "@mui/icons-material/Close";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { buildApi } from "~/lib/api-builder";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { StudentSearchFilter } from "../student/components/student-search-filter";
@@ -16,8 +17,22 @@ import { formatTime12Hour, mapNumberToDayOfWeek } from "~/lib/utils/time.util";
 import { FormSelect } from "./components/form-components";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import dayjs, { type Dayjs } from "dayjs";
+import { useConfirmModal } from "~/hooks/use-confirm-modal";
 
 // --- Types ---
+type Schedule = {
+  id: number;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+}
+
+
+type ScheduleReserved = {
+  id: number;
+  schedule: Schedule;
+  date: string; // YYYYMMDD
+}
 
 type Student = {
   id: string;
@@ -27,9 +42,9 @@ type Student = {
   phone: string;
   parentPhone: string;
   scheduleId: number;
-  schedule?: { id: number; dayOfWeek: number; startTime: string; endTime: string };
-  scheduleReserved?: { id: number; dayOfWeek: number; startTime: string; endTime: string };
-  createdAt: Date;
+  schedule?: Schedule;
+  scheduleReserved?: ScheduleReserved;
+  registeredAt: Date;
   deletedAt: Date;
 };
 
@@ -43,6 +58,7 @@ type ScheduleForm = {
 
 const getStudentListApi = buildApi<{ list: Student[]; count: number }>({ path: '/students', method: 'GET' });
 const changeScheduleApi = buildApi({ path: '/students/:studentId/schedules/:scheduleId', method: 'PATCH' }); // body: {dateForChange: string // YYYYMMDD}
+const cancelReservedScheduleApi = buildApi({ path: '/schedules/reserved/:reservedId', method: 'DELETE' });
 export const studentListQueryKey = () => ['student-list'] as const;
 
 // --- Constants ---
@@ -56,7 +72,7 @@ const defaultScheduleForm = (): ScheduleForm => ({
   dateForChange: dayjs(),
 });
 
-const formatSchedule = (schedule: Student['schedule']) => {
+const formatSchedule = (schedule: Schedule | undefined) => {
   if (!schedule) return null;
   return `${mapNumberToDayOfWeek(schedule.dayOfWeek)} ${formatTime12Hour(schedule.startTime)}-${formatTime12Hour(schedule.endTime)}`;
 };
@@ -81,40 +97,42 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
   const searchSchoolLevel = searchParams.get('schoolLevel') ? Number(searchParams.get('schoolLevel')) : null;
   const searchDayOfWeek = searchParams.has('dayOfWeek') ? Number(searchParams.get('dayOfWeek')) : null;
 
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(20);
+  const page = Number(searchParams.get('page')) || 0; // 0-based (MUI TablePagination 기준)
+  const rowsPerPage = Number(searchParams.get('limit')) || 20;
+  const sort = searchParams.get('sort') || 'registeredAt-asc';
   const [inputName, setInputName] = React.useState(searchName);
+
+  const setPage = (p: number) => setSearchParams(prev => { const params = new URLSearchParams(prev); p > 0 ? params.set('page', String(p)) : params.delete('page'); return params; }, { replace: true });
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setSearchParams(prev => {
         const params = new URLSearchParams(prev);
         inputName ? params.set('name', inputName) : params.delete('name');
+        params.delete('page');
         return params;
       }, { replace: true });
-      setPage(0);
     }, 700);
     return () => clearTimeout(timer);
   }, [inputName]);
 
-  const handleClearName = () => { setInputName(''); setSearchParams(prev => { const p = new URLSearchParams(prev); p.delete('name'); return p; }, { replace: true }); setPage(0); };
+  const handleClearName = () => { setInputName(''); setSearchParams(prev => { const p = new URLSearchParams(prev); p.delete('name'); p.delete('page'); return p; }, { replace: true }); };
   const handleDayOfWeekChange = (v: number | null) => {
-    setSearchParams(prev => { const p = new URLSearchParams(prev); v !== null ? p.set('dayOfWeek', String(v)) : p.delete('dayOfWeek'); return p; }, { replace: true });
-    setPage(0);
+    setSearchParams(prev => { const p = new URLSearchParams(prev); v !== null ? p.set('dayOfWeek', String(v)) : p.delete('dayOfWeek'); p.delete('page'); return p; }, { replace: true });
   };
   const handleSchoolLevelChange = (v: number | null) => {
-    setSearchParams(prev => { const p = new URLSearchParams(prev); v !== null ? p.set('schoolLevel', String(v)) : p.delete('schoolLevel'); return p; }, { replace: true });
-    setPage(0);
+    setSearchParams(prev => { const p = new URLSearchParams(prev); v !== null ? p.set('schoolLevel', String(v)) : p.delete('schoolLevel'); p.delete('page'); return p; }, { replace: true });
   };
-  const handleRowsPerPageChange = (e: any) => { setRowsPerPage(Number(e.target.value)); setPage(0); };
+  const handleRowsPerPageChange = (e: any) => { setSearchParams(prev => { const p = new URLSearchParams(prev); p.set('limit', e.target.value); p.delete('page'); return p; }, { replace: true }); };
 
   // Data
   const { data: studentListData, isLoading } = useQuery({
-    queryKey: [...studentListQueryKey(), page, rowsPerPage, searchName, searchSchoolLevel, searchDayOfWeek, showDeleted],
+    queryKey: [...studentListQueryKey(), page, rowsPerPage, searchName, searchSchoolLevel, searchDayOfWeek, showDeleted, sort],
     queryFn: () => getStudentListApi({
       query: {
         page: page + 1,
         limit: rowsPerPage,
+        sort,
         ...(searchName && { name: searchName }),
         ...(searchSchoolLevel && { schoolLevel: searchSchoolLevel }),
         ...(searchDayOfWeek !== null && { dayOfWeek: searchDayOfWeek }),
@@ -136,6 +154,21 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
 
   const openEditDrawer = (student: Student) => { setEditData(student); setDrawerOpen(true); };
   const closeDrawer = () => { setDrawerOpen(false); setEditData(null); onRegisterClose?.(); };
+
+  // Cancel reserved schedule
+  const { ConfirmModal: CancelScheduleModal, openConfirmModal: openCancelScheduleModal, closeConfirmModal: closeCancelScheduleModal } = useConfirmModal();
+  const handleCancelReservedSchedule = async () => {
+    if (!editData?.scheduleReserved) return;
+    try {
+      await cancelReservedScheduleApi({ params: { reservedId: editData.scheduleReserved.id } });
+      showSuccess('예약 스케줄이 취소되었습니다.');
+      queryClient.invalidateQueries({ queryKey: studentListQueryKey() });
+      closeCancelScheduleModal();
+      closeDrawer();
+    } catch {
+      showError('예약 스케줄 취소 중 오류가 발생했습니다.');
+    }
+  };
 
   // Schedule change dialog
   const [scheduleDialogStudent, setScheduleDialogStudent] = React.useState<Student | null>(null);
@@ -166,6 +199,7 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
       showSuccess(isFuture ? '스케줄 변경이 예약되었습니다.' : '스케줄이 변경되었습니다.');
       queryClient.invalidateQueries({ queryKey: studentListQueryKey() });
       closeScheduleDialog();
+      closeDrawer();
     } catch {
       showError('스케줄 변경 중 오류가 발생했습니다.');
     }
@@ -185,7 +219,7 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
           schoolLevel={searchSchoolLevel}
           onSchoolLevelChange={handleSchoolLevelChange}
         >
-          <FlexBox sx={{ marginLeft: 'auto' }} alignItems="center">
+          <FlexBox sx={{ marginLeft: 'auto' }} alignItems="center" gap={1}>
             <TablePagination
               component="div"
               count={totalCount}
@@ -195,8 +229,13 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
               rowsPerPageOptions={[]}
               onRowsPerPageChange={() => {}}
             />
+            <Select size="small" value={sort} onChange={(e) => { setSearchParams(prev => { const p = new URLSearchParams(prev); p.set('sort', e.target.value); p.delete('page'); return p; }, { replace: true }); }} sx={{ width: '9rem', textAlign: 'center', '& .MuiSelect-select': { py: '0.4rem' }, '& .MuiOutlinedInput-notchedOutline': { top: 0, legend: { display: 'none' } } }}>
+              <MenuItem value="registeredAt-asc" sx={{ justifyContent: 'center' }}>오래된 등록순</MenuItem>
+              <MenuItem value="registeredAt-desc" sx={{ justifyContent: 'center' }}>최근 등록순</MenuItem>
+              <MenuItem value="name-asc" sx={{ justifyContent: 'center' }}>이름순</MenuItem>
+            </Select>
             <Select size="small" value={rowsPerPage} onChange={handleRowsPerPageChange} sx={{ minWidth: '7rem', textAlign: 'center', '& .MuiSelect-select': { py: '0.4rem' }, '& .MuiOutlinedInput-notchedOutline': { top: 0, legend: { display: 'none' } } }}>
-              {ROWS_PER_PAGE_OPTIONS.map(n => <MenuItem key={n} value={n}>{n}개</MenuItem>)}
+              {ROWS_PER_PAGE_OPTIONS.map(n => <MenuItem key={n} value={n} sx={{ justifyContent: 'center' }}>{n}개</MenuItem>)}
             </Select>
           </FlexBox>
         </StudentSearchFilter>
@@ -206,8 +245,8 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
           <AppleTg>로딩 중...</AppleTg>
         ) : (
           <>
-            <TableContainer component={Paper}>
-              <Table size="small">
+            <TableContainer component={Paper} sx={{ maxHeight: 'calc(100vh - 15rem)', overflow: 'auto' }}>
+              <Table size="small" stickyHeader>
                 <TableHead>
                   <TableRow>
                     <TableCell align="center" width="5%">#</TableCell>
@@ -216,7 +255,8 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
                     <TableCell align="center" width="8%">학년</TableCell>
                     <TableCell align="center" width="15%">연락처</TableCell>
                     <TableCell align="center" width="15%">부모님 연락처</TableCell>
-                    <TableCell align="center" width="25%">스케줄</TableCell>
+                    <TableCell align="center" width="18%">스케줄</TableCell>
+                    <TableCell align="center" width="14%">날짜</TableCell>
                     <TableCell align="center" width="8%">편집</TableCell>
                     <TableCell align="center" width="8%">상세</TableCell>
                   </TableRow>
@@ -231,19 +271,20 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
                       <TableCell align="center">{student.phone}</TableCell>
                       <TableCell align="center">{student.parentPhone}</TableCell>
                       <TableCell align="center">
-                        <FlexBox alignItems="center" justifyContent="center" gap={0.5}>
-                          <FlexBox flexDirection="column">
-                            {student.schedule && <AppleTg variant="caption">{formatSchedule(student.schedule)}</AppleTg>}
-                            {student.scheduleReserved && (
-                              <AppleTg variant="caption" sx={{ color: 'red' }}>
-                                {formatSchedule(student.scheduleReserved)}
-                              </AppleTg>
-                            )}
-                          </FlexBox>
-                          <Button size="small" onClick={() => openScheduleDialog(student)}>
-                            <AppleTg variant="caption">변경</AppleTg>
-                          </Button>
+                        <FlexBox flexDirection="column" alignItems="center">
+                          {student.schedule && <AppleTg sx={{ fontSize: '0.85rem' }}>{formatSchedule(student.schedule)}</AppleTg>}
+                          {student.scheduleReserved && (
+                            <AppleTg sx={{ fontSize: '0.85rem', color: 'red' }}>
+                              {formatSchedule(student.scheduleReserved.schedule)}
+                            </AppleTg>
+                          )}
                         </FlexBox>
+                      </TableCell>
+                      <TableCell align="center">
+                        <AppleTg sx={{ fontSize: '0.75rem' }}>등록일 {new Date(student.registeredAt).toLocaleDateString('ko-KR')}</AppleTg>
+                        {student.deletedAt && (
+                          <AppleTg sx={{ fontSize: '0.75rem', color: 'red' }}>휴원일 {new Date(student.deletedAt).toLocaleDateString('ko-KR')}</AppleTg>
+                        )}
                       </TableCell>
                       <TableCell align="center">
                         <IconButton onClick={() => openEditDrawer(student)} sx={{ width: '4rem', borderRadius: '0.25rem' }}>
@@ -267,8 +308,30 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
       {/* Edit/Register Drawer */}
       <Drawer anchor="right" open={drawerOpen} onClose={() => {}}>
         <FlexBox flexDirection="column" alignItems="center" gap={2} padding="2rem" width="25rem">
-          <FlexBox justifyContent="space-between" alignItems="center" fullWidth sx={{ mb: 2 }}>
-            <AppleTg sx={{ fontSize: '1.2rem', fontWeight: 600 }}>{editData ? editData.name : '학생 등록'}</AppleTg>
+          <FlexBox justifyContent="space-between" alignItems="flex-start" fullWidth sx={{ mb: 1 }}>
+            <FlexBox flexDirection="column">
+              <AppleTg sx={{ fontSize: '1.2rem', fontWeight: 600, mb: 0.75 }}>{editData ? editData.name : '학생 등록'}</AppleTg>
+              {editData?.schedule && (
+                <FlexBox alignItems="center" gap={0.5}>
+                  <AppleTg sx={{ fontSize: '0.85rem', color: '#666' }}>
+                    {formatSchedule(editData.schedule)}
+                  </AppleTg>
+                  <IconButton size="small" onClick={() => openScheduleDialog(editData)}>
+                    <EditIcon style={{ fontSize: '1rem' }} htmlColor="#999" />
+                  </IconButton>
+                </FlexBox>
+              )}
+              {editData?.scheduleReserved && (
+                <FlexBox alignItems="center" gap={0.5}>
+                  <AppleTg sx={{ fontSize: '0.8rem', color: 'red' }}>
+                    {formatSchedule(editData.scheduleReserved.schedule)} ({editData.scheduleReserved.date.slice(0,4)}. {editData.scheduleReserved.date.slice(4,6)}. {editData.scheduleReserved.date.slice(6,8)} 부터)
+                  </AppleTg>
+                  <IconButton size="small" onClick={openCancelScheduleModal}>
+                    <CloseIcon style={{ fontSize: '1rem' }} htmlColor="#e57373" />
+                  </IconButton>
+                </FlexBox>
+              )}
+            </FlexBox>
             <IconButton onClick={closeDrawer}>
               <CloseIcon />
             </IconButton>
@@ -278,6 +341,7 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
             showSuccess={showSuccess}
             editData={editData}
             onComplete={closeDrawer}
+            onScheduleChange={() => { if (editData) openScheduleDialog(editData); }}
           />
         </FlexBox>
       </Drawer>
@@ -307,17 +371,19 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
             />
             <DateCalendar
               value={scheduleForm.dateForChange}
-              onChange={(date: Dayjs) => setScheduleForm(prev => ({ ...prev, dateForChange: date }))}
+              onChange={(date: Dayjs) => setScheduleForm(prev => ({ ...prev, dateForChange: date, scheduleDayOfWeek: date.day(), scheduleId: undefined }))}
             />
           </FlexBox>
         </DialogContent>
-        <DialogActions sx={{ pb: 3 }}>
-          <Button onClick={closeScheduleDialog}><AppleTg>취소</AppleTg></Button>
-          <Button variant="contained" disabled={!scheduleForm.scheduleId} onClick={handleScheduleChange}>
+        <DialogActions sx={{ pb: 3, justifyContent: 'center', gap: 1 }}>
+          <Button onClick={closeScheduleDialog} variant="outlined" sx={{ minWidth: '7rem' }}><AppleTg>취소</AppleTg></Button>
+          <Button variant="contained" disabled={!scheduleForm.scheduleId} onClick={handleScheduleChange} sx={{ minWidth: '7rem' }}>
             <AppleTg>변경</AppleTg>
           </Button>
         </DialogActions>
       </Dialog>
+
+      <CancelScheduleModal onConfirm={handleCancelReservedSchedule} bodyText="예약된 스케줄 변경을 취소하시겠습니까?" />
     </FlexContainer>
   );
 };

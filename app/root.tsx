@@ -44,6 +44,21 @@ export default function App() {
     setAdminInfo().then(() => setLoaded(true));
   }, [setAdminInfo]);
 
+  // 권한 없는 페이지 접근 차단
+  React.useEffect(() => {
+    if (!loaded) return;
+    const myLevel = auth.getMyInfo()?.level ?? 0;
+    const routeLevels: Record<string, number> = {
+      [ROUTES.STUDENT]: 2,
+      [ROUTES.ADMIN]: 3,
+    };
+    const requiredLevel = Object.entries(routeLevels).find(([route]) => pathname.startsWith(route));
+    if (requiredLevel && myLevel < requiredLevel[1]) {
+      alert('접근 권한이 없습니다.');
+      navigate(ROUTES.HOME, { replace: true });
+    }
+  }, [loaded, pathname, navigate]);
+
   return (
     <FlexContainer flexDirection="column" style={{ minWidth: '48rem', height: '100%'}}>
       {/* 공통 최대 너비 wrapper */}

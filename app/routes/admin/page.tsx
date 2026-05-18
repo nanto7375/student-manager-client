@@ -20,8 +20,8 @@ export type ShortAdminDto = {
 export default function Admin() {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedTab = (searchParams.get('tab') as 'student' | 'admin') || 'student';
+  const showDeleted = searchParams.get('showDeleted') === 'true';
   const [registerOpen, setRegisterOpen] = React.useState(false);
-  const [showDeleted, setShowDeleted] = React.useState(false);
   const myLevel = auth.getMyInfo()?.level ?? 0;
 
   const handleRegisterClick = () => setRegisterOpen(true);
@@ -41,7 +41,7 @@ export default function Admin() {
         <FlexBox alignItems="center" gap={1}>
           {myLevel >= 3 && (
             <FormControlLabel
-              control={<Switch size="small" checked={showDeleted} onChange={(e) => setShowDeleted(e.target.checked)} />}
+              control={<Switch size="small" checked={showDeleted} onChange={(e) => setSearchParams(prev => { const p = new URLSearchParams(prev); e.target.checked ? p.set('showDeleted', 'true') : p.delete('showDeleted'); return p; }, { replace: true })} />}
               label={<AppleTg sx={{ fontSize: '0.85rem' }}>삭제 포함</AppleTg>}
             />
           )}

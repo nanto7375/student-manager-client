@@ -2,7 +2,6 @@ import React from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 
 import { ROUTES, LEO_TITLE } from "./constants";
-import { AdminRoleType } from "./constants/type";
 import { tokenManager } from "./lib/token-manger";
 
 import { FlexBox } from "./components/styled-elements";
@@ -24,17 +23,20 @@ const MENU_PAGE_LIST = [
     name: "schedule",
     label: "스케쥴",
     path: ROUTES.SCHEDULE,
+    minLevel: 1,
   },
   {
     name: "student",
     label: "학생",
     path: ROUTES.STUDENT,
+    minLevel: 2,
   },
 ];
 const ADMIN_PAGE = {
   name: "admin",
   label: "관리자 페이지",
   path: ROUTES.ADMIN,
+  minLevel: 3,
 }
 
 export default function SideBar() {
@@ -45,7 +47,7 @@ export default function SideBar() {
 
   const [selectedMenu, setSelectedMenu] = React.useState<string>(pathname.split("/")[1]);
   const user = auth.getMyInfo();
-  const isAdmin = user?.role === AdminRoleType.SUPER_ADMIN || user?.role === AdminRoleType.ADMIN;
+  const myLevel = user?.level ?? 0;
 
   React.useEffect(() => {
     setSelectedMenu(location.pathname.split("/")[1]);
@@ -84,7 +86,7 @@ export default function SideBar() {
         <Link to={ROUTES.HOME} style={{cursor: 'pointer', textDecoration: 'none', height: '100%', display: 'flex', alignItems: 'center', paddingRight: '1.5rem'}}>
           <AppleTg sx={{fontSize: '0.9rem', color: 'primary.main', fontWeight: '600'}}>{LEO_TITLE.kor}</AppleTg>
         </Link>
-        {MENU_PAGE_LIST.map((menu) => (
+        {MENU_PAGE_LIST.filter(menu => myLevel >= menu.minLevel).map((menu) => (
           <Link to={menu.path} key={menu.name} style={{textDecoration: 'none', height: '100%'}}>
             <FlexBox fullHeight alignItems="center" sx={{padding: '0 1rem', ...buttonHoverEffect}}>
               <AppleTg
@@ -105,7 +107,7 @@ export default function SideBar() {
             {user?.email.split("@")[0]}
           </AppleTg>
         </FlexBox>
-        {isAdmin && (
+        {myLevel >= ADMIN_PAGE.minLevel && (
           <Link to={ADMIN_PAGE.path} style={{textDecoration: 'none', height: '100%'}}>
             <FlexBox fullHeight alignItems="center" sx={{padding: '0 1rem', ...buttonHoverEffect}}>
               <AppleTg sx={{fontSize: '0.85rem', color: selectedMenu === ADMIN_PAGE.name ? 'black' : 'gray'}}>

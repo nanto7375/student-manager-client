@@ -50,7 +50,8 @@ export default function Student() {
       ...(dayOfWeek !== undefined && { dayOfWeek }),
       status: 'active',
       limit, 
-      page: 1 
+      page: 1,
+      sort: 'name-asc',
     } }),
     placeholderData: keepPreviousData,
     // staleTime: Infinity

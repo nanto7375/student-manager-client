@@ -22,7 +22,7 @@ type StudentInListType = {
   phone: string;
   parentPhone: string;
   schedule: { id: number; dayOfWeek: number; startTime: string; endTime: string };
-  reservedSchedule?: { id: number; dayOfWeek: number; startTime: string; endTime: string };
+  reservedSchedule?: { id: number; schedule: { id: number; dayOfWeek: number; startTime: string; endTime: string }; date: string };
   notes: Note[];
 }
 
@@ -128,7 +128,7 @@ export default function StudentDetail() {
             >
               {student.birthYear && <AppleTg>{student.birthYear}년생 {student.birthDate ? `${student.birthDate.slice(0,2)}/${student.birthDate.slice(2)}` : ''}</AppleTg>}
               {student.schedule && <AppleTg>📅 {student.schedule.startTime.slice(0,2)}:{student.schedule.startTime.slice(2)}-{student.schedule.endTime.slice(0,2)}:{student.schedule.endTime.slice(2)}</AppleTg>}
-              {student.reservedSchedule && <AppleTg sx={{ color: 'red' }}>예약 {student.reservedSchedule.startTime.slice(0,2)}:{student.reservedSchedule.startTime.slice(2)}-{student.reservedSchedule.endTime.slice(0,2)}:{student.reservedSchedule.endTime.slice(2)}</AppleTg>}
+              {student.reservedSchedule && <AppleTg sx={{ color: 'red' }}>예약 {student.reservedSchedule.schedule.startTime.slice(0,2)}:{student.reservedSchedule.schedule.startTime.slice(2)}-{student.reservedSchedule.schedule.endTime.slice(0,2)}:{student.reservedSchedule.schedule.endTime.slice(2)}</AppleTg>}
               {student.phone && <AppleTg>📱 {student.phone}</AppleTg>}
               {student.parentPhone && <AppleTg>📞 {student.parentPhone}</AppleTg>}
             </FlexBox>

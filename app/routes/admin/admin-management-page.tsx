@@ -1,4 +1,5 @@
 import React from "react";
+import { useSearchParams } from "react-router";
 import { FlexContainer, FlexBox } from "~/components/styled-elements";
 import { AdminRegistrationForm, AdminRoleType, type AdminFormData } from "./admin-registration-form";
 import { useGlobalToast } from "~/providers/toast-provider";
@@ -17,6 +18,8 @@ type Admin = {
   email: string;
   phone: string;
   role: string;
+  createdAt: Date;
+  deletedAt: Date | null;
 };
 
 // --- API ---
@@ -51,13 +54,17 @@ export const AdminManagementPage = ({ registerOpen, onRegisterClose, showDeleted
   const { error: showError, success: showSuccess } = useGlobalToast();
 
   // Pagination
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(20);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = Number(searchParams.get('page')) || 0; // 0-based (MUI TablePagination 기준)
+  const rowsPerPage = Number(searchParams.get('limit')) || 20;
+  const sort = searchParams.get('sort') || 'createdAt-asc';
+
+  const setPage = (p: number) => setSearchParams(prev => { const params = new URLSearchParams(prev); p > 0 ? params.set('page', String(p)) : params.delete('page'); return params; }, { replace: true });
 
   // Data
   const { data: adminListData, isLoading } = useQuery({
-    queryKey: [...adminListQueryKey(), page, rowsPerPage, showDeleted],
-    queryFn: () => getAdminListApi({ query: { page: page + 1, limit: rowsPerPage, ...(!showDeleted && { status: 'active' }) } }),
+    queryKey: [...adminListQueryKey(), page, rowsPerPage, showDeleted, sort],
+    queryFn: () => getAdminListApi({ query: { page: page + 1, limit: rowsPerPage, sort, ...(!showDeleted && { status: 'active' }) } }),
     placeholderData: keepPreviousData,
   });
   const adminList = adminListData?.list ?? [];
@@ -79,7 +86,7 @@ export const AdminManagementPage = ({ registerOpen, onRegisterClose, showDeleted
     <FlexContainer>
       <FlexBox flexDirection="column" gap={1} fullWidth>
         {/* RowsPerPage + Pagination */}
-        <FlexBox justifyContent="flex-end" alignItems="center" fullWidth>
+        <FlexBox justifyContent="flex-end" alignItems="center" fullWidth gap={1}>
           <TablePagination
             component="div"
             count={totalCount}
@@ -89,23 +96,29 @@ export const AdminManagementPage = ({ registerOpen, onRegisterClose, showDeleted
             rowsPerPageOptions={[]}
             onRowsPerPageChange={() => {}}
           />
-          <Select size="small" value={rowsPerPage} onChange={(e) => { setRowsPerPage(Number(e.target.value)); setPage(0); }} sx={{ minWidth: '7rem', textAlign: 'center', '& .MuiSelect-select': { py: '0.4rem' }, '& .MuiOutlinedInput-notchedOutline': { top: 0, legend: { display: 'none' } } }}>
-            {ROWS_PER_PAGE_OPTIONS.map(n => <MenuItem key={n} value={n}>{n}개</MenuItem>)}
+          <Select size="small" value={sort} onChange={(e) => { setSearchParams(prev => { const p = new URLSearchParams(prev); p.set('sort', e.target.value); p.delete('page'); return p; }, { replace: true }); }} sx={{ width: '9rem', textAlign: 'center', '& .MuiSelect-select': { py: '0.4rem' }, '& .MuiOutlinedInput-notchedOutline': { top: 0, legend: { display: 'none' } } }}>
+            <MenuItem value="createdAt-asc" sx={{ justifyContent: 'center' }}>오래된 등록순</MenuItem>
+            <MenuItem value="createdAt-desc" sx={{ justifyContent: 'center' }}>최근 등록순</MenuItem>
+            <MenuItem value="name-asc" sx={{ justifyContent: 'center' }}>이름순</MenuItem>
+          </Select>
+          <Select size="small" value={rowsPerPage} onChange={(e) => { setSearchParams(prev => { const p = new URLSearchParams(prev); p.set('limit', String(e.target.value)); p.delete('page'); return p; }, { replace: true }); }} sx={{ minWidth: '7rem', textAlign: 'center', '& .MuiSelect-select': { py: '0.4rem' }, '& .MuiOutlinedInput-notchedOutline': { top: 0, legend: { display: 'none' } } }}>
+            {ROWS_PER_PAGE_OPTIONS.map(n => <MenuItem key={n} value={n} sx={{ justifyContent: 'center' }}>{n}개</MenuItem>)}
           </Select>
         </FlexBox>
 
         {/* Table */}
           <>
-            <TableContainer component={Paper}>
-              <Table size="small">
+            <TableContainer component={Paper} sx={{ maxHeight: 'calc(100vh - 15rem)', overflow: 'auto' }}>
+              <Table size="small" stickyHeader>
                 <TableHead>
                   <TableRow>
                     <TableCell align="center" width="5%">#</TableCell>
-                    <TableCell align="center" width="15%">이름</TableCell>
-                    <TableCell align="center" width="30%">이메일</TableCell>
-                    <TableCell align="center" width="20%">연락처</TableCell>
-                    <TableCell align="center" width="15%">권한</TableCell>
-                    <TableCell align="center" width="15%">편집</TableCell>
+                    <TableCell align="center" width="12%">이름</TableCell>
+                    <TableCell align="center" width="27%">이메일</TableCell>
+                    <TableCell align="center" width="17%">연락처</TableCell>
+                    <TableCell align="center" width="10%">권한</TableCell>
+                    <TableCell align="center" width="20%">날짜</TableCell>
+                    <TableCell align="center" width="9%">편집</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -116,6 +129,12 @@ export const AdminManagementPage = ({ registerOpen, onRegisterClose, showDeleted
                       <TableCell align="center">{admin.email}</TableCell>
                       <TableCell align="center">{admin.phone}</TableCell>
                       <TableCell align="center">{admin.role}</TableCell>
+                      <TableCell align="center">
+                        <AppleTg sx={{ fontSize: '0.75rem' }}>등록일 {new Date(admin.createdAt).toLocaleDateString('ko-KR')}</AppleTg>
+                        {admin.deletedAt && (
+                          <AppleTg sx={{ fontSize: '0.75rem', color: 'red' }}>삭제일 {new Date(admin.deletedAt).toLocaleDateString('ko-KR')}</AppleTg>
+                        )}
+                      </TableCell>
                       <TableCell align="center">
                         <IconButton onClick={() => openEditDrawer(admin)} sx={{ width: '4rem', borderRadius: '0.25rem' }}>
                           <EditIcon fontSize="small" />
