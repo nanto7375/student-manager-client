@@ -1,4 +1,5 @@
-import { ToggleButtonGroup, ToggleButton } from "@mui/material";
+import { ToggleButtonGroup, ToggleButton, IconButton } from "@mui/material";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import { FlexBox } from "~/components/styled-elements";
 import { InputXButton } from "~/components/input-x-button";
 
@@ -29,6 +30,7 @@ type Props = {
   onDayOfWeekChange: (value: number | null) => void;
   schoolLevel: number | null | undefined;
   onSchoolLevelChange: (value: number | null) => void;
+  onReset?: () => void;
   children?: React.ReactNode;
 };
 
@@ -43,8 +45,10 @@ const INPUT_STYLE = {
   padding: '0.5rem',
   paddingRight: '2rem',
   borderRadius: '0.25rem',
-  border: '1px solid #ccc',
+  border: '1px solid rgba(0, 0, 0, 0.12)',
   width: '12.5rem',
+  height: '3rem',
+  boxSizing: 'border-box' as const,
 } as const;
 
 export const StudentSearchFilter = ({
@@ -55,36 +59,47 @@ export const StudentSearchFilter = ({
   onDayOfWeekChange,
   schoolLevel,
   onSchoolLevelChange,
+  onReset,
   children,
-}: Props) => (
-  <FlexBox gap={1} alignItems="center">
-    <FlexBox sx={{ position: 'relative' }}>
-      <input
-        type="text"
-        placeholder="이름으로 검색"
-        value={inputName}
-        onChange={(e) => onInputNameChange(e.target.value)}
-        style={INPUT_STYLE}
-      />
-      {inputName && <InputXButton onClick={onClearName} />}
+}: Props) => {
+  const hasFilter = !!inputName || dayOfWeek != null || schoolLevel != null;
+
+  return (
+    <FlexBox gap={1} alignItems="center">
+      <ToggleButtonGroup value={dayOfWeek}>
+        {DAY_OF_WEEKS.map(({ title, value }) => (
+          <ToggleButton key={value} value={value} onClick={() => onDayOfWeekChange(toggleValue(dayOfWeek, value))}>
+            {title}
+          </ToggleButton>
+        ))}
+      </ToggleButtonGroup>
+
+      <ToggleButtonGroup value={schoolLevel}>
+        {SCHOOL_LEVELS.map(({ title, value }) => (
+          <ToggleButton key={value} value={value} onClick={() => onSchoolLevelChange(toggleValue(schoolLevel, value))}>
+            {title}
+          </ToggleButton>
+        ))}
+      </ToggleButtonGroup>
+
+      <FlexBox sx={{ position: 'relative' }}>
+        <input
+          type="text"
+          placeholder="이름으로 검색"
+          value={inputName}
+          onChange={(e) => onInputNameChange(e.target.value)}
+          style={INPUT_STYLE}
+        />
+        {inputName && <InputXButton onClick={onClearName} />}
+      </FlexBox>
+
+      {onReset && (
+        <IconButton size="small" onClick={onReset} sx={{ visibility: hasFilter ? 'visible' : 'hidden' }}>
+          <RefreshIcon style={{ fontSize: '1.2rem' }} />
+        </IconButton>
+      )}
+
+      {children}
     </FlexBox>
-
-    <ToggleButtonGroup value={dayOfWeek}>
-      {DAY_OF_WEEKS.map(({ title, value }) => (
-        <ToggleButton key={value} value={value} onClick={() => onDayOfWeekChange(toggleValue(dayOfWeek, value))}>
-          {title}
-        </ToggleButton>
-      ))}
-    </ToggleButtonGroup>
-
-    <ToggleButtonGroup value={schoolLevel}>
-      {SCHOOL_LEVELS.map(({ title, value }) => (
-        <ToggleButton key={value} value={value} onClick={() => onSchoolLevelChange(toggleValue(schoolLevel, value))}>
-          {title}
-        </ToggleButton>
-      ))}
-    </ToggleButtonGroup>
-
-    {children}
-  </FlexBox>
-);
+  );
+};

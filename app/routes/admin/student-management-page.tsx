@@ -94,20 +94,11 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
   const searchName = searchParams.get('name') || '';
   const searchSchoolLevel = searchParams.get('schoolLevel') ? Number(searchParams.get('schoolLevel')) : null;
   const searchDayOfWeek = searchParams.has('dayOfWeek') ? Number(searchParams.get('dayOfWeek')) : null;
-
   const page = Number(searchParams.get('page')) || 0; // 0-based (MUI TablePagination 기준)
   const rowsPerPage = Number(searchParams.get('limit')) || 20;
   const sort = searchParams.get('sort') || 'registeredAt-asc';
+
   const [inputName, setInputName] = React.useState(searchName);
-
-  const setPage = (p: number) => setSearchParams(prev => { const params = new URLSearchParams(prev); p > 0 ? params.set('page', String(p)) : params.delete('page'); return params; }, { replace: true });
-
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      updateParams(p => inputName ? p.set('name', inputName) : p.delete('name'));
-    }, 700);
-    return () => clearTimeout(timer);
-  }, [inputName]);
 
   // querystring 업데이트 헬퍼 (page 자동 리셋)
   const updateParams = (updater: (p: URLSearchParams) => void) => {
@@ -118,7 +109,17 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
       return p;
     }, { replace: true });
   };
+  const setPage = (p: number) => setSearchParams(prev => { const params = new URLSearchParams(prev); p > 0 ? params.set('page', String(p)) : params.delete('page'); return params; }, { replace: true });
 
+  // 이름 검색 debounce
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      updateParams(p => inputName ? p.set('name', inputName) : p.delete('name'));
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [inputName]);
+
+  // Filter handlers
   const handleClearName = () => { setInputName(''); updateParams(p => p.delete('name')); };
   const handleDayOfWeekChange = (v: number | null) => updateParams(p => v !== null ? p.set('dayOfWeek', String(v)) : p.delete('dayOfWeek'));
   const handleSchoolLevelChange = (v: number | null) => updateParams(p => v !== null ? p.set('schoolLevel', String(v)) : p.delete('schoolLevel'));
@@ -217,6 +218,7 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
           onDayOfWeekChange={handleDayOfWeekChange}
           schoolLevel={searchSchoolLevel}
           onSchoolLevelChange={handleSchoolLevelChange}
+          onReset={() => { setInputName(''); updateParams(p => { p.delete('name'); p.delete('dayOfWeek'); p.delete('schoolLevel'); }); }}
         >
           <FlexBox sx={{ marginLeft: 'auto' }} alignItems="center" gap={1}>
             <TablePagination
@@ -227,6 +229,7 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
               rowsPerPage={rowsPerPage}
               rowsPerPageOptions={[]}
               onRowsPerPageChange={() => {}}
+              labelDisplayedRows={({ from, to, count }) => `${count} of ${from}-${to}`}
             />
             <Select size="small" value={sort} onChange={(e) => updateParams(p => p.set('sort', e.target.value))} sx={{ width: '9rem', textAlign: 'center', '& .MuiSelect-select': { py: '0.4rem' }, '& .MuiOutlinedInput-notchedOutline': { top: 0, legend: { display: 'none' } } }}>
               <MenuItem value="registeredAt-asc" sx={{ justifyContent: 'center' }}>오래된 등록순</MenuItem>

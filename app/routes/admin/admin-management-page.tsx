@@ -105,6 +105,7 @@ export const AdminManagementPage = ({ registerOpen, onRegisterClose, showDeleted
             rowsPerPage={rowsPerPage}
             rowsPerPageOptions={[]}
             onRowsPerPageChange={() => {}}
+            labelDisplayedRows={({ from, to, count }) => `${count} of ${from}-${to}`}
           />
           <Select size="small" value={sort} onChange={(e) => updateParams(p => p.set('sort', e.target.value))} sx={{ width: '9rem', textAlign: 'center', '& .MuiSelect-select': { py: '0.4rem' }, '& .MuiOutlinedInput-notchedOutline': { top: 0, legend: { display: 'none' } } }}>
             <MenuItem value="createdAt-asc" sx={{ justifyContent: 'center' }}>오래된 등록순</MenuItem>

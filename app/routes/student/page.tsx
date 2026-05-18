@@ -116,6 +116,14 @@ export default function Student() {
             v === null ? params.delete('schoolLevel') : params.set('schoolLevel', String(v));
             setSearchParam(params.toString(), { replace: true });
           }}
+          onReset={() => {
+            setInputName('');
+            const params = new URLSearchParams(searchParam);
+            params.delete('name');
+            params.delete('dayOfWeek');
+            params.delete('schoolLevel');
+            setSearchParam(params.toString(), { replace: true });
+          }}
         />
       </FlexBox>
 
