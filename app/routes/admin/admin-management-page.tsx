@@ -161,7 +161,7 @@ export const AdminManagementPage = ({ registerOpen, onRegisterClose, showDeleted
       </FlexBox>
 
       <Drawer anchor="right" open={drawerOpen} onClose={() => {}}>
-        <FlexBox flexDirection="column" gap={2} padding="2rem" width="25rem" sx={{ position: 'relative' }}>
+        <FlexBox flexDirection="column" gap={2} padding="2rem" width="25rem" sx={{ position: 'relative', height: '100%' }}>
           {/* 삭제된 항목: 오버레이로 편집 차단 (X 버튼만 zIndex로 클릭 가능) */}
           {isDeleted && <div style={{ position: 'absolute', inset: 0, zIndex: 10, backgroundColor: 'rgba(255,255,255,0.5)' }} />}
           <FlexBox justifyContent="space-between" alignItems="center" fullWidth sx={{ mb: 2 }}>

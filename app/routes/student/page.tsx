@@ -6,6 +6,7 @@ import { useNavigate, useSearchParams } from "react-router";
 import { FlexContainer, FlexBox } from "~/components/styled-elements";
 import { buildApi } from "~/lib/api-builder";
 import { StudentSearchFilter } from "./components/student-search-filter";
+import { useGlobalToast } from "~/providers/toast-provider";
 
 type StudentInListType = {
   id: number;
@@ -24,6 +25,7 @@ export default function Student() {
   const navigate = useNavigate();
   const [searchParam, setSearchParam] = useSearchParams();
   const observerRef = React.useRef<HTMLDivElement>(null);
+  const toast = useGlobalToast();
 
   const { schoolLevel, dayOfWeek, name } = React.useMemo(() => {
     const params = new URLSearchParams(searchParam);
@@ -38,7 +40,7 @@ export default function Student() {
   const [inputName, setInputName] = React.useState('');
 
   // 무한스크롤
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteQuery({
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError } = useInfiniteQuery({
     queryKey: ['student-list-infinite', { name, schoolLevel, dayOfWeek }],
     queryFn: ({ pageParam = 1 }) => getStudentListApi({
       query: {
@@ -60,6 +62,10 @@ export default function Student() {
   });
 
   const studentList = React.useMemo(() => data?.pages.flatMap(p => p.list) ?? [], [data]);
+
+  React.useEffect(() => {
+    if (isError) toast.error('학생 목록을 불러오는 데 실패했습니다.');
+  }, [isError]);
 
   // IntersectionObserver로 하단 감지
   React.useEffect(() => {

@@ -207,7 +207,7 @@ export const StudentRegistrationForm = ({ showError, showSuccess, editData, onCo
   // --- Render ---
 
   return (
-    <FlexBox flexDirection="column" gap={1}>
+    <FlexBox flexDirection="column" gap={1} fullHeight>
       <FlexBox flexDirection="column" gap={1.25} fullWidth>
         {/* 이름 (등록 시에만) */}
         {!isEditMode && <FormInput id="name" label="이름" value={form.name} onChange={handleInputChange} />}
@@ -255,12 +255,16 @@ export const StudentRegistrationForm = ({ showError, showSuccess, editData, onCo
         <Button disabled={isSubmitDisabled} variant="contained" onClick={handleSubmit} sx={{ width: '20rem', height: '2.8rem' }}>
           <AppleTg>{isEditMode ? '수정' : '등록'}</AppleTg>
         </Button>
-        {isEditMode && (
+      </FlexBox>
+
+      {/* 삭제 버튼 (하단 고정) */}
+      {isEditMode && (
+        <FlexBox justifyContent="center" sx={{ mt: 'auto' }}>
           <Button variant="outlined" color="error" onClick={openDeleteModal} sx={{ width: '20rem', height: '2.8rem' }}>
             <AppleTg>삭제</AppleTg>
           </Button>
-        )}
-      </FlexBox>
+        </FlexBox>
+      )}
 
       <DeleteModal onConfirm={handleDelete} bodyText="삭제하시겠습니까?" />
     </FlexBox>

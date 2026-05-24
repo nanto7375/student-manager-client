@@ -8,6 +8,7 @@ import { buildApi } from "~/lib/api-builder";
 import { mapNumberToDayOfWeek } from "~/lib/utils/time.util";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import { AppleTg } from "~/components/typography";
+import { useGlobalToast } from "~/providers/toast-provider";
 import type { ShortAdminDto } from "../admin/page";
 import { RecordNoteList } from "./components/record-note-list";
 import { MemoNoteList } from "./components/memo-note-list";
@@ -67,6 +68,7 @@ export const clientLoader = async ({ params }: { params: { studentId: string } }
 export default function StudentDetail() {
   const { studentId } = useLoaderData<typeof clientLoader>();
   const queryClient = useQueryClient();
+  const toast = useGlobalToast();
 
   const {data: student, error: studentDetailError, isLoading: studentDetailLoading } = useQuery({
     queryKey: studentQueryKey(studentId),
@@ -84,30 +86,44 @@ export default function StudentDetail() {
   const selectedTab = (searchParams.get('tab') as 'assessment' | 'parent-counseling') || 'assessment';
 
   const createNote = async ({value, type}: {value: string, type: NoteType}) => {
-    const note = await createNoteApi({ 
-      params: { studentId }, 
-      body: { value, type } 
-    });
-    queryClient.invalidateQueries({ queryKey: studentQueryKey(studentId) })
-    return note;
+    try {
+      const note = await createNoteApi({ params: { studentId }, body: { value, type } });
+      queryClient.invalidateQueries({ queryKey: studentQueryKey(studentId) });
+      return note;
+    } catch (e) {
+      console.error(e);
+      toast.error('기록 추가에 실패했습니다.');
+    }
   }
 
   const updateNote = async ({id, value}: {id: number, value: string}) => {
-    await updateNoteApi({ 
-      params: { studentId, noteId: id }, 
-      body: { value } 
-    });
-    queryClient.invalidateQueries({ queryKey: studentQueryKey(studentId) })
+    try {
+      await updateNoteApi({ params: { studentId, noteId: id }, body: { value } });
+      queryClient.invalidateQueries({ queryKey: studentQueryKey(studentId) });
+    } catch (e) {
+      console.error(e);
+      toast.error('기록 수정에 실패했습니다.');
+    }
   }
 
   const deleteNote = React.useCallback(async (noteId: number) => {
-    await toggleNoteStatusApi({params: {studentId, noteId}});
-    queryClient.invalidateQueries({ queryKey: studentQueryKey(studentId) })
+    try {
+      await toggleNoteStatusApi({params: {studentId, noteId}});
+      queryClient.invalidateQueries({ queryKey: studentQueryKey(studentId) });
+    } catch (e) {
+      console.error(e);
+      toast.error('기록 삭제에 실패했습니다.');
+    }
   }, [studentId])
 
-  // 메모 삭제: invalidate 없이 API만 호출 (화면에 체크 상태로 유지)
+  // 메모 상태 토글: invalidate 없이 API만 호출 (화면에 체크 상태로 유지)
   const toggleMemoNoteStatus = React.useCallback(async (noteId: number) => {
-    await toggleNoteStatusApi({params: {studentId, noteId}});
+    try {
+      await toggleNoteStatusApi({params: {studentId, noteId}});
+    } catch (e) {
+      console.error(e);
+      toast.error('메모 상태 변경에 실패했습니다.');
+    }
   }, [studentId])
 
   if (studentDetailError || studentDetailLoading) return <FlexContainer padding="1rem" fullHeight fullWidth center></FlexContainer>;

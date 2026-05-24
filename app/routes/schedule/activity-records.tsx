@@ -106,7 +106,7 @@ export default function StudentActivityRecords() {
   const fixedMemosMap = React.useMemo(() => {
     if (!activityRecords) return {};
     return Object.fromEntries(
-      activityRecords.map(r => [r.student.id, r.student.notes.filter(n => n.type === 'fixed-memo').map(n => n.value).join(', ')])
+      activityRecords.map(r => [r.student.id, r.student.notes.filter(n => n.type === 'fixed-memo').map(n => n.value.trim().replace(/\.$/, '')).join('. ')])
     );
   }, [activityRecords]);
 

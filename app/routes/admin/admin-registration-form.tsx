@@ -45,7 +45,7 @@ const defaultAdminForm = (): AdminFormData => ({
   email: '',
   phone: ['010', '', ''],
   password: '',
-  role: AdminRoleType.ADMIN,
+  role: AdminRoleType.STAFF,
 });
 
 const formatPhone = (phone: string[]) =>
@@ -197,7 +197,7 @@ export const AdminRegistrationForm = ({ showSuccess, showError, editData, onComp
   };
 
   return (
-    <FlexBox flexDirection="column" gap={1} alignItems="center">
+    <FlexBox flexDirection="column" gap={1} alignItems="center" fullHeight>
       <FlexBox flexDirection="column" gap={1.25} alignItems="center" fullWidth>
         {!isEditMode && <FormInput id="name" label="이름" value={form.name} onChange={handleInputChange} />}
         {!isEditMode && <FormInput id="password" label="비밀번호" value={form.password} onChange={handleInputChange} type="password" error={errors.password} />}
@@ -227,7 +227,7 @@ export const AdminRegistrationForm = ({ showSuccess, showError, editData, onComp
         </FlexBox>
       )}
       <FlexBox flexDirection="column" alignItems="center" gap={0.75} sx={{ mt: 2 }}>
-        <Button disabled={isSubmitDisabled} variant="contained" onClick={handleSubmit} sx={{ width: '20rem', height: '2.8rem' }}>
+        <Button disabled={isSubmitDisabled || showPasswordChange} variant="contained" onClick={handleSubmit} sx={{ width: '20rem', height: '2.8rem' }}>
           <AppleTg>{isEditMode ? '수정' : '등록'}</AppleTg>
         </Button>
         {isEditMode && myLevel >= 3 && (
@@ -235,12 +235,21 @@ export const AdminRegistrationForm = ({ showSuccess, showError, editData, onComp
             <AppleTg>비밀번호 변경</AppleTg>
           </Button>
         )}
-        {isEditMode && myLevel >= 3 && (
-          <Button variant="outlined" color="error" onClick={openDeleteModal} sx={{ width: '20rem', height: '2.8rem' }}>
-            <AppleTg>삭제</AppleTg>
+        {showPasswordChange && (
+          <Button variant="outlined" color="error" onClick={() => { setShowPasswordChange(false); setNewPassword(''); setNewPasswordConfirm(''); setNewPasswordError(false); }} sx={{ width: '20rem', height: '2.8rem' }}>
+            <AppleTg>취소</AppleTg>
           </Button>
         )}
       </FlexBox>
+
+      {/* 삭제 버튼 (하단 고정) */}
+      {isEditMode && myLevel >= 3 && !showPasswordChange && (
+        <FlexBox justifyContent="center" sx={{ mt: 'auto' }}>
+          <Button variant="outlined" color="error" onClick={openDeleteModal} sx={{ width: '20rem', height: '2.8rem' }}>
+            <AppleTg>삭제</AppleTg>
+          </Button>
+        </FlexBox>
+      )}
 
       <DeleteModal onConfirm={handleDelete} bodyText="삭제하시겠습니까?" />
     </FlexBox>
