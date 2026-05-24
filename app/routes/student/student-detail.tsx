@@ -56,7 +56,7 @@ export type Note = {
 const getStudentApi = buildApi<Student>({ path: '/students/:studentId', method: 'GET' });
 const createNoteApi = buildApi<Note>({ path: '/students/:studentId/notes', method: 'POST' });
 const updateNoteApi = buildApi<Note>({ path: '/students/:studentId/notes/:noteId', method: 'PATCH' });
-const deleteNoteApi = buildApi<boolean>({path: '/students/:studentId/notes/:noteId', method: 'DELETE'});
+const toggleNoteStatusApi = buildApi<boolean>({path: '/students/:studentId/notes/:noteId/status', method: 'PATCH'});
 
 const studentQueryKey = (studentId: string) => ['student', studentId] as const;
 
@@ -101,8 +101,13 @@ export default function StudentDetail() {
   }
 
   const deleteNote = React.useCallback(async (noteId: number) => {
-    await deleteNoteApi({params: {studentId, noteId}});
+    await toggleNoteStatusApi({params: {studentId, noteId}});
     queryClient.invalidateQueries({ queryKey: studentQueryKey(studentId) })
+  }, [studentId])
+
+  // 메모 삭제: invalidate 없이 API만 호출 (화면에 체크 상태로 유지)
+  const toggleMemoNoteStatus = React.useCallback(async (noteId: number) => {
+    await toggleNoteStatusApi({params: {studentId, noteId}});
   }, [studentId])
 
   if (studentDetailError || studentDetailLoading) return <FlexContainer padding="1rem" fullHeight fullWidth center></FlexContainer>;
@@ -186,7 +191,7 @@ export default function StudentDetail() {
             <MemoNoteList 
               notes={notes} 
               createNote={createNote} 
-              deleteNote={deleteNote}
+              toggleMemoNoteStatus={toggleMemoNoteStatus}
               disabled={!!student.deletedAt}
             />
           </FlexBox>

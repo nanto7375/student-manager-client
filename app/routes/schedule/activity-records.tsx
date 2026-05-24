@@ -6,18 +6,18 @@ import dayjs from "dayjs";
 
 import type { SchoolLevel } from "~/constants/type";
 import { buildApi } from "~/lib/api-builder";
-import { FlexContainer } from "~/components/styled-elements";
+import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import { AppleTg } from "~/components/typography";
 import { useGlobalToast } from "~/providers/toast-provider";
 
 type StudentInActivityDto = {
   id: number;
   name: string;
-  birthYear: string;
-  birthDate: string;
   schoolName: string;
   schoolLevel: SchoolLevel;
   schoolGrade: number;
+  notes: { id: number; type: 'fixed-memo' | 'temporary-memo'; value: string; }[];
+  deletedAt: Date | null;
 };
 
 /**
@@ -102,6 +102,14 @@ export default function StudentActivityRecords() {
     enabled: !!scheduleId && !!date,
   });
 
+  // 학생별 고정 메모
+  const fixedMemosMap = React.useMemo(() => {
+    if (!activityRecords) return {};
+    return Object.fromEntries(
+      activityRecords.map(r => [r.student.id, r.student.notes.filter(n => n.type === 'fixed-memo').map(n => n.value).join(', ')])
+    );
+  }, [activityRecords]);
+
   const updateBookRentalInfo = useMutation({
     mutationFn: updateBookRentalInfoApi,
     onSuccess: () => {
@@ -172,7 +180,18 @@ export default function StudentActivityRecords() {
     return <FlexContainer padding="1rem" fullHeight fullWidth center></FlexContainer>;
   }
   return (
-    <FlexContainer padding="1rem" fullWidth fullHeight>
+    <FlexContainer padding="1rem" fullWidth fullHeight flexDirection="column" gap={1}>
+      {/* 학생별 고정 메모 */}
+      {Object.entries(fixedMemosMap).some(([, memo]) => memo) && (
+        <FlexBox justifyContent="flex-end" gap={0.5} sx={{ flexWrap: 'wrap' }}>
+          {activityRecords.filter(r => fixedMemosMap[r.student.id]).map(r => (
+            <AppleTg key={r.student.id} sx={{ fontSize: '0.75rem', color: '#555', border: '1px solid #ddd', borderRadius: '1rem', padding: '0.2rem 0.6rem' }}>
+              <strong>{r.student.name}</strong> {fixedMemosMap[r.student.id]}
+            </AppleTg>
+          ))}
+        </FlexBox>
+      )}
+
       <TableContainer className='non-overflow-scroll' sx={{
         border: '1px solid #ddd',
         borderRadius: '0.25rem',
@@ -182,18 +201,21 @@ export default function StudentActivityRecords() {
         <Table stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell width="18%" align="center" sx={{ py: 1 }}><AppleTg>이름</AppleTg></TableCell>
-              <TableCell width="17%" align="center" sx={{ py: 1 }}><AppleTg>출석</AppleTg></TableCell>
-              <TableCell width="17%" align="center" sx={{ py: 1 }}><AppleTg>감상문</AppleTg></TableCell>
-              <TableCell width="17%" align="center" sx={{ py: 1 }}><AppleTg>주간 레오</AppleTg></TableCell>
-              <TableCell width="17%" align="center" sx={{ py: 1 }}><AppleTg>월간 레오</AppleTg></TableCell>
-              <TableCell width="14%" align="center" sx={{ py: 1 }}>책 대여</TableCell>
+              <TableCell width="14%" align="center" sx={{ py: 1 }}><AppleTg>이름</AppleTg></TableCell>
+              <TableCell width="12%" align="center" sx={{ py: 1 }}><AppleTg>출석</AppleTg></TableCell>
+              <TableCell width="12%" align="center" sx={{ py: 1 }}><AppleTg>감상문</AppleTg></TableCell>
+              <TableCell width="12%" align="center" sx={{ py: 1 }}><AppleTg>주간 레오</AppleTg></TableCell>
+              <TableCell width="12%" align="center" sx={{ py: 1 }}><AppleTg>월간 레오</AppleTg></TableCell>
+              <TableCell width="12%" align="center" sx={{ py: 1 }}>책 대여</TableCell>
+              <TableCell align="center" sx={{ py: 1 }}><AppleTg>비고</AppleTg></TableCell>
             </TableRow>
           </TableHead>
           <TableBody sx={{}}>
-            {[...activityRecords, ...activityRecords, ...activityRecords, ...activityRecords, ...activityRecords, ...activityRecords].map((activityRecord) => (
+            {activityRecords.map((activityRecord) => {
+              const tempMemos = activityRecord.student.notes.filter(n => n.type === 'temporary-memo').map(n => n.value).join(', ');
+              return (
               <TableRow key={activityRecord.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                <TableCell align="center"><AppleTg component="div" sx={{fontSize: '0.9rem'}}><div>{activityRecord.student.name}</div><div>({activityRecord.student.schoolName.replace('초등학교', '초').replace('중학교', '중').replace('고등학교', '고')} {activityRecord.student.schoolGrade}학년)</div></AppleTg></TableCell>
+                <TableCell align="center"><AppleTg component="div" sx={{fontSize: '0.9rem'}}><div>{activityRecord.student.name}{activityRecord.isMakeup && <span style={{ color: '#e65100' }}> (보강)</span>}</div><div>({activityRecord.student.schoolName.replace('초등학교', '초').replace('중학교', '중').replace('고등학교', '고')} {activityRecord.student.schoolGrade}학년)</div></AppleTg></TableCell>
                 <TableCell align="center">
                   <ActivityRecordButton 
                     value={activityRecord.attendance} 
@@ -253,8 +275,12 @@ export default function StudentActivityRecords() {
                     fontColor='black'
                   />
                 </TableCell>
+                <TableCell>
+                  {tempMemos && <AppleTg sx={{ fontSize: '0.75rem', color: '#666' }}>{tempMemos}</AppleTg>}
+                </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>
