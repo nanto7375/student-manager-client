@@ -104,6 +104,7 @@ export default function StudentActivityRecords() {
   const [activePopup, setActivePopup] = React.useState<number | null>(null); // 이름 클릭 시 팝업 표시할 학생 id
   const [memoInput, setMemoInput] = React.useState('');
   const [memoTargetStudentId, setMemoTargetStudentId] = React.useState<number | null>(null);
+  const [memoType, setMemoType] = React.useState<'fixed-memo' | 'temporary-memo'>('temporary-memo');
   const [makeupTarget, setMakeupTarget] = React.useState<{ studentId: number } | null>(null);
   const [makeupDate, setMakeupDate] = React.useState<Dayjs>(dayjs());
   const [makeupScheduleId, setMakeupScheduleId] = React.useState<number | undefined>(undefined);
@@ -127,7 +128,7 @@ export default function StudentActivityRecords() {
   const handleAddTempMemo = async (studentId: number) => {
     if (!memoInput.trim()) return;
     try {
-      await createNoteApi({ params: { studentId }, body: { value: memoInput.trim(), type: 'temporary-memo' } });
+      await createNoteApi({ params: { studentId }, body: { value: memoInput.trim(), type: memoType } });
       queryClient.invalidateQueries({ queryKey: activityRecordsQueryKey(scheduleId, date) });
       setMemoInput('');
       setMemoTargetStudentId(null);
@@ -256,16 +257,17 @@ export default function StudentActivityRecords() {
                       <div>({activityRecord.student.schoolName.replace('초등학교', '초').replace('중학교', '중').replace('고등학교', '고')} {activityRecord.student.schoolGrade}학년)</div>
                     </AppleTg>
                     {activePopup === activityRecord.id && (
-                      <FlexBox flexDirection="column" gap={0.5} sx={{
+                      <FlexBox flexDirection="column" sx={{
                         position: 'absolute', top: 'calc(100% + 0.5rem)', left: '50%', transform: 'translateX(-50%)',
                         zIndex: 1000, backgroundColor: 'white', border: '1px solid #e0e0e0', borderRadius: '0.5rem',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)', padding: '0.5rem', whiteSpace: 'nowrap',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)', padding: '0.25rem', whiteSpace: 'nowrap',
                         '&::before': { content: '""', position: 'absolute', top: '-6px', left: '50%', transform: 'translateX(-50%)', borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '6px solid #e0e0e0' },
                         '&::after': { content: '""', position: 'absolute', top: '-5px', left: '50%', transform: 'translateX(-50%)', borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderBottom: '5px solid white' },
                       }}>
                         <Button size="small" sx={{ color: 'black' }} onClick={() => { navigate(`/student/${activityRecord.student.id}`); setActivePopup(null); }}>상세로 이동</Button>
                         <Button size="small" sx={{ color: 'black' }} onClick={() => { setMakeupTarget({ studentId: activityRecord.student.id }); setMakeupDate(dayjs()); setActivePopup(null); }}>보강 추가</Button>
-                        <Button size="small" sx={{ color: 'black' }} onClick={() => { setMemoTargetStudentId(activityRecord.student.id); setActivePopup(null); }}>변동 메모 추가</Button>
+                        <Button size="small" sx={{ color: 'black' }} onClick={() => { setMemoTargetStudentId(activityRecord.student.id); setMemoType('fixed-memo'); setActivePopup(null); }}>고정 메모 추가</Button>
+                        <Button size="small" sx={{ color: 'black' }} onClick={() => { setMemoTargetStudentId(activityRecord.student.id); setMemoType('temporary-memo'); setActivePopup(null); }}>변동 메모 추가</Button>
                       </FlexBox>
                     )}
                   </FlexBox>
@@ -343,7 +345,7 @@ export default function StudentActivityRecords() {
       <Modal open={!!memoTargetStudentId} onClose={() => { setMemoTargetStudentId(null); setMemoInput(''); }}>
         <FlexBox center fullWidth fullHeight>
           <FlexBox flexDirection="column" gap={1} sx={{ backgroundColor: 'white', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 8px 24px rgba(0,0,0,0.2)', width: '20rem' }}>
-            <AppleTg sx={{ fontWeight: 600 }}>변동 메모 추가</AppleTg>
+            <AppleTg sx={{ fontWeight: 600 }}>{memoType === 'fixed-memo' ? '고정 메모 추가' : '변동 메모 추가'}</AppleTg>
             <input
               autoFocus
               placeholder="메모 입력"
