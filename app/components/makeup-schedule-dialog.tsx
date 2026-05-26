@@ -51,7 +51,7 @@ export const MakeupScheduleDialog = ({ open, onClose, studentId, onSuccess }: Pr
     .map(s => ({ value: s.id, label: `${mapNumberToDayOfWeek(s.dayOfWeek)} ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}` }));
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog open={open} onClose={onClose} disableRestoreFocus>
       <DialogTitle>보강 날짜 및 스케줄 선택</DialogTitle>
       <DialogContent>
         <FlexBox flexDirection="column" gap={1} padding="1rem 0 0 0">
@@ -60,7 +60,13 @@ export const MakeupScheduleDialog = ({ open, onClose, studentId, onSuccess }: Pr
             onChange={(e) => setMakeupScheduleId(Number(e.target.value))}
             items={[{ id: 'makeupScheduleId', placeholder: '수업 시간', options: scheduleOptions }]}
           />
-          <DateCalendar value={makeupDate} minDate={dayjs()} onChange={(d: Dayjs) => { setMakeupDate(d); setMakeupScheduleId(undefined); }} />
+          <DateCalendar
+            value={makeupDate}
+            minDate={dayjs()}
+            onChange={(d: Dayjs) => { setMakeupDate(d); setMakeupScheduleId(undefined); }}
+            slotProps={{ day: (ownerState) => ({ sx: { ...(ownerState.day.day() === 0 && { color: 'red' }), ...(ownerState.day.day() === 6 && { color: 'blue' }) } }) }}
+            sx={{ '& .MuiDayCalendar-weekDayLabel:first-of-type': { color: 'red' }, '& .MuiDayCalendar-weekDayLabel:last-of-type': { color: 'blue' } }}
+          />
         </FlexBox>
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>

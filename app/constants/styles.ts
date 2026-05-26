@@ -2,6 +2,7 @@
 export const TABLE_STYLE = {
   '& tbody tr:nth-of-type(even)': { backgroundColor: '#fafafa' },
   '& thead th': { backgroundColor: '#f5f5f5' },
+  '& tbody tr:last-of-type td': { borderBottom: 'none' },
 } as const;
 
 export const TABLE_CONTAINER_STYLE = {

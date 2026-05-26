@@ -326,6 +326,8 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
             <DateCalendar
               value={scheduleForm.dateForChange}
               onChange={(date: Dayjs) => setScheduleForm(prev => ({ ...prev, dateForChange: date, scheduleDayOfWeek: date.day(), scheduleId: undefined }))}
+              slotProps={{ day: (ownerState) => ({ sx: { ...(ownerState.day.day() === 0 && { color: 'red' }), ...(ownerState.day.day() === 6 && { color: 'blue' }) } }) }}
+              sx={{ '& .MuiDayCalendar-weekDayLabel:first-of-type': { color: 'red' }, '& .MuiDayCalendar-weekDayLabel:last-of-type': { color: 'blue' } }}
             />
           </FlexBox>
         </DialogContent>

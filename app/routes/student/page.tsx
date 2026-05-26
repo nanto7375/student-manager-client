@@ -146,6 +146,7 @@ const StudentCard = ({ student, onClick }: { student: StudentInListType; onClick
       flexDirection: 'column',
       cursor: 'pointer',
       boxShadow: 2,
+      marginTop: '2px',
       transition: 'all 0.2s ease-in-out',
       '&:hover': { backgroundColor: 'action.hover', boxShadow: 6, transform: 'translateY(-2px)' },
       '&:active': { transform: 'translateY(0)', boxShadow: 3 },
