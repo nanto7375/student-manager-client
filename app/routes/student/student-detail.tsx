@@ -12,6 +12,7 @@ import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import { AppleTg } from "~/components/typography";
 import { useGlobalToast } from "~/providers/toast-provider";
 import { MakeupScheduleDialog } from "~/components/makeup-schedule-dialog";
+import { auth } from "~/lib/auth";
 import { RecordNoteList } from "./components/record-note-list";
 import { MemoNoteList } from "./components/memo-note-list";
 
@@ -206,9 +207,9 @@ export default function StudentDetail() {
           </FlexBox>
 
           <FlexBox maxWidth="35rem" minWidth="25rem" flexDirection="column" sx={{ flex:1, overflowY: 'hidden', height: 'calc(100% - 0.25rem)', backgroundColor: '#f9f9f9', backgroundImage: 'radial-gradient(circle, #ddd 1px, transparent 1px)', backgroundSize: '12px 12px', borderRadius: '0.5rem', border: '1px solid #e0e0e0', padding: '0.75rem', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}>
-            <Button onClick={() => setMakeupOpen(true)} sx={{ mt: 1, mb: 3, width: '100%', height: '3.5rem', backgroundColor: 'white', border: '1px solid #ddd', boxShadow: '0 2px 4px rgba(0,0,0,0.08)', borderRadius: '0.5rem', color: '#666', '&:hover': { backgroundColor: '#fafafa', boxShadow: '0 3px 6px rgba(0,0,0,0.12)' } }}>
+            {(auth.getMyInfo()?.level ?? 0) >= 3 && <Button onClick={() => setMakeupOpen(true)} sx={{ mt: 1, mb: 3, width: '100%', height: '3.5rem', backgroundColor: 'white', border: '1px solid #ddd', boxShadow: '0 2px 4px rgba(0,0,0,0.08)', borderRadius: '0.5rem', color: '#666', '&:hover': { backgroundColor: '#fafafa', boxShadow: '0 3px 6px rgba(0,0,0,0.12)' } }}>
               보강 추가
-            </Button>
+            </Button>}
             <MemoNoteList 
               notes={notes} 
               createNote={createNote} 

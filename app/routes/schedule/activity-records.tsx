@@ -12,6 +12,7 @@ import { AppleTg } from "~/components/typography";
 import { useGlobalToast } from "~/providers/toast-provider";
 import { MakeupScheduleDialog } from "~/components/makeup-schedule-dialog";
 import { StudentActionPopup } from "~/components/student-action-popup";
+import { auth } from "~/lib/auth";
 import { TABLE_STYLE } from "~/constants/styles";
 
 /**
@@ -182,8 +183,8 @@ export default function StudentActivityRecords() {
       {/* 학생별 고정 메모 */}
       {Object.entries(fixedMemosMap).some(([, memo]) => memo) && (
         <FlexBox justifyContent="flex-end" gap={0.5} sx={{ flexWrap: 'wrap' }}>
-          {activityRecords.filter(r => fixedMemosMap[r.student.id]).map(r => (
-            <AppleTg key={r.student.id} sx={{ fontSize: '0.75rem', color: '#555', border: '1px solid #ddd', borderRadius: '1rem', padding: '0.2rem 0.6rem' }}>
+          {activityRecords.filter((r, i, arr) => fixedMemosMap[r.student.id] && arr.findIndex(a => a.student.id === r.student.id) === i).map(r => (
+            <AppleTg key={r.id} sx={{ fontSize: '0.75rem', color: '#555', border: '1px solid #ddd', borderRadius: '1rem', padding: '0.2rem 0.6rem' }}>
               <strong>{r.student.name}</strong> {fixedMemosMap[r.student.id]}
             </AppleTg>
           ))}
@@ -221,6 +222,7 @@ export default function StudentActivityRecords() {
                     </AppleTg>
                     {activePopup === activityRecord.id && (
                       <StudentActionPopup
+                        myLevel={auth.getMyInfo()?.level ?? 0}
                         onNavigateDetail={() => { navigate(`/student/${activityRecord.student.id}`); setActivePopup(null); }}
                         onAddMakeup={() => { setMakeupTarget({ studentId: activityRecord.student.id }); setActivePopup(null); }}
                         onAddFixedMemo={() => { setMemoTargetStudentId(activityRecord.student.id); setMemoType('fixed-memo'); setActivePopup(null); }}

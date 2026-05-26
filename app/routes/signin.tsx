@@ -20,7 +20,11 @@ const SIGNIN_ERROR_CASES = {
   deletedAccount: {
     message: 'deleted-account',
     messageForShow: '삭제된 계정입니다. 관리자에게 문의하세요.',
-  }
+  },
+  wrongPassword: {
+    message: 'wrong-password',
+    messageForShow: '비밀번호가 올바르지 않습니다.',
+  },
 };
 
 const validateEmail = (value: string) => emailRegex.test(value);
@@ -78,10 +82,15 @@ export default function Signin() {
       await auth.signin(email, password);
       navigate(redirect || ROUTES.HOME);
     } catch (error: any) {
+      if (error.status === 404) {
+        return setInputError({ hasError: true, message: '없는 이메일 입니다.' });
+      }
       if (error.message === SIGNIN_ERROR_CASES.authenticationFailed.message) {
         setInputError({ hasError: true, message: SIGNIN_ERROR_CASES.authenticationFailed.messageForShow });
       } else if (error.message === SIGNIN_ERROR_CASES.deletedAccount.message) {
         setInputError({ hasError: true, message: SIGNIN_ERROR_CASES.deletedAccount.messageForShow });
+      } else if (error.message === SIGNIN_ERROR_CASES.wrongPassword.message) {
+        setInputError({ hasError: true, message: SIGNIN_ERROR_CASES.wrongPassword.messageForShow });
       }
     }
   }, [email, password, isSaveEmail, redirect]);

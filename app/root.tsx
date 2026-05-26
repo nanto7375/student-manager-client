@@ -55,7 +55,7 @@ export default function App() {
     const requiredLevel = Object.entries(routeLevels).find(([route]) => pathname.startsWith(route));
     if (requiredLevel && myLevel < requiredLevel[1]) {
       alert('접근 권한이 없습니다.');
-      navigate(ROUTES.HOME, { replace: true });
+      navigate(-1);
     }
   }, [loaded, pathname, navigate]);
 

@@ -157,7 +157,7 @@ export const AdminRegistrationForm = ({ showSuccess, showError, editData, onComp
     const hashedPassword = form.password ? await hashPassword(form.password) : undefined;
 
     const payload = {
-      // name: form.name || null,
+      name: form.name || null,
       email: form.email || null,
       phone: formatPhone(form.phone),
       role: form.role,
