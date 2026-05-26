@@ -5,10 +5,10 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { useScheduleList } from "../schedule/page";
 import { FlexBox } from "~/components/styled-elements";
-import { FormInput, FormPhone, FormSelect } from "./components/form-components";
+import { FormInput, FormPhone, FormSelect } from "~/components/form/form-components";
 import { formatTime12Hour, mapNumberToDayOfWeek } from "~/lib/utils/time.util";
 import { AppleTg } from "~/components/typography";
-import { buildApi } from "~/lib/api-builder";
+import { registerStudentApi, updateStudentApi, deleteStudentApi } from "~/lib/api/students.api";
 import { studentListQueryKey } from "./student-management-page";
 import { useConfirmModal } from "~/hooks/use-confirm-modal";
 
@@ -61,12 +61,6 @@ const formatBirthDate = (month?: string, day?: string) => {
 };
 
 const NOW_YEAR = dayjs().year();
-
-// --- API ---
-
-const registerStudentApi = buildApi({ path: '/students', method: 'POST' });
-const updateStudentApi = buildApi({ path: '/students/:id', method: 'PATCH' });
-const deleteStudentApi = buildApi({ path: '/students/:id', method: 'DELETE' });
 
 // --- Component ---
 

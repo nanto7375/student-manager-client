@@ -32,7 +32,7 @@ export default function Admin() {
       <FlexBox justifyContent="space-between" alignItems="center" fullWidth sx={{ mb: 1.5 }}>
         <AppTabs
           value={selectedTab}
-          onChange={(_, newValue) => { setSearchParams({ tab: newValue }); setRegisterOpen(false); }}
+          onChange={(_, newValue) => { setSearchParams({ tab: newValue }, { replace: true }); setRegisterOpen(false); }}
           sx={{ mb: 0 }}
         >
           <Tab label="학생 관리" value="student" />

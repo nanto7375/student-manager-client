@@ -2,7 +2,7 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
-import { buildApi } from "~/lib/api-builder";
+import { getScheduleListApi } from "~/lib/api/schedules.api";
 import { ROUTES } from "~/constants";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import ScheduleSidebar from "./sidebar";
@@ -11,8 +11,6 @@ import { formatTime12Hour, getDayOfWeekInKor } from "~/lib/utils/time.util";
 import { AppleTg } from "~/components/typography";
 import { Outlet, useLocation } from "react-router";
 import { useGlobalToast } from "~/providers/toast-provider";
-
-const getScheduleListApi = buildApi<ScheduleType[]>({ path: '/schedules', method: 'GET' });
 
 export const useScheduleList = () => {
   const { data: scheduleList, error: scheduleListError, isLoading: scheduleListLoading } = useQuery({ queryKey: ['schedule-list'], queryFn: () => getScheduleListApi(), staleTime: Infinity });

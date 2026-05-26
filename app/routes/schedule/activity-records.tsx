@@ -4,22 +4,15 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Button, Modal } from "@mui/material";
 import dayjs from "dayjs";
 
-import type { SchoolLevel } from "~/constants/type";
-import { buildApi } from "~/lib/api-builder";
+import type { StudentInActivity as StudentInActivityDto } from "~/constants/student.type";
+import { getActivityRecordsApi, updateWeeklyActivityRecordApi, updateMonthlyActivityRecordApi, borrowBookApi, returnBookApi } from "~/lib/api/activities.api";
+import { createNoteApi } from "~/lib/api/students.api";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import { AppleTg } from "~/components/typography";
 import { useGlobalToast } from "~/providers/toast-provider";
 import { MakeupScheduleDialog } from "~/components/makeup-schedule-dialog";
-
-type StudentInActivityDto = {
-  id: number;
-  name: string;
-  schoolName: string;
-  schoolLevel: SchoolLevel;
-  schoolGrade: number;
-  notes: { id: number; type: 'fixed-memo' | 'temporary-memo'; value: string; }[];
-  deletedAt: Date | null;
-};
+import { StudentActionPopup } from "~/components/student-action-popup";
+import { TABLE_STYLE } from "~/constants/styles";
 
 /**
  * isMakeup: 보충 수업 여부
@@ -60,8 +53,6 @@ const ActivityKey: Record<string, keyof ActivityCheck> = {
   MONTHLY_REPORT: 'monthlyReport',
 }
 
-const getActivityRecordsApi = buildApi<ActivityRecordType[]>({ path: '/activities', method: 'GET' });
-
 const monthlyProjectStatusText = (record: ActivityRecordType) => {
   if (!record.monthlyProject) return '참여';
   if (!record.monthlyPreview) return '개요 제출';
@@ -83,11 +74,6 @@ export const clientLoader = async ({ params, request }: { params: { scheduleId: 
   return { scheduleId: params.scheduleId, date };
 }
 
-const updateWeeklyActivityRecordApi = buildApi<ActivityRecordType>({ path: '/activities/:activityId', method: 'PATCH' });
-const updateMonthlyActivityRecordApi = buildApi<ActivityRecordType>({ path: '/activities/:activityId/monthly', method: 'PATCH' });
-const borrowBookApi = buildApi<void>({ path: '/book-rentals', method: 'POST' });
-const returnBookApi = buildApi<void>({ path: '/book-rentals/:bookRentalId/return', method: 'PATCH' });
-const createNoteApi = buildApi<void>({ path: '/students/:studentId/notes', method: 'POST' });
 export default function StudentActivityRecords() {
   const queryClient = useQueryClient();
   const { scheduleId, date } = useLoaderData<typeof clientLoader>();
@@ -210,7 +196,7 @@ export default function StudentActivityRecords() {
         overflow: 'visible',
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
       }}>
-        <Table>
+        <Table sx={TABLE_STYLE}>
           <TableHead>
             <TableRow>
               <TableCell width="14%" align="center" sx={{ py: 1 }}><AppleTg>이름</AppleTg></TableCell>
@@ -218,7 +204,7 @@ export default function StudentActivityRecords() {
               <TableCell width="12%" align="center" sx={{ py: 1 }}><AppleTg>감상문</AppleTg></TableCell>
               <TableCell width="12%" align="center" sx={{ py: 1 }}><AppleTg>주간 레오</AppleTg></TableCell>
               <TableCell width="12%" align="center" sx={{ py: 1 }}><AppleTg>월간 레오</AppleTg></TableCell>
-              <TableCell width="12%" align="center" sx={{ py: 1 }}>책 대여</TableCell>
+              <TableCell width="12%" align="center" sx={{ py: 1 }}><AppleTg>책 대여</AppleTg></TableCell>
               <TableCell align="center" sx={{ py: 1 }}><AppleTg>비고</AppleTg></TableCell>
             </TableRow>
           </TableHead>
@@ -234,18 +220,12 @@ export default function StudentActivityRecords() {
                       <div>({activityRecord.student.schoolName.replace('초등학교', '초').replace('중학교', '중').replace('고등학교', '고')} {activityRecord.student.schoolGrade}학년)</div>
                     </AppleTg>
                     {activePopup === activityRecord.id && (
-                      <FlexBox flexDirection="column" sx={{
-                        position: 'absolute', top: 'calc(100% + 0.5rem)', left: '50%', transform: 'translateX(-50%)',
-                        zIndex: 1000, backgroundColor: 'white', border: '1px solid #e0e0e0', borderRadius: '0.5rem',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)', padding: '0.25rem', whiteSpace: 'nowrap',
-                        '&::before': { content: '""', position: 'absolute', top: '-6px', left: '50%', transform: 'translateX(-50%)', borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '6px solid #e0e0e0' },
-                        '&::after': { content: '""', position: 'absolute', top: '-5px', left: '50%', transform: 'translateX(-50%)', borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderBottom: '5px solid white' },
-                      }}>
-                        <Button size="small" sx={{ color: 'black' }} onClick={() => { navigate(`/student/${activityRecord.student.id}`); setActivePopup(null); }}>상세로 이동</Button>
-                        <Button size="small" sx={{ color: 'black' }} onClick={() => { setMakeupTarget({ studentId: activityRecord.student.id }); setActivePopup(null); }}>보강 추가</Button>
-                        <Button size="small" sx={{ color: 'black' }} onClick={() => { setMemoTargetStudentId(activityRecord.student.id); setMemoType('fixed-memo'); setActivePopup(null); }}>고정 메모 추가</Button>
-                        <Button size="small" sx={{ color: 'black' }} onClick={() => { setMemoTargetStudentId(activityRecord.student.id); setMemoType('temporary-memo'); setActivePopup(null); }}>변동 메모 추가</Button>
-                      </FlexBox>
+                      <StudentActionPopup
+                        onNavigateDetail={() => { navigate(`/student/${activityRecord.student.id}`); setActivePopup(null); }}
+                        onAddMakeup={() => { setMakeupTarget({ studentId: activityRecord.student.id }); setActivePopup(null); }}
+                        onAddFixedMemo={() => { setMemoTargetStudentId(activityRecord.student.id); setMemoType('fixed-memo'); setActivePopup(null); }}
+                        onAddTempMemo={() => { setMemoTargetStudentId(activityRecord.student.id); setMemoType('temporary-memo'); setActivePopup(null); }}
+                      />
                     )}
                   </FlexBox>
                 </TableCell>

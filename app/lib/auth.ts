@@ -1,13 +1,7 @@
 import { buildApi } from "./api-builder";
 import { tokenManager } from "./token-manger";
 import { hashPassword } from "./utils/crypto.util";
-
-export enum AdminRoleType {
-  SUPER_ADMIN = 'super_admin',
-  ADMIN = 'admin',
-  MANAGER = 'manager',
-  STAFF = 'staff',
-}
+import { AdminRoleType } from "~/constants/type";
 
 export const getAdminRoleLevel = (role: AdminRoleType) => {
   switch (role) {

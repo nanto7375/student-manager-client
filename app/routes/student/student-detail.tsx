@@ -6,61 +6,18 @@ import { AppTabs } from "~/components/app-tabs";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import dayjs, { type Dayjs } from "dayjs";
 
-import { buildApi } from "~/lib/api-builder";
+import { getStudentApi, createNoteApi, updateNoteApi, toggleNoteStatusApi } from "~/lib/api/students.api";
+import { getActivityRecordsApi } from "~/lib/api/activities.api";
 import { mapNumberToDayOfWeek } from "~/lib/utils/time.util";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import { AppleTg } from "~/components/typography";
 import { useGlobalToast } from "~/providers/toast-provider";
 import { MakeupScheduleDialog } from "~/components/makeup-schedule-dialog";
-import type { ShortAdminDto } from "../admin/page";
 import { RecordNoteList } from "./components/record-note-list";
 import { MemoNoteList } from "./components/memo-note-list";
 
-type Schedule = {
-  id: number;
-  dayOfWeek: number;
-  startTime: string;
-  endTime: string;
-}
-
-type ScheduleReserved = {
-  id: number;
-  schedule: Schedule;
-  date: string; // YYYYMMDD
-}
-
-type Student = {
-  id: number;
-  birthDate: string;
-  birthYear: string;
-  name: string;
-  schoolGrade: number;
-  schoolLevel: number;
-  schoolName: string;
-  phone: string;
-  parentPhone: string;
-  schedule: Schedule;
-  scheduleReserved?: ScheduleReserved;
-  notes: Note[];
-  registeredAt: Date;
-  deletedAt: Date | null;
-}
-
-export type NoteType = 'note' | 'parent-counseling' | 'fixed-memo' | 'temporary-memo';
-
-export type Note = {
-  id: number;
-  value: string;
-  type: NoteType;
-  lastCommenter: ShortAdminDto;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const getStudentApi = buildApi<Student>({ path: '/students/:studentId', method: 'GET' });
-const createNoteApi = buildApi<Note>({ path: '/students/:studentId/notes', method: 'POST' });
-const updateNoteApi = buildApi<Note>({ path: '/students/:studentId/notes/:noteId', method: 'PATCH' });
-const toggleNoteStatusApi = buildApi<boolean>({path: '/students/:studentId/notes/:noteId/status', method: 'PATCH'});
+import type { StudentDetail as Student, Schedule, ScheduleReserved, StudentNote as Note, NoteType } from "~/constants/student.type";
+export type { Note, NoteType };
 
 type ActivityRecord = {
   id: number;
@@ -73,8 +30,6 @@ type ActivityRecord = {
   monthlyPreview: boolean;
   monthlyReport: boolean;
 };
-const getActivityRecordsApi = buildApi<ActivityRecord[]>({ path: '/activities', method: 'GET' });
-
 const studentQueryKey = (studentId: string) => ['student', studentId] as const;
 
 export const clientLoader = async ({ params }: { params: { studentId: string } }) => {
@@ -152,22 +107,9 @@ export default function StudentDetail() {
     enabled: selectedTab === 'activity',
   });
   const activityRecords = React.useMemo(() => {
-    const testData: ActivityRecord[] = [
-      { id: 901, date: '20260107', isMakeup: false, attendance: true, report1: true, report2: false, monthlyProject: false, monthlyPreview: false, monthlyReport: false },
-      { id: 902, date: '20260114', isMakeup: false, attendance: true, report1: true, report2: true, monthlyProject: false, monthlyPreview: false, monthlyReport: false },
-      { id: 903, date: '20260121', isMakeup: true, attendance: true, report1: false, report2: false, monthlyProject: false, monthlyPreview: false, monthlyReport: false },
-      { id: 904, date: '20260204', isMakeup: false, attendance: true, report1: true, report2: true, monthlyProject: true, monthlyPreview: true, monthlyReport: false },
-      { id: 905, date: '20260211', isMakeup: false, attendance: true, report1: true, report2: true, monthlyProject: false, monthlyPreview: false, monthlyReport: false },
-      { id: 906, date: '20260304', isMakeup: false, attendance: true, report1: true, report2: true, monthlyProject: true, monthlyPreview: true, monthlyReport: true },
-      { id: 907, date: '20260311', isMakeup: false, attendance: true, report1: false, report2: true, monthlyProject: false, monthlyPreview: false, monthlyReport: false },
-      { id: 908, date: '20260318', isMakeup: true, attendance: true, report1: true, report2: true, monthlyProject: false, monthlyPreview: false, monthlyReport: false },
-      { id: 909, date: '20260401', isMakeup: false, attendance: true, report1: true, report2: true, monthlyProject: true, monthlyPreview: false, monthlyReport: false },
-      { id: 910, date: '20260408', isMakeup: false, attendance: false, report1: false, report2: false, monthlyProject: false, monthlyPreview: false, monthlyReport: false },
-      { id: 911, date: '20260415', isMakeup: false, attendance: true, report1: true, report2: true, monthlyProject: false, monthlyPreview: false, monthlyReport: false },
-    ];
-    const all = [...testData, ...(rawActivityRecords ?? [])];
+    if (!rawActivityRecords) return [];
     const endOfMonth = dayjs().endOf('month').format('YYYYMMDD');
-    return all.filter(r => r.date <= endOfMonth).sort((a, b) => b.date.localeCompare(a.date));
+    return rawActivityRecords.filter(r => r.date <= endOfMonth).sort((a, b) => b.date.localeCompare(a.date));
   }, [rawActivityRecords]);
 
   if (studentDetailError || studentDetailLoading) return <FlexContainer padding="1rem" fullHeight fullWidth center></FlexContainer>;
@@ -225,7 +167,7 @@ export default function StudentDetail() {
           <FlexBox maxWidth="60rem" minWidth="30rem" fullHeight style={{width: '70%'}} flexDirection="column">
             <AppTabs
               value={selectedTab}
-              onChange={(_, newValue) => setSearchParams({ tab: newValue })}
+              onChange={(_, newValue) => setSearchParams({ tab: newValue }, { replace: true })}
               sx={{ mb: 1 }}
             >
               <Tab label="학생 기록" value="assessment" sx={{ fontSize: '1rem' }} />
@@ -265,7 +207,7 @@ export default function StudentDetail() {
                             {record.attendance && <AppleTg sx={{ fontSize: '0.75rem', color: '#4caf50' }}>출석</AppleTg>}
                             {record.report1 && <AppleTg sx={{ fontSize: '0.75rem', color: '#2196f3' }}>감상문</AppleTg>}
                             {record.report2 && <AppleTg sx={{ fontSize: '0.75rem', color: '#2196f3' }}>주간레오</AppleTg>}
-                            {record.monthlyProject && <AppleTg sx={{ fontSize: '0.75rem', color: '#9c27b0' }}>월간레오({record.monthlyPreview ? (record.monthlyReport ? '완료' : '감상문') : '개요'})</AppleTg>}
+                            {record.monthlyPreview && <AppleTg sx={{ fontSize: '0.75rem', color: '#9c27b0' }}>월간레오({record.monthlyReport ? '완료' : '개요 작성'})</AppleTg>}
                           </FlexBox>
                         </FlexBox>
                       </FlexBox>

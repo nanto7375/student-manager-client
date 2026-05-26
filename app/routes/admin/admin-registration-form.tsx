@@ -1,9 +1,9 @@
 import React from "react";
 import { FlexBox } from "~/components/styled-elements";
-import { FormInput, FormPhone } from "./components/form-components";
+import { FormInput, FormPhone } from "~/components/form/form-components";
 import { Button, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
 import { AppleTg } from "~/components/typography";
-import { buildApi } from "~/lib/api-builder";
+import { registerAdminApi, updateAdminApi, deleteAdminApi, resetPasswordApi } from "~/lib/api/admins.api";
 import { useQueryClient } from "@tanstack/react-query";
 import { adminListQueryKey } from "./admin-management-page";
 import { auth } from "~/lib/auth";
@@ -12,12 +12,7 @@ import { useConfirmModal } from "~/hooks/use-confirm-modal";
 
 // --- Types ---
 
-export enum AdminRoleType {
-  SUPER_ADMIN = 'super_admin',
-  ADMIN = 'admin',
-  MANAGER = 'manager',
-  STAFF = 'staff',
-}
+import { AdminRoleType } from "~/constants/type";
 
 export type AdminFormData = {
   id?: string;
@@ -50,13 +45,6 @@ const defaultAdminForm = (): AdminFormData => ({
 
 const formatPhone = (phone: string[]) =>
   phone.filter(Boolean).length > 1 ? phone.join('-') : null;
-
-// --- API ---
-
-const registerAdminApi = buildApi({ path: '/admins', method: 'POST' });
-const updateAdminApi = buildApi({ path: '/admins/:id', method: 'PUT' });
-const deleteAdminApi = buildApi({ path: '/admins/:id', method: 'DELETE' });
-const resetPasswordApi = buildApi({ path: '/admins/:id/password', method: 'PATCH' });
 
 // --- Component ---
 

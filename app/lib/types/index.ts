@@ -1,1 +1,1 @@
-export { AdminRoleType } from './admin-role';
+export { AdminRoleType } from '~/constants/type';

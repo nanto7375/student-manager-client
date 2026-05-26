@@ -8,43 +8,20 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 import EditIcon from "@mui/icons-material/Edit";
 import CloseIcon from "@mui/icons-material/Close";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import { buildApi } from "~/lib/api-builder";
+import { getStudentListForManagementApi, changeScheduleApi, cancelReservedScheduleApi } from "~/lib/api/students.api";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { StudentSearchFilter } from "../student/components/student-search-filter";
+import { TABLE_STYLE, TABLE_CONTAINER_STYLE } from "~/constants/styles";
 import { useScheduleList } from "../schedule/page";
 import { formatTime12Hour, mapNumberToDayOfWeek } from "~/lib/utils/time.util";
-import { FormSelect } from "./components/form-components";
+import { FormSelect } from "~/components/form/form-components";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import dayjs, { type Dayjs } from "dayjs";
 import { useConfirmModal } from "~/hooks/use-confirm-modal";
+import { DrawerTitle } from "./components/drawer-title";
 
 // --- Types ---
-type Schedule = {
-  id: number;
-  dayOfWeek: number;
-  startTime: string;
-  endTime: string;
-}
-
-type ScheduleReserved = {
-  id: number;
-  schedule: Schedule;
-  date: string; // YYYYMMDD
-}
-
-type Student = {
-  id: string;
-  name: string;
-  schoolName: string;
-  schoolGrade: number;
-  phone: string;
-  parentPhone: string;
-  scheduleId: number;
-  schedule?: Schedule;
-  scheduleReserved?: ScheduleReserved;
-  registeredAt: Date;
-  deletedAt: Date;
-};
+import type { StudentInManagement as Student, Schedule, ScheduleReserved } from "~/constants/student.type";
 
 type ScheduleForm = {
   scheduleDayOfWeek: number | undefined;
@@ -54,9 +31,7 @@ type ScheduleForm = {
 
 // --- API ---
 
-const getStudentListApi = buildApi<{ list: Student[]; count: number }>({ path: '/students', method: 'GET' });
-const changeScheduleApi = buildApi({ path: '/students/:studentId/schedules/:scheduleId', method: 'PATCH' }); // body: {dateForChange: string // YYYYMMDD}
-const cancelReservedScheduleApi = buildApi({ path: '/schedules/reserved/:reservedId', method: 'DELETE' });
+const getStudentListApi = getStudentListForManagementApi;
 export const studentListQueryKey = () => ['student-list'] as const;
 
 // --- Constants ---
@@ -246,8 +221,8 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
           <AppleTg>로딩 중...</AppleTg>
         ) : (
           <>
-            <TableContainer component={Paper} sx={{ maxHeight: 'calc(100vh - 15rem)', overflow: 'auto' }}>
-              <Table size="small" stickyHeader>
+            <TableContainer component={Paper} sx={TABLE_CONTAINER_STYLE}>
+              <Table size="small" stickyHeader sx={TABLE_STYLE}>
                 <TableHead>
                   <TableRow>
                     <TableCell align="center" width="5%">#</TableCell>
@@ -311,34 +286,12 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
         <FlexBox flexDirection="column" alignItems="center" gap={2} padding="2rem" width="25rem" sx={{ position: 'relative', height: '100%' }}>
           {/* 삭제된 항목: 오버레이로 편집 차단 (X 버튼만 zIndex로 클릭 가능) */}
           {editData?.deletedAt && <div style={{ position: 'absolute', inset: 0, zIndex: 10, backgroundColor: 'rgba(255,255,255,0.5)' }} />}
-          <FlexBox justifyContent="space-between" alignItems="flex-start" fullWidth sx={{ mb: 1 }}>
-            <FlexBox flexDirection="column">
-              <AppleTg sx={{ fontSize: '1.2rem', fontWeight: 600, mb: 0.75 }}>{editData ? editData.name : '학생 등록'}</AppleTg>
-              {editData?.schedule && (
-                <FlexBox alignItems="center" gap={0.5}>
-                  <AppleTg sx={{ fontSize: '0.85rem', color: '#666' }}>
-                    {formatSchedule(editData.schedule)}
-                  </AppleTg>
-                  <IconButton size="small" onClick={(e) => { (e.currentTarget as HTMLElement).blur(); openScheduleDialog(editData); }}>
-                    <EditIcon style={{ fontSize: '1rem' }} htmlColor="#999" />
-                  </IconButton>
-                </FlexBox>
-              )}
-              {editData?.scheduleReserved && (
-                <FlexBox alignItems="center" gap={0.5}>
-                  <AppleTg sx={{ fontSize: '0.8rem', color: 'red' }}>
-                    {formatSchedule(editData.scheduleReserved.schedule)} ({editData.scheduleReserved.date.slice(0,4)}. {editData.scheduleReserved.date.slice(4,6)}. {editData.scheduleReserved.date.slice(6,8)} 부터)
-                  </AppleTg>
-                  <IconButton size="small" onClick={openCancelScheduleModal}>
-                    <CloseIcon style={{ fontSize: '1rem' }} htmlColor="#e57373" />
-                  </IconButton>
-                </FlexBox>
-              )}
-            </FlexBox>
-            <IconButton onClick={closeDrawer} sx={{ zIndex: 20 }}>
-              <CloseIcon />
-            </IconButton>
-          </FlexBox>
+          <DrawerTitle
+            editData={editData}
+            onEditSchedule={openScheduleDialog}
+            onCancelReserved={openCancelScheduleModal}
+            onClose={closeDrawer}
+          />
           <StudentRegistrationForm
             showError={showError}
             showSuccess={showSuccess}

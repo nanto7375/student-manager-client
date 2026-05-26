@@ -4,20 +4,10 @@ import { Card, CardContent } from "@mui/material";
 import { useNavigate, useSearchParams } from "react-router";
 
 import { FlexContainer, FlexBox } from "~/components/styled-elements";
-import { buildApi } from "~/lib/api-builder";
+import { getStudentListApi } from "~/lib/api/students.api";
 import { StudentSearchFilter } from "./components/student-search-filter";
 import { useGlobalToast } from "~/providers/toast-provider";
-
-type StudentInListType = {
-  id: number;
-  birthDate: string;
-  birthYear: string;
-  name: string;
-  schoolGrade: number;
-  schoolLevel: number;
-  schoolName: string;
-}
-const getStudentListApi = buildApi<{ list: StudentInListType[]; count: number }>({ path: '/students', method: 'GET' });
+import type { StudentInList as StudentInListType } from "~/constants/student.type";
 
 const LIMIT = 40;
 

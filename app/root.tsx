@@ -16,13 +16,13 @@ import { FlexBox, FlexContainer } from "./components/styled-elements";
 import { ROUTES } from "./constants";
 import NotFound from "./not-found";
 import SideBar from "./sidebar";
-import { buildApi } from "./lib/api-builder";
+import { getMeApi } from "./lib/api/admins.api";
 import { tokenManager } from "./lib/token-manger";
 import { auth, type Admin } from "./lib/auth";
 
 export { Layout, links } from "./layout";
 
-const meApi = buildApi<Admin>({ path: '/admins/me', method: 'GET' });
+const meApi = getMeApi;
 
 export default function App() {
   const {pathname} = useLocation();

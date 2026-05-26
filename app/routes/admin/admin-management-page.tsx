@@ -1,10 +1,12 @@
 import React from "react";
 import { useSearchParams } from "react-router";
 import { FlexContainer, FlexBox } from "~/components/styled-elements";
-import { AdminRegistrationForm, AdminRoleType, type AdminFormData } from "./admin-registration-form";
+import { AdminRegistrationForm, type AdminFormData } from "./admin-registration-form";
+import { AdminRoleType } from "~/constants/type";
 import { useGlobalToast } from "~/providers/toast-provider";
-import { buildApi } from "~/lib/api-builder";
+import { getAdminListApi } from "~/lib/api/admins.api";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { TABLE_STYLE, TABLE_CONTAINER_STYLE } from "~/constants/styles";
 import { AppleTg } from "~/components/typography";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Drawer, IconButton, TablePagination, Select, MenuItem } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
@@ -24,7 +26,6 @@ type Admin = {
 
 // --- API ---
 
-const getAdminListApi = buildApi<{ list: Admin[]; count: number }>({ path: '/admins', method: 'GET' });
 export const adminListQueryKey = () => ['admin-list'] as const;
 
 // --- Helpers ---
@@ -120,8 +121,8 @@ export const AdminManagementPage = ({ registerOpen, onRegisterClose, showDeleted
 
         {/* Table */}
           <>
-            <TableContainer component={Paper} sx={{ maxHeight: 'calc(100vh - 15rem)', overflow: 'auto' }}>
-              <Table size="small" stickyHeader>
+            <TableContainer component={Paper} sx={TABLE_CONTAINER_STYLE}>
+              <Table size="small" stickyHeader sx={TABLE_STYLE}>
                 <TableHead>
                   <TableRow>
                     <TableCell align="center" width="5%">#</TableCell>

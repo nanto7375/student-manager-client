@@ -4,15 +4,11 @@ import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import dayjs, { type Dayjs } from "dayjs";
 
 import { FlexBox } from "~/components/styled-elements";
-import { buildApi } from "~/lib/api-builder";
+import { createMakeupScheduleApi } from "~/lib/api/students.api";
 import { useGlobalToast } from "~/providers/toast-provider";
 import { useScheduleList } from "~/routes/schedule/page";
 import { formatTime12Hour, mapNumberToDayOfWeek } from "~/lib/utils/time.util";
-import { FormSelect } from "~/routes/admin/components/form-components";
-
-// --- API ---
-
-const createMakeupScheduleApi = buildApi<void>({ path: '/students/:studentId/makeup', method: 'POST' });
+import { FormSelect } from "~/components/form/form-components";
 
 // --- Types ---
 
