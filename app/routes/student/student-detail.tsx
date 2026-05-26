@@ -1,7 +1,7 @@
 import React from "react";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLoaderData, useSearchParams } from "react-router";
-import { Tab } from "@mui/material";
+import { Tab, Button } from "@mui/material";
 import { AppTabs } from "~/components/app-tabs";
 
 import { buildApi } from "~/lib/api-builder";
@@ -9,6 +9,7 @@ import { mapNumberToDayOfWeek } from "~/lib/utils/time.util";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import { AppleTg } from "~/components/typography";
 import { useGlobalToast } from "~/providers/toast-provider";
+import { MakeupScheduleDialog } from "~/components/makeup-schedule-dialog";
 import type { ShortAdminDto } from "../admin/page";
 import { RecordNoteList } from "./components/record-note-list";
 import { MemoNoteList } from "./components/memo-note-list";
@@ -126,6 +127,9 @@ export default function StudentDetail() {
     }
   }, [studentId])
 
+  // 보강 추가
+  const [makeupOpen, setMakeupOpen] = React.useState(false);
+
   if (studentDetailError || studentDetailLoading) return <FlexContainer padding="1rem" fullHeight fullWidth center></FlexContainer>;
 
   const schoolLevelLabel = student.schoolLevel === 1 ? '초등' : student.schoolLevel === 2 ? '중등' : '고등';
@@ -176,23 +180,17 @@ export default function StudentDetail() {
           )}
         </FlexBox>
       
-      <AppTabs
-        value={selectedTab}
-        onChange={(_, newValue) => setSearchParams({ tab: newValue })}
-        centered
-        sx={{
-          position: 'relative',
-          zIndex: 1,
-          mt: 2,
-        }}
-      >
-        <Tab label="학생 기록" value="assessment" sx={{ fontSize: '1rem' }} />
-        <Tab label="상담 기록" value="parent-counseling" sx={{ fontSize: '1rem' }} />
-      </AppTabs>
-
-      <FlexBox fullHeight fullWidth style={{paddingLeft: '1rem', paddingRight: '0.5rem', overflowY: 'hidden', overflowX: 'auto'}}>
+      <FlexBox fullHeight fullWidth style={{paddingLeft: '1rem', paddingRight: '0.5rem', overflowY: 'hidden', overflowX: 'auto', marginTop: '1rem'}}>
         <FlexBox gap={1.5} fullHeight style={{margin: '0 auto', minWidth: '50rem', maxWidth: '95rem', width: '100%'}}>
           <FlexBox maxWidth="60rem" minWidth="30rem" fullHeight style={{width: '70%'}} flexDirection="column">
+            <AppTabs
+              value={selectedTab}
+              onChange={(_, newValue) => setSearchParams({ tab: newValue })}
+              sx={{ mb: 1 }}
+            >
+              <Tab label="학생 기록" value="assessment" sx={{ fontSize: '1rem' }} />
+              <Tab label="상담 기록" value="parent-counseling" sx={{ fontSize: '1rem' }} />
+            </AppTabs>
             <RecordNoteList
               createNote={createNote}
               updateNote={updateNote}
@@ -203,7 +201,10 @@ export default function StudentDetail() {
             />
           </FlexBox>
 
-          <FlexBox maxWidth="35rem" minWidth="25rem" height='80%' sx={{ flex:1, overflowY: 'hidden'}}>
+          <FlexBox maxWidth="35rem" minWidth="25rem" flexDirection="column" sx={{ flex:1, overflowY: 'hidden', height: 'calc(100% - 0.25rem)', backgroundColor: '#f9f9f9', backgroundImage: 'radial-gradient(circle, #ddd 1px, transparent 1px)', backgroundSize: '12px 12px', borderRadius: '0.5rem', border: '1px solid #e0e0e0', padding: '0.75rem', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}>
+            <Button onClick={() => setMakeupOpen(true)} sx={{ mt: 1, mb: 3, width: '100%', height: '3.5rem', backgroundColor: 'white', border: '1px solid #ddd', boxShadow: '0 2px 4px rgba(0,0,0,0.08)', borderRadius: '0.5rem', color: '#666', '&:hover': { backgroundColor: '#fafafa', boxShadow: '0 3px 6px rgba(0,0,0,0.12)' } }}>
+              보강 추가
+            </Button>
             <MemoNoteList 
               notes={notes} 
               createNote={createNote} 
@@ -213,6 +214,7 @@ export default function StudentDetail() {
           </FlexBox>
         </FlexBox>
       </FlexBox>
+      <MakeupScheduleDialog open={makeupOpen} onClose={() => setMakeupOpen(false)} studentId={studentId} />
     </FlexContainer>
   );
 }

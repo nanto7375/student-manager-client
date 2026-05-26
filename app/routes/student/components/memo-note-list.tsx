@@ -30,7 +30,7 @@ export const MemoNoteList = ({ notes, createNote, toggleMemoNoteStatus, disabled
   const temporaryMemoNotes = notes.filter(note => note.type === 'temporary-memo');
 
   return (
-    <FlexContainer fullHeight fullWidth gap={1.5} flexDirection="column">
+    <FlexContainer fullHeight fullWidth gap={1} flexDirection="column">
       <MemoContainer title="고정 메모" notes={fixedMemoNotes} type="fixed-memo" createNote={createNote} toggleMemoNoteStatus={toggleMemoNoteStatus} disabled={disabled} />
       <MemoContainer title="변동 메모" notes={temporaryMemoNotes} type="temporary-memo" createNote={createNote} toggleMemoNoteStatus={toggleMemoNoteStatus} disabled={disabled} />
     </FlexContainer>
@@ -68,7 +68,7 @@ const MemoContainer = ({ title, notes, type, createNote, toggleMemoNoteStatus, d
     <FlexBox
       flexDirection="column"
       fullWidth
-      sx={{ borderRadius: '0.5rem', border: '1px solid #ddd', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', overflow: 'hidden', flex: 1, minHeight: 0 }}
+      sx={{ borderRadius: '0.5rem', border: '1px solid #ddd', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', overflow: 'hidden', height: '30%', minHeight: 0, backgroundColor: 'white' }}
     >
       {/* 타이틀 */}
       <FlexBox padding="0.5rem 1rem" sx={{ borderBottom: '1px solid #eee' }}>
@@ -78,7 +78,7 @@ const MemoContainer = ({ title, notes, type, createNote, toggleMemoNoteStatus, d
       {/* 메모 목록 */}
       <FlexBox flexDirection="column" sx={{ overflowY: 'auto', flex: 1, py: 0.5 }}>
         {notes.map(note => (
-          <FlexBox key={note.id} alignItems="center" padding="0.25rem 0.5rem" sx={{ '&:hover': { backgroundColor: '#f9f9f9' } }}>
+          <FlexBox key={note.id} alignItems="center" padding="0 0.5rem" sx={{ '&:hover': { backgroundColor: '#f9f9f9' } }}>
             <Checkbox size="small" checked={checked.has(note.id)} onChange={() => toggleCheck(note.id)} disabled={disabled} />
             <AppleTg sx={{ textDecoration: checked.has(note.id) ? 'line-through' : 'none', color: checked.has(note.id) ? '#aaa' : 'inherit' }}>
               {note.value}

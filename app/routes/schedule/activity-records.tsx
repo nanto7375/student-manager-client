@@ -1,18 +1,15 @@
 import React from "react";
 import { useLoaderData, useNavigate } from "react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Button, Modal, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
-import dayjs, { type Dayjs } from "dayjs";
+import { TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Button, Modal } from "@mui/material";
+import dayjs from "dayjs";
 
 import type { SchoolLevel } from "~/constants/type";
 import { buildApi } from "~/lib/api-builder";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import { AppleTg } from "~/components/typography";
 import { useGlobalToast } from "~/providers/toast-provider";
-import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
-import { useScheduleList } from "./page";
-import { formatTime12Hour, mapNumberToDayOfWeek } from "~/lib/utils/time.util";
-import { FormSelect } from "../admin/components/form-components";
+import { MakeupScheduleDialog } from "~/components/makeup-schedule-dialog";
 
 type StudentInActivityDto = {
   id: number;
@@ -91,8 +88,6 @@ const updateMonthlyActivityRecordApi = buildApi<ActivityRecordType>({ path: '/ac
 const borrowBookApi = buildApi<void>({ path: '/book-rentals', method: 'POST' });
 const returnBookApi = buildApi<void>({ path: '/book-rentals/:bookRentalId/return', method: 'PATCH' });
 const createNoteApi = buildApi<void>({ path: '/students/:studentId/notes', method: 'POST' });
-const createMakeupScheduleApi = buildApi<void>({ path: '/students/:studentId/schedules/:scheduleId/makeup', method: 'POST' });  // dateForMakeup: YYYYMMDD, movedAt: Date 현재 스케쥴
-
 export default function StudentActivityRecords() {
   const queryClient = useQueryClient();
   const { scheduleId, date } = useLoaderData<typeof clientLoader>();
@@ -106,24 +101,6 @@ export default function StudentActivityRecords() {
   const [memoTargetStudentId, setMemoTargetStudentId] = React.useState<number | null>(null);
   const [memoType, setMemoType] = React.useState<'fixed-memo' | 'temporary-memo'>('temporary-memo');
   const [makeupTarget, setMakeupTarget] = React.useState<{ studentId: number } | null>(null);
-  const [makeupDate, setMakeupDate] = React.useState<Dayjs>(dayjs());
-  const [makeupScheduleId, setMakeupScheduleId] = React.useState<number | undefined>(undefined);
-  const { scheduleList } = useScheduleList();
-
-  const handleCreateMakeup = async () => {
-    if (!makeupTarget || !makeupScheduleId) return;
-    try {
-      await createMakeupScheduleApi({ params: { studentId: makeupTarget.studentId, scheduleId: makeupScheduleId }, body: { dateForMakeup: makeupDate.format('YYYYMMDD') } });
-      queryClient.invalidateQueries({ queryKey: activityRecordsQueryKey(scheduleId, date) });
-      toast.success('보강이 추가되었습니다.');
-      setMakeupTarget(null);
-      setMakeupDate(dayjs());
-      setMakeupScheduleId(undefined);
-    } catch (e) {
-      console.error(e);
-      toast.error('보강 추가에 실패했습니다.');
-    }
-  };
 
   const handleAddTempMemo = async (studentId: number) => {
     if (!memoInput.trim()) return;
@@ -265,7 +242,7 @@ export default function StudentActivityRecords() {
                         '&::after': { content: '""', position: 'absolute', top: '-5px', left: '50%', transform: 'translateX(-50%)', borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderBottom: '5px solid white' },
                       }}>
                         <Button size="small" sx={{ color: 'black' }} onClick={() => { navigate(`/student/${activityRecord.student.id}`); setActivePopup(null); }}>상세로 이동</Button>
-                        <Button size="small" sx={{ color: 'black' }} onClick={() => { setMakeupTarget({ studentId: activityRecord.student.id }); setMakeupDate(dayjs()); setActivePopup(null); }}>보강 추가</Button>
+                        <Button size="small" sx={{ color: 'black' }} onClick={() => { setMakeupTarget({ studentId: activityRecord.student.id }); setActivePopup(null); }}>보강 추가</Button>
                         <Button size="small" sx={{ color: 'black' }} onClick={() => { setMemoTargetStudentId(activityRecord.student.id); setMemoType('fixed-memo'); setActivePopup(null); }}>고정 메모 추가</Button>
                         <Button size="small" sx={{ color: 'black' }} onClick={() => { setMemoTargetStudentId(activityRecord.student.id); setMemoType('temporary-memo'); setActivePopup(null); }}>변동 메모 추가</Button>
                       </FlexBox>
@@ -364,30 +341,12 @@ export default function StudentActivityRecords() {
         </FlexBox>
       </Modal>
 
-      {/* 보강 추가 Dialog */}
-      <Dialog open={!!makeupTarget} onClose={() => setMakeupTarget(null)}>
-        <DialogTitle>보강 날짜 및 스케줄 선택</DialogTitle>
-        <DialogContent>
-          <FlexBox flexDirection="column" gap={1} padding="1rem 0 0 0">
-            <FormSelect
-              value={[makeupScheduleId]}
-              onChange={(e) => setMakeupScheduleId(Number(e.target.value))}
-              items={[{
-                id: 'makeupScheduleId',
-                placeholder: '수업 시간',
-                options: (scheduleList ?? [])
-                  .filter(s => s.dayOfWeek === makeupDate.day())
-                  .map(s => ({ value: s.id, label: `${mapNumberToDayOfWeek(s.dayOfWeek)} ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}` })),
-              }]}
-            />
-            <DateCalendar value={makeupDate} onChange={(d: Dayjs) => { setMakeupDate(d); setMakeupScheduleId(undefined); }} />
-          </FlexBox>
-        </DialogContent>
-        <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
-          <Button onClick={() => setMakeupTarget(null)}>취소</Button>
-          <Button variant="contained" disabled={!makeupScheduleId} onClick={handleCreateMakeup}>추가</Button>
-        </DialogActions>
-      </Dialog>
+      <MakeupScheduleDialog
+        open={!!makeupTarget}
+        onClose={() => setMakeupTarget(null)}
+        studentId={makeupTarget?.studentId ?? 0}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: activityRecordsQueryKey(scheduleId, date) })}
+      />
     </FlexContainer>
   )
 }
