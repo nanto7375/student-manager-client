@@ -1,8 +1,10 @@
 import React from "react";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLoaderData, useSearchParams } from "react-router";
-import { Tab, Button } from "@mui/material";
+import { Tab, Button, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import { AppTabs } from "~/components/app-tabs";
+import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
+import dayjs, { type Dayjs } from "dayjs";
 
 import { buildApi } from "~/lib/api-builder";
 import { mapNumberToDayOfWeek } from "~/lib/utils/time.util";
@@ -60,6 +62,19 @@ const createNoteApi = buildApi<Note>({ path: '/students/:studentId/notes', metho
 const updateNoteApi = buildApi<Note>({ path: '/students/:studentId/notes/:noteId', method: 'PATCH' });
 const toggleNoteStatusApi = buildApi<boolean>({path: '/students/:studentId/notes/:noteId/status', method: 'PATCH'});
 
+type ActivityRecord = {
+  id: number;
+  date: string;
+  isMakeup: boolean;
+  attendance: boolean;
+  report1: boolean;
+  report2: boolean;
+  monthlyProject: boolean;
+  monthlyPreview: boolean;
+  monthlyReport: boolean;
+};
+const getActivityRecordsApi = buildApi<ActivityRecord[]>({ path: '/activities', method: 'GET' });
+
 const studentQueryKey = (studentId: string) => ['student', studentId] as const;
 
 export const clientLoader = async ({ params }: { params: { studentId: string } }) => {
@@ -84,7 +99,7 @@ export default function StudentDetail() {
 
   const [infoOpen, setInfoOpen] = React.useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
-  const selectedTab = (searchParams.get('tab') as 'assessment' | 'parent-counseling') || 'assessment';
+  const selectedTab = (searchParams.get('tab') as 'assessment' | 'parent-counseling' | 'activity') || 'assessment';
 
   const createNote = async ({value, type}: {value: string, type: NoteType}) => {
     try {
@@ -129,6 +144,31 @@ export default function StudentDetail() {
 
   // 보강 추가
   const [makeupOpen, setMakeupOpen] = React.useState(false);
+
+  // 활동 기록 (이번 달 말일까지 클라이언트 필터)
+  const { data: rawActivityRecords } = useQuery({
+    queryKey: ['student-activities', studentId],
+    queryFn: () => getActivityRecordsApi({ query: { studentId } }),
+    enabled: selectedTab === 'activity',
+  });
+  const activityRecords = React.useMemo(() => {
+    const testData: ActivityRecord[] = [
+      { id: 901, date: '20260107', isMakeup: false, attendance: true, report1: true, report2: false, monthlyProject: false, monthlyPreview: false, monthlyReport: false },
+      { id: 902, date: '20260114', isMakeup: false, attendance: true, report1: true, report2: true, monthlyProject: false, monthlyPreview: false, monthlyReport: false },
+      { id: 903, date: '20260121', isMakeup: true, attendance: true, report1: false, report2: false, monthlyProject: false, monthlyPreview: false, monthlyReport: false },
+      { id: 904, date: '20260204', isMakeup: false, attendance: true, report1: true, report2: true, monthlyProject: true, monthlyPreview: true, monthlyReport: false },
+      { id: 905, date: '20260211', isMakeup: false, attendance: true, report1: true, report2: true, monthlyProject: false, monthlyPreview: false, monthlyReport: false },
+      { id: 906, date: '20260304', isMakeup: false, attendance: true, report1: true, report2: true, monthlyProject: true, monthlyPreview: true, monthlyReport: true },
+      { id: 907, date: '20260311', isMakeup: false, attendance: true, report1: false, report2: true, monthlyProject: false, monthlyPreview: false, monthlyReport: false },
+      { id: 908, date: '20260318', isMakeup: true, attendance: true, report1: true, report2: true, monthlyProject: false, monthlyPreview: false, monthlyReport: false },
+      { id: 909, date: '20260401', isMakeup: false, attendance: true, report1: true, report2: true, monthlyProject: true, monthlyPreview: false, monthlyReport: false },
+      { id: 910, date: '20260408', isMakeup: false, attendance: false, report1: false, report2: false, monthlyProject: false, monthlyPreview: false, monthlyReport: false },
+      { id: 911, date: '20260415', isMakeup: false, attendance: true, report1: true, report2: true, monthlyProject: false, monthlyPreview: false, monthlyReport: false },
+    ];
+    const all = [...testData, ...(rawActivityRecords ?? [])];
+    const endOfMonth = dayjs().endOf('month').format('YYYYMMDD');
+    return all.filter(r => r.date <= endOfMonth).sort((a, b) => b.date.localeCompare(a.date));
+  }, [rawActivityRecords]);
 
   if (studentDetailError || studentDetailLoading) return <FlexContainer padding="1rem" fullHeight fullWidth center></FlexContainer>;
 
@@ -190,15 +230,50 @@ export default function StudentDetail() {
             >
               <Tab label="학생 기록" value="assessment" sx={{ fontSize: '1rem' }} />
               <Tab label="상담 기록" value="parent-counseling" sx={{ fontSize: '1rem' }} />
+              <Tab label="활동 기록" value="activity" sx={{ fontSize: '1rem' }} />
             </AppTabs>
-            <RecordNoteList
-              createNote={createNote}
-              updateNote={updateNote}
-              deleteNote={deleteNote}
-              notes={notes}
-              selectedTab={selectedTab}
-              disabled={!!student.deletedAt}
-            />
+            {selectedTab !== 'activity' ? (
+              <RecordNoteList
+                createNote={createNote}
+                updateNote={updateNote}
+                deleteNote={deleteNote}
+                notes={notes}
+                selectedTab={selectedTab}
+                disabled={!!student.deletedAt}
+              />
+            ) : (
+              <FlexBox gap={1} sx={{ overflow: 'auto', flex: 1, minHeight: 0, flexWrap: 'wrap', alignContent: 'flex-start', alignItems: 'flex-start' }}>
+                {Object.entries(
+                  (activityRecords ?? []).reduce<Record<string, typeof activityRecords>>((acc, record) => {
+                    const month = `${record.date.slice(0,4)}년 ${Number(record.date.slice(4,6))}월`;
+                    (acc[month] ??= []).push(record);
+                    return acc;
+                  }, {})
+                ).map(([month, records]) => (
+                  <FlexBox key={month} flexDirection="column" sx={{ border: '1px solid #eee', borderRadius: '0.5rem', width: 'calc(50% - 0.5rem)' }}>
+                    <FlexBox padding="0.5rem 1rem" sx={{ backgroundColor: '#f5f5f5' }}>
+                      <AppleTg sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#333' }}>{month}</AppleTg>
+                    </FlexBox>
+                    {records.map(record => (
+                      <FlexBox key={record.id} padding="0.5rem 1rem" sx={{ borderTop: '1px solid #eee', backgroundColor: record.isMakeup ? '#fff8e1' : 'white' }}>
+                        <FlexBox gap={2} alignItems="center" fullWidth justifyContent="space-between">
+                          <AppleTg sx={{ fontSize: '0.85rem', fontWeight: 600 }}>
+                            {Number(record.date.slice(4,6))}/{Number(record.date.slice(6,8))}
+                            {record.isMakeup && <span style={{ color: '#e65100' }}> (보강)</span>}
+                          </AppleTg>
+                          <FlexBox gap={1}>
+                            {record.attendance && <AppleTg sx={{ fontSize: '0.75rem', color: '#4caf50' }}>출석</AppleTg>}
+                            {record.report1 && <AppleTg sx={{ fontSize: '0.75rem', color: '#2196f3' }}>감상문</AppleTg>}
+                            {record.report2 && <AppleTg sx={{ fontSize: '0.75rem', color: '#2196f3' }}>주간레오</AppleTg>}
+                            {record.monthlyProject && <AppleTg sx={{ fontSize: '0.75rem', color: '#9c27b0' }}>월간레오({record.monthlyPreview ? (record.monthlyReport ? '완료' : '감상문') : '개요'})</AppleTg>}
+                          </FlexBox>
+                        </FlexBox>
+                      </FlexBox>
+                    ))}
+                  </FlexBox>
+                ))}
+              </FlexBox>
+            )}
           </FlexBox>
 
           <FlexBox maxWidth="35rem" minWidth="25rem" flexDirection="column" sx={{ flex:1, overflowY: 'hidden', height: 'calc(100% - 0.25rem)', backgroundColor: '#f9f9f9', backgroundImage: 'radial-gradient(circle, #ddd 1px, transparent 1px)', backgroundSize: '12px 12px', borderRadius: '0.5rem', border: '1px solid #e0e0e0', padding: '0.75rem', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}>

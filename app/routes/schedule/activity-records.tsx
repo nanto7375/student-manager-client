@@ -60,7 +60,7 @@ const ActivityKey: Record<string, keyof ActivityCheck> = {
   MONTHLY_REPORT: 'monthlyReport',
 }
 
-const getActivityRecords = buildApi<ActivityRecordType[]>({ path: '/activities', method: 'GET' });
+const getActivityRecordsApi = buildApi<ActivityRecordType[]>({ path: '/activities', method: 'GET' });
 
 const monthlyProjectStatusText = (record: ActivityRecordType) => {
   if (!record.monthlyProject) return '참여';
@@ -117,7 +117,7 @@ export default function StudentActivityRecords() {
   
   const { data: activityRecords, isLoading } = useQuery({
     queryKey: activityRecordsQueryKey(scheduleId, date),
-    queryFn: () => getActivityRecords({ query: { scheduleId, date } }),
+    queryFn: () => getActivityRecordsApi({ query: { scheduleId, date } }),
     enabled: !!scheduleId && !!date,
   });
 
