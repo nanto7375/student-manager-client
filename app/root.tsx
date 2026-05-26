@@ -18,7 +18,7 @@ import NotFound from "./not-found";
 import SideBar from "./sidebar";
 import { getMeApi } from "./lib/api/admins.api";
 import { tokenManager } from "./lib/token-manger";
-import { auth, type Admin } from "./lib/auth";
+import { auth } from "./lib/auth";
 
 export { Layout, links } from "./layout";
 

@@ -6,7 +6,6 @@ import { FlexContainer, FlexBox } from "~/components/styled-elements";
 import { AppleTg } from "~/components/typography";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Drawer, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TablePagination, Select, MenuItem } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-import CloseIcon from "@mui/icons-material/Close";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { getStudentListForManagementApi, changeScheduleApi, cancelReservedScheduleApi } from "~/lib/api/students.api";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
@@ -21,7 +20,7 @@ import { useConfirmModal } from "~/hooks/use-confirm-modal";
 import { DrawerTitle } from "./components/drawer-title";
 
 // --- Types ---
-import type { StudentInManagement as Student, Schedule, ScheduleReserved } from "~/constants/student.type";
+import type { StudentInManagement as Student, Schedule } from "~/constants/student.type";
 
 type ScheduleForm = {
   scheduleDayOfWeek: number | undefined;

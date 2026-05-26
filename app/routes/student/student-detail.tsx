@@ -1,10 +1,9 @@
 import React from "react";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLoaderData, useSearchParams } from "react-router";
-import { Tab, Button, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
+import { Tab, Button } from "@mui/material";
 import { AppTabs } from "~/components/app-tabs";
-import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
-import dayjs, { type Dayjs } from "dayjs";
+import dayjs from "dayjs";
 
 import { getStudentApi, createNoteApi, updateNoteApi, toggleNoteStatusApi } from "~/lib/api/students.api";
 import { getActivityRecordsApi } from "~/lib/api/activities.api";
@@ -16,20 +15,8 @@ import { MakeupScheduleDialog } from "~/components/makeup-schedule-dialog";
 import { RecordNoteList } from "./components/record-note-list";
 import { MemoNoteList } from "./components/memo-note-list";
 
-import type { StudentDetail as Student, Schedule, ScheduleReserved, StudentNote as Note, NoteType } from "~/constants/student.type";
+import type { StudentNote as Note, NoteType } from "~/constants/student.type";
 export type { Note, NoteType };
-
-type ActivityRecord = {
-  id: number;
-  date: string;
-  isMakeup: boolean;
-  attendance: boolean;
-  report1: boolean;
-  report2: boolean;
-  monthlyProject: boolean;
-  monthlyPreview: boolean;
-  monthlyReport: boolean;
-};
 const studentQueryKey = (studentId: string) => ['student', studentId] as const;
 
 export const clientLoader = async ({ params }: { params: { studentId: string } }) => {
