@@ -115,7 +115,13 @@ export default function StudentDetail() {
           <FlexBox alignItems="flex-end" sx={{ gap: '0.5rem', cursor: 'pointer', width: 'fit-content' }} onClick={() => setInfoOpen(!infoOpen)}>
             <FlexBox sx={{fontWeight: 'bold', fontSize: '1.5rem'}}>{student.name}</FlexBox>
             {(student.schoolName || student.schoolGrade) && <FlexBox sx={{ color: '#666' }}>{student.schoolName} {student.schoolGrade && `${student.schoolGrade}학년`}</FlexBox>}
-            <FlexBox sx={{ color: '#666' }}>({schoolLevelLabel})</FlexBox>
+
+            {student.schedule && (
+              <FlexBox sx={{ color: '#555', fontSize: '0.85rem' }}>
+                📅 {mapNumberToDayOfWeek(student.schedule.dayOfWeek)} {student.schedule.startTime.slice(0,2)}:{student.schedule.startTime.slice(2)}-{student.schedule.endTime.slice(0,2)}:{student.schedule.endTime.slice(2)}
+                {student.scheduleReserved && <span style={{ color: 'red' }}> → {mapNumberToDayOfWeek(student.scheduleReserved.schedule.dayOfWeek)} {student.scheduleReserved.schedule.startTime.slice(0,2)}:{student.scheduleReserved.schedule.startTime.slice(2)}-{student.scheduleReserved.schedule.endTime.slice(0,2)}:{student.scheduleReserved.schedule.endTime.slice(2)}</span>}
+              </FlexBox>
+            )}
           </FlexBox>
           {infoOpen && (
             <FlexBox
@@ -138,12 +144,6 @@ export default function StudentDetail() {
               }}
             >
               {student.birthYear && <AppleTg sx={{ fontSize: '0.85rem' }}>{student.birthYear}년생 {student.birthDate ? `${student.birthDate.slice(0,2)}/${student.birthDate.slice(2)}` : ''}</AppleTg>}
-              {student.schedule && (
-                <AppleTg sx={{ fontSize: '0.85rem' }}>
-                  📅 {mapNumberToDayOfWeek(student.schedule.dayOfWeek)} {student.schedule.startTime.slice(0,2)}:{student.schedule.startTime.slice(2)}-{student.schedule.endTime.slice(0,2)}:{student.schedule.endTime.slice(2)}
-                  {student.scheduleReserved && <span style={{ color: 'red' }}> → {mapNumberToDayOfWeek(student.scheduleReserved.schedule.dayOfWeek)} {student.scheduleReserved.schedule.startTime.slice(0,2)}:{student.scheduleReserved.schedule.startTime.slice(2)}-{student.scheduleReserved.schedule.endTime.slice(0,2)}:{student.scheduleReserved.schedule.endTime.slice(2)}</span>}
-                </AppleTg>
-              )}
               {student.phone && <AppleTg sx={{ fontSize: '0.85rem' }}>📱 {student.phone}</AppleTg>}
               {student.parentPhone && <AppleTg sx={{ fontSize: '0.85rem' }}>📞 {student.parentPhone}</AppleTg>}
             </FlexBox>
