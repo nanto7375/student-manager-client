@@ -21,17 +21,17 @@ export type StudentInList = {
   birthDate: string;
   birthYear: string;
   name: string;
-  schoolGrade: number;
+  schoolGrade: number | null;
   schoolLevel: number;
-  schoolName: string;
+  schoolName: string | null;
 };
 
 /** 학생 관리 테이블용 (admin/student-management) */
 export type StudentInManagement = {
   id: string;
   name: string;
-  schoolName: string;
-  schoolGrade: number;
+  schoolName: string | null;
+  schoolGrade: number | null;
   phone: string;
   parentPhone: string;
   scheduleId: number;
@@ -47,9 +47,9 @@ export type StudentDetail = {
   birthDate: string;
   birthYear: string;
   name: string;
-  schoolGrade: number;
+  schoolGrade: number | null;
   schoolLevel: number;
-  schoolName: string;
+  schoolName: string | null;
   phone: string;
   parentPhone: string;
   schedule: Schedule;
@@ -63,9 +63,9 @@ export type StudentDetail = {
 export type StudentInActivity = {
   id: number;
   name: string;
-  schoolName: string;
+  schoolName: string | null;
   schoolLevel: number;
-  schoolGrade: number;
+  schoolGrade: number | null;
   notes: { id: number; type: 'fixed-memo' | 'temporary-memo'; value: string }[];
   deletedAt: Date | null;
 };

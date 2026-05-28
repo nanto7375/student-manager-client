@@ -218,7 +218,7 @@ export default function StudentActivityRecords() {
                   <FlexBox sx={{ position: 'relative', justifyContent: 'center' }}>
                     <AppleTg component="div" sx={{fontSize: '0.9rem', cursor: 'pointer'}} onClick={() => { setActivePopup(activePopup === activityRecord.id ? null : activityRecord.id); setMemoInput(''); }}>
                       <div>{activityRecord.student.name}{activityRecord.isMakeup && <span style={{ color: '#e65100' }}> (보강)</span>}</div>
-                      <div>({activityRecord.student.schoolName.replace('초등학교', '초').replace('중학교', '중').replace('고등학교', '고')} {activityRecord.student.schoolGrade}학년)</div>
+                      {activityRecord.student.schoolName && <div>({activityRecord.student.schoolName.replace('초등학교', '초').replace('중학교', '중').replace('고등학교', '고')} {activityRecord.student.schoolGrade}학년)</div>}
                     </AppleTg>
                     {activePopup === activityRecord.id && (
                       <StudentActionPopup

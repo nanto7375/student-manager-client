@@ -241,8 +241,8 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
                     <TableRow key={student.id} sx={{ height: '4rem' }}>
                       <TableCell align="center">{index + 1}</TableCell>
                       <TableCell align="center">{student.name}</TableCell>
-                      <TableCell align="center">{student.schoolName}</TableCell>
-                      <TableCell align="center">{student.schoolGrade}</TableCell>
+                      <TableCell align="center">{student.schoolName ?? '-'}</TableCell>
+                      <TableCell align="center">{student.schoolGrade ?? '-'}</TableCell>
                       <TableCell align="center">{student.phone && !student.phone.match(/^010-*$/) ? student.phone : '-'}</TableCell>
                       <TableCell align="center">{student.parentPhone && !student.parentPhone.match(/^010-*$/) ? student.parentPhone : '-'}</TableCell>
                       <TableCell align="center">

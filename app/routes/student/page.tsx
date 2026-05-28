@@ -155,8 +155,8 @@ const StudentCard = ({ student, onClick }: { student: StudentInListType; onClick
   >
     <CardContent sx={{ '& > *': { margin: '0.25rem 0', textAlign: 'center' } }}>
       <h2>{student.name}</h2>
-      <p>{student.schoolName}</p>
-      <p>({student.schoolGrade}학년, {student.schoolLevel === 1 ? '초등' : student.schoolLevel === 2 ? '중등' : '고등'})</p>
+      {student.schoolName && <p>{student.schoolName}</p>}
+      {student.schoolGrade && <p>({student.schoolGrade}학년, {student.schoolLevel === 1 ? '초등' : student.schoolLevel === 2 ? '중등' : '고등'})</p>}
     </CardContent>
   </Card>
 );

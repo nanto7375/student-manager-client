@@ -114,7 +114,7 @@ export default function StudentDetail() {
           {/* 학생 기본 정보 */}
           <FlexBox alignItems="flex-end" sx={{ gap: '0.5rem', cursor: 'pointer', width: 'fit-content' }} onClick={() => setInfoOpen(!infoOpen)}>
             <FlexBox sx={{fontWeight: 'bold', fontSize: '1.5rem'}}>{student.name}</FlexBox>
-            <FlexBox sx={{ color: '#666' }}>{student.schoolName} {student.schoolGrade}학년</FlexBox>
+            {(student.schoolName || student.schoolGrade) && <FlexBox sx={{ color: '#666' }}>{student.schoolName} {student.schoolGrade && `${student.schoolGrade}학년`}</FlexBox>}
             <FlexBox sx={{ color: '#666' }}>({schoolLevelLabel})</FlexBox>
           </FlexBox>
           {infoOpen && (
