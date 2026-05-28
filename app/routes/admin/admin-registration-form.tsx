@@ -61,6 +61,7 @@ export const AdminRegistrationForm = ({ showSuccess, showError, editData, onComp
   const [form, setForm] = React.useState<AdminFormData>(defaultAdminForm());
   const [passwordConfirm, setPasswordConfirm] = React.useState('');
   const [errors, setErrors] = React.useState<{ password?: boolean; email?: boolean }>({});
+  const [koreanWarning, setKoreanWarning] = React.useState(false);
   const { ConfirmModal: DeleteModal, openConfirmModal: openDeleteModal, closeConfirmModal: closeDeleteModal } = useConfirmModal();
 
   React.useEffect(() => {
@@ -80,6 +81,16 @@ export const AdminRegistrationForm = ({ showSuccess, showError, editData, onComp
     if (value.length > 30) return;
     if (e.target.id === 'password' && /\s/.test(e.target.value)) return;
     updateField(e.target.id, value);
+  };
+
+  const handlePasswordInput = (value: string, setter: (v: string) => void) => {
+    const trimmed = value.replace(/\s/g, '');
+    if (/[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(trimmed)) {
+      setKoreanWarning(true);
+      return;
+    }
+    setKoreanWarning(false);
+    setter(trimmed);
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -188,8 +199,9 @@ export const AdminRegistrationForm = ({ showSuccess, showError, editData, onComp
     <FlexBox flexDirection="column" gap={1} alignItems="center" fullHeight>
       <FlexBox flexDirection="column" gap={1.25} alignItems="center" fullWidth>
         {!isEditMode && <FormInput id="name" label="이름" value={form.name} onChange={handleInputChange} />}
-        {!isEditMode && <FormInput id="password" label="비밀번호" value={form.password} onChange={handleInputChange} type="password" error={errors.password} />}
-        {!isEditMode && <FormInput id="passwordConfirm" label="비밀번호 확인" value={passwordConfirm} onChange={(e) => { if (/\s/.test(e.target.value)) return; setPasswordConfirm(e.target.value.trim()); }} type="password" error={errors.password} />}
+        {!isEditMode && <FormInput id="password" label="비밀번호" value={form.password} onChange={(e) => handlePasswordInput(e.target.value, (v) => updateField('password', v))} type="password" error={errors.password} />}
+        {!isEditMode && <FormInput id="passwordConfirm" label="비밀번호 확인" value={passwordConfirm} onChange={(e) => handlePasswordInput(e.target.value, setPasswordConfirm)} type="password" error={errors.password} />}
+        {koreanWarning && <AppleTg sx={{ color: 'red', fontSize: '0.8rem' }}>한/영 키를 눌러 영문 상태로 전환해주세요.</AppleTg>}
         <FormInput id="email" label="이메일" value={form.email} onChange={handleInputChange} error={errors.email} />
         <FormPhone id="phone" label="연락처" value={form.phone} onChange={handlePhoneChange} />
         <FormControl sx={{ width: '20rem' }}>
@@ -210,8 +222,9 @@ export const AdminRegistrationForm = ({ showSuccess, showError, editData, onComp
       </FlexBox>
       {showPasswordChange && (
         <FlexBox flexDirection="column" gap={1.25} alignItems="center" fullWidth sx={{ mt: 1 }}>
-          <FormInput id="newPassword" label="새 비밀번호" value={newPassword} onChange={(e) => { if (/\s/.test(e.target.value)) return; setNewPassword(e.target.value.trim()); }} type="password" error={newPasswordError} />
-          <FormInput id="newPasswordConfirm" label="새 비밀번호 확인" value={newPasswordConfirm} onChange={(e) => { if (/\s/.test(e.target.value)) return; setNewPasswordConfirm(e.target.value.trim()); }} type="password" error={newPasswordError} />
+          <FormInput id="newPassword" label="새 비밀번호" value={newPassword} onChange={(e) => handlePasswordInput(e.target.value, setNewPassword)} type="password" error={newPasswordError} />
+          <FormInput id="newPasswordConfirm" label="새 비밀번호 확인" value={newPasswordConfirm} onChange={(e) => handlePasswordInput(e.target.value, setNewPasswordConfirm)} type="password" error={newPasswordError} />
+          {koreanWarning && <AppleTg sx={{ color: 'red', fontSize: '0.8rem' }}>한/영 키를 눌러 영문 상태로 전환해주세요.</AppleTg>}
         </FlexBox>
       )}
       <FlexBox flexDirection="column" alignItems="center" gap={0.75} sx={{ mt: 2 }}>

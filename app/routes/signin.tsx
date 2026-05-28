@@ -6,7 +6,7 @@ import { Button, Checkbox, TextField } from "@mui/material";
 
 import { ROUTES } from "~/constants";
 import { LEO_TITLE } from "~/constants";
-import { convertKoreanToEnglish, emailRegex, removeSpace } from "~/lib/utils/string.util";
+import { emailRegex, removeSpace } from "~/lib/utils/string.util";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import { auth } from "~/lib/auth";
 
@@ -44,6 +44,7 @@ export default function Signin() {
   const [isSaveEmail, setIsSaveEmail] = React.useState(false);
   const [signinButtonActive, setSigninButtonActive] = React.useState(false);
   const [inputError, setInputError] = React.useState({hasError: false, message: ''});
+  const [koreanWarning, setKoreanWarning] = React.useState(false);
 
   // 이메일 저장 정보 불러오기
   React.useEffect(() => {
@@ -70,9 +71,14 @@ export default function Signin() {
   }, [password, isSaveEmail]);
 
   const handlePasswordChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const _password = convertKoreanToEnglish(removeSpace(e.target.value));
-    setPassword(_password);
-    setSigninButtonActive(validateInput(email, _password));
+    const raw = removeSpace(e.target.value);
+    if (/[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(raw)) {
+      setKoreanWarning(true);
+      return;
+    }
+    setKoreanWarning(false);
+    setPassword(raw);
+    setSigninButtonActive(validateInput(email, raw));
   }, [email]);
 
   const handleSignIn = React.useCallback(async () => {
@@ -173,6 +179,11 @@ export default function Signin() {
               variant="outlined"
               />
           </FlexBox>
+          {koreanWarning && (
+            <FlexBox sx={{ color: 'red', fontSize: '0.8rem', marginTop: '0.25rem', paddingLeft: '0.5rem' }}>
+              한/영 키를 눌러 영문 상태로 전환해주세요.
+            </FlexBox>
+          )}
           <FlexBox
             className="save-email-checkbox-wrapper"
             justifyContent="flex-start"
