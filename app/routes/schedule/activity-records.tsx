@@ -1,6 +1,6 @@
 import React from "react";
 import { useLoaderData, useNavigate } from "react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Button, Modal } from "@mui/material";
 import dayjs from "dayjs";
 
@@ -106,6 +106,7 @@ export default function StudentActivityRecords() {
     queryKey: activityRecordsQueryKey(scheduleId, date),
     queryFn: () => getActivityRecordsApi({ query: { scheduleId, date } }),
     enabled: !!scheduleId && !!date,
+    placeholderData: keepPreviousData,
   });
 
   // 학생별 고정 메모
