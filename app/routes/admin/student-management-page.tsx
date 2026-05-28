@@ -239,7 +239,7 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
                 <TableBody>
                   {studentList.map((student, index) => (
                     <TableRow key={student.id} sx={{ height: '4rem' }}>
-                      <TableCell align="center">{index + 1}</TableCell>
+                      <TableCell align="center">{page * rowsPerPage + index + 1}</TableCell>
                       <TableCell align="center">{student.name}</TableCell>
                       <TableCell align="center">{student.schoolName ?? '-'}</TableCell>
                       <TableCell align="center">{student.schoolGrade ?? '-'}</TableCell>
