@@ -9,6 +9,7 @@ import { LEO_TITLE } from "~/constants";
 import { emailRegex, removeSpace } from "~/lib/utils/string.util";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import { auth } from "~/lib/auth";
+import { useKoreanInputWarning } from "~/hooks/use-korean-input-warning";
 
 const SIGNIN_INPUT_FIELD_WIDTH = '18rem';
 const SAVED_EMAIL_KEY = 'saved-email';
@@ -44,7 +45,7 @@ export default function Signin() {
   const [isSaveEmail, setIsSaveEmail] = React.useState(false);
   const [signinButtonActive, setSigninButtonActive] = React.useState(false);
   const [inputError, setInputError] = React.useState({hasError: false, message: ''});
-  const [koreanWarning, setKoreanWarning] = React.useState(false);
+  const { koreanWarning, handleChange: handleKoreanInput } = useKoreanInputWarning();
 
   // 이메일 저장 정보 불러오기
   React.useEffect(() => {
@@ -71,15 +72,11 @@ export default function Signin() {
   }, [password, isSaveEmail]);
 
   const handlePasswordChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = removeSpace(e.target.value);
-    if (/[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(raw)) {
-      setKoreanWarning(true);
-      return;
-    }
-    setKoreanWarning(false);
-    setPassword(raw);
-    setSigninButtonActive(validateInput(email, raw));
-  }, [email]);
+    handleKoreanInput(e.target.value, (raw) => {
+      setPassword(raw);
+      setSigninButtonActive(validateInput(email, raw));
+    });
+  }, [email, handleKoreanInput]);
 
   const handleSignIn = React.useCallback(async () => {
     if (isSaveEmail) localStorage.setItem(SAVED_EMAIL_KEY, email);

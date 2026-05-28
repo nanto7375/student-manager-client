@@ -9,6 +9,7 @@ import { adminListQueryKey } from "./admin-management-page";
 import { auth } from "~/lib/auth";
 import { hashPassword } from "~/lib/utils/crypto.util";
 import { useConfirmModal } from "~/hooks/use-confirm-modal";
+import { useKoreanInputWarning } from "~/hooks/use-korean-input-warning";
 
 // --- Types ---
 
@@ -61,7 +62,7 @@ export const AdminRegistrationForm = ({ showSuccess, showError, editData, onComp
   const [form, setForm] = React.useState<AdminFormData>(defaultAdminForm());
   const [passwordConfirm, setPasswordConfirm] = React.useState('');
   const [errors, setErrors] = React.useState<{ password?: boolean; email?: boolean }>({});
-  const [koreanWarning, setKoreanWarning] = React.useState(false);
+  const { koreanWarning, handleChange: handleKoreanInput } = useKoreanInputWarning();
   const { ConfirmModal: DeleteModal, openConfirmModal: openDeleteModal, closeConfirmModal: closeDeleteModal } = useConfirmModal();
 
   React.useEffect(() => {
@@ -84,13 +85,7 @@ export const AdminRegistrationForm = ({ showSuccess, showError, editData, onComp
   };
 
   const handlePasswordInput = (value: string, setter: (v: string) => void) => {
-    const trimmed = value.replace(/\s/g, '');
-    if (/[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(trimmed)) {
-      setKoreanWarning(true);
-      return;
-    }
-    setKoreanWarning(false);
-    setter(trimmed);
+    handleKoreanInput(value, setter);
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
