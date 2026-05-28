@@ -1,6 +1,7 @@
 import React from "react";
 import { Checkbox, IconButton } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import CheckIcon from "@mui/icons-material/Check";
 import type { Note, NoteType } from "../student-detail";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import { AppleTg } from "~/components/typography";
@@ -91,15 +92,19 @@ const MemoContainer = ({ title, notes, type, createNote, toggleMemoNoteStatus, d
       {!disabled && (
         <FlexBox alignItems="center" padding="0.25rem 0.5rem" sx={{ borderTop: '1px solid #eee' }}>
           {adding ? (
-            <input
-              autoFocus
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              onBlur={handleAdd}
-              placeholder="메모 입력"
-              style={{ flex: 1, padding: '0.4rem', border: 'none', outline: 'none', fontSize: '0.875rem' }}
-            />
+            <>
+              <input
+                autoFocus
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="메모 입력"
+                style={{ flex: 1, padding: '0.4rem', border: 'none', outline: 'none', fontSize: '0.875rem' }}
+              />
+              <IconButton size="small" onClick={handleAdd} disabled={!inputValue.trim()} sx={{ '&:hover': { color: 'primary.main' } }}>
+                <CheckIcon fontSize="small" />
+              </IconButton>
+            </>
           ) : (
             <IconButton size="small" onClick={() => setAdding(true)}>
               <AddIcon fontSize="small" />
