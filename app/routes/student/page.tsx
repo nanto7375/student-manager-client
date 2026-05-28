@@ -123,7 +123,7 @@ export default function Student() {
         />
       </FlexBox>
 
-      <FlexBox gap={1} sx={{ flexWrap: 'wrap', overflow: 'auto', flex: 1 }}>
+      <FlexBox gap={1} sx={{ flexWrap: 'wrap', overflow: 'auto', flex: 1, alignContent: 'flex-start' }}>
         {studentList.map(student => (
           <StudentCard key={student.id} student={student} onClick={handleStudentClick} />
         ))}

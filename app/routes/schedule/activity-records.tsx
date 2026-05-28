@@ -216,7 +216,7 @@ export default function StudentActivityRecords() {
               <TableRow key={activityRecord.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                 <TableCell align="center">
                   <FlexBox sx={{ position: 'relative', justifyContent: 'center' }}>
-                    <AppleTg component="div" sx={{fontSize: '0.9rem', cursor: 'pointer'}} onClick={() => { setActivePopup(activePopup === activityRecord.id ? null : activityRecord.id); setMemoInput(''); }}>
+                    <AppleTg component="div" sx={{fontSize: '0.9rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '2lh'}} onClick={() => { setActivePopup(activePopup === activityRecord.id ? null : activityRecord.id); setMemoInput(''); }}>
                       <div>{activityRecord.student.name}{activityRecord.isMakeup && <span style={{ color: '#e65100' }}> (보강)</span>}</div>
                       {activityRecord.student.schoolName && <div>({activityRecord.student.schoolName.replace('초등학교', '초').replace('중학교', '중').replace('고등학교', '고')} {activityRecord.student.schoolGrade}학년)</div>}
                     </AppleTg>
