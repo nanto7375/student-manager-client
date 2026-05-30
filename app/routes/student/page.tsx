@@ -32,6 +32,14 @@ export default function Student() {
   const [inputName, setInputName] = React.useState('');
   const debouncedName = useDebouncedValue(inputName, 700);
 
+  const updateParam = React.useCallback((updater: (params: URLSearchParams) => void) => {
+    setSearchParam((prev) => {
+      const params = new URLSearchParams(prev);
+      updater(params);
+      return params.toString();
+    }, { replace: true });
+  }, [setSearchParam]);
+
   // 무한스크롤
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError } = useInfiniteQuery({
     queryKey: ['student-list-infinite', { name, schoolLevel, dayOfWeek }],
@@ -69,22 +77,13 @@ export default function Student() {
 
   const handleClearInput = React.useCallback(() => {
     setInputName('');
-    setSearchParam((prev) => {
-      const params = new URLSearchParams(prev);
-      params.delete('name');
-      return params.toString();
-    }, { replace: true });
-  }, [setSearchParam]);
+    updateParam(p => p.delete('name'));
+  }, [updateParam]);
 
   // debounce된 이름으로 검색 파라미터 업데이트
   React.useEffect(() => {
-    setSearchParam((prev) => {
-      const params = new URLSearchParams(prev);
-      if (debouncedName) params.set('name', debouncedName);
-      else params.delete('name');
-      return params.toString();
-    }, { replace: true });
-  }, [debouncedName, setSearchParam]);
+    updateParam(p => debouncedName ? p.set('name', debouncedName) : p.delete('name'));
+  }, [debouncedName, updateParam]);
 
   if (isLoading) return <FlexContainer fullHeight fullWidth center />;
   return (
@@ -95,30 +94,12 @@ export default function Student() {
           onInputNameChange={(v) => setInputName(v)}
           onClearName={handleClearInput}
           dayOfWeek={dayOfWeek}
-          onDayOfWeekChange={(v) => {
-            setSearchParam((prev) => {
-              const params = new URLSearchParams(prev);
-              v === null ? params.delete('dayOfWeek') : params.set('dayOfWeek', String(v));
-              return params.toString();
-            }, { replace: true });
-          }}
+          onDayOfWeekChange={(v) => updateParam(p => v === null ? p.delete('dayOfWeek') : p.set('dayOfWeek', String(v)))}
           schoolLevel={schoolLevel}
-          onSchoolLevelChange={(v) => {
-            setSearchParam((prev) => {
-              const params = new URLSearchParams(prev);
-              v === null ? params.delete('schoolLevel') : params.set('schoolLevel', String(v));
-              return params.toString();
-            }, { replace: true });
-          }}
+          onSchoolLevelChange={(v) => updateParam(p => v === null ? p.delete('schoolLevel') : p.set('schoolLevel', String(v)))}
           onReset={() => {
             setInputName('');
-            setSearchParam((prev) => {
-              const params = new URLSearchParams(prev);
-              params.delete('name');
-              params.delete('dayOfWeek');
-              params.delete('schoolLevel');
-              return params.toString();
-            }, { replace: true });
+            updateParam(p => { p.delete('name'); p.delete('dayOfWeek'); p.delete('schoolLevel'); });
           }}
         />
       </FlexBox>

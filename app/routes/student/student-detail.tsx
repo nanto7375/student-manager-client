@@ -118,8 +118,6 @@ export default function StudentDetail() {
 
   if (studentDetailError || studentDetailLoading) return <FlexContainer padding="1rem" fullHeight fullWidth center></FlexContainer>;
 
-  const schoolLevelLabel = student.schoolLevel === 1 ? '초등' : student.schoolLevel === 2 ? '중등' : '고등';
-
   return (
     <FlexContainer fullHeight fullWidth sx={{ flexDirection: 'column' }} style={{overflowX: 'auto'}}>
         <FlexBox

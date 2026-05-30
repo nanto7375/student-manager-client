@@ -2,7 +2,7 @@ import { hasErrorMessage } from '~/lib/error';
 import { RefreshProcessor } from './pending-request'
 import { BASE_URL } from '~/constants';
 import { tokenManager } from './token-manger';
-import { forbidenErrorHandler, logoutErrorHandler } from '~/providers/error-handler-provider';
+import { forbiddenErrorHandler, logoutErrorHandler } from '~/providers/error-handler-provider';
 
 type BuildApiParams = {
   path: string;
@@ -74,7 +74,7 @@ export const buildApi = <T = unknown>({ path, method, credentials }: BuildApiPar
         logoutErrorHandler?.({ message: '세션이 만료되었습니다. 다시 로그인해주세요.', status: 401 });
       }
       if (data.message === 'level-too-low') {
-        forbidenErrorHandler?.({ message: '권한이 없습니다.', status: 403 });
+        forbiddenErrorHandler?.({ message: '권한이 없습니다.', status: 403 });
       }
       throw { path, method, status: response.status, message: data.message };
     }

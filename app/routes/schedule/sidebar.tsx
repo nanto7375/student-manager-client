@@ -16,10 +16,8 @@ const today = dayjs();
 type ScheduleSidebarProps = {
   scheduleList: ScheduleType[];
   selectedScheduleId: number | null;
-  setSelectedSchedule: (schedule: ScheduleType) => void;
-  // foldSidebar: () => void;
 }
-export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setSelectedSchedule }: ScheduleSidebarProps) {
+export default function ScheduleSidebar({ scheduleList, selectedScheduleId }: ScheduleSidebarProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const date = searchParams.get('date');
@@ -37,22 +35,15 @@ export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setS
 
   const handleGoTodayClick = React.useCallback(() => {
     setSelectedDate(today);
-    setSelectedSchedule(null);
     setOpenDateCalendar(false);
     navigate(`${ROUTES.SCHEDULE}`);
   }, []);
 
   const handleDateChange = React.useCallback((date: Dayjs) => {
     setSelectedDate(date);
-    setSelectedSchedule(null);
     setOpenDateCalendar(false);
     navigate(`${ROUTES.SCHEDULE}?date=${date.format('YYYYMMDD')}`);
   }, []);
-
-  const handleScheduleClick = React.useCallback((schedule: ScheduleType) => {
-    setSelectedSchedule(schedule);
-    // if (selectedScheduleId === schedule.id) foldSidebar();
-  }, [selectedScheduleId]);
 
   return (
     <FlexContainer width="9rem" flexDirection="column" alignItems="center">
@@ -94,7 +85,6 @@ export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setS
         {todaySchedule?.length ? todaySchedule.map((schedule) => (
           <FlexBox 
             key={schedule.id} 
-            onClick={() => handleScheduleClick(schedule)}
             height="3rem" 
             alignItems="center"
             justifyContent="flex-start" 

@@ -1,18 +1,7 @@
 import { buildApi } from "~/lib/api-builder";
+import type { ActivityRecordType } from "~/routes/schedule/activity-records.type";
 
-export type ActivityRecordType = {
-  id: number;
-  student: any;
-  date: string;
-  isMakeup: boolean;
-  attendance: boolean;
-  report1: boolean;
-  report2: boolean;
-  monthlyProject: boolean;
-  monthlyPreview: boolean;
-  monthlyReport: boolean;
-  borrowedBook: { id: number; bookTitle: string | null; borrowedAt: Date } | null;
-};
+export type { ActivityRecordType };
 
 export const getActivityRecordsApi = buildApi<ActivityRecordType[]>({ path: '/activities', method: 'GET' });
 export const updateWeeklyActivityRecordApi = buildApi<ActivityRecordType>({ path: '/activities/:activityId', method: 'PATCH' });
