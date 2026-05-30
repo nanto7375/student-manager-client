@@ -178,7 +178,7 @@ const ActivityRecordButton = ({ value, buttonTextOn, buttonTextOff, onClick, mai
   <Button 
     variant="contained" 
     size="small" 
-    sx={{ minWidth: 0, px: 1, py: 0, width: '100%', height: '100%', borderRadius: 0, boxShadow: 'none', backgroundColor: value ? disabledBgColor : mainBgColor, color: fontColor, '&:hover': { boxShadow: 'none' } }} 
+    sx={{ minWidth: 0, px: 1, py: 0, width: '100%', height: '100%', borderRadius: 0, boxShadow: 'none', backgroundColor: value ? disabledBgColor : mainBgColor, color: fontColor, cursor: 'default', '&:hover': { boxShadow: 'none' } }} 
     onClick={onClick}
   >
     <AppleTg sx={{fontSize: '0.8rem', whiteSpace: 'nowrap'}}>{value ? buttonTextOff : buttonTextOn}</AppleTg>
@@ -272,7 +272,6 @@ const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap, activ
                 />
               </TableCell>
               <TableCell align="center" sx={{ width: '12%' }}>
-                {!(activityRecord.monthlyProject && activityRecord.date >= dayjs(activityRecord.monthlyProject).format('YYYYMMDD')) && (
                 <ActivityRecordButton 
                   value={activityRecord.report2} 
                   buttonTextOn="주간 레오" 
@@ -283,7 +282,6 @@ const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap, activ
                     value: !activityRecord.report2
                   })} 
                 />
-                )}
               </TableCell>
               <TableCell align="center" sx={{ width: '12%' }}>
                 <ActivityRecordButton 
