@@ -3,18 +3,18 @@ import type { StudentInActivity as StudentInActivityDto } from "~/constants/stud
 /**
  * isMakeup: 보충 수업 여부
  * attendance: 출석 여부
- * report1: 감상문 제출 여부
+ * report1: 독후감 제출 여부
  * report2: 주간 레오 제출 여부
  * monthlyProject: 월간 레오 참여 날짜
- * monthlyPreview: 월간 레오 개요 제출 여부
- * monthlyReport: 월간 레오 감상문 제출 여부
+ * monthlyPreview: 월간 레오 개요 제출 날짜
+ * monthlyReport: 월간 레오 독후감 제출 날짜
  */
 export type ActivityCheck = {
   attendance: boolean;
   report1: boolean;
   report2: boolean;
-  monthlyPreview: boolean;
-  monthlyReport: boolean;
+  monthlyPreview: Date | null;
+  monthlyReport: Date | null;
 };
 
 export type BookRental = {
@@ -43,7 +43,7 @@ export const ActivityKey: Record<string, keyof ActivityCheck> = {
 export const monthlyProjectStatusText = (record: ActivityRecordType) => {
   if (!record.monthlyProject) return '참여';
   if (!record.monthlyPreview) return '개요 제출';
-  if (!record.monthlyReport) return '감상문 제출';
+  if (!record.monthlyReport) return '독후감 제출';
   return '완료';
 };
 

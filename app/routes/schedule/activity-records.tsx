@@ -103,7 +103,7 @@ export default function StudentActivityRecords() {
       '활동 기록 업데이트에 실패했습니다.'
     );
 
-  const handleMonthlyActivityRecordButtonClick = ({activityId, activityKey, value}: {activityId: number; activityKey: keyof ActivityCheck | 'monthlyProject'; value: boolean | string | null}) =>
+  const handleMonthlyActivityRecordButtonClick = ({activityId, activityKey, value}: {activityId: number; activityKey: keyof ActivityCheck | 'monthlyProject'; value: string | null}) =>
     withUpdating(
       () => updateMonthlyActivityRecordApi({ params: { activityId }, body: { [activityKey]: value } }),
       '활동 기록 업데이트에 실패했습니다.'
@@ -198,7 +198,7 @@ type ClassroomTableProps = {
   setMemoTargetStudentId: (id: number | null) => void;
   setMemoType: (type: 'fixed-memo' | 'temporary-memo') => void;
   handleWeeklyActivityRecordButtonClick: (params: { activityId: number; activityKey: keyof ActivityCheck; value: boolean }) => void;
-  handleMonthlyActivityRecordButtonClick: (params: { activityId: number; activityKey: keyof ActivityCheck | 'monthlyProject'; value: boolean | string | null }) => void;
+  handleMonthlyActivityRecordButtonClick: (params: { activityId: number; activityKey: keyof ActivityCheck | 'monthlyProject'; value: string | null }) => void;
   handleBookRentalButtonClick: (record: ActivityRecordType) => void;
   handleClassroomDrop: (studentId: number, classroomId: number) => void;
   showNotes?: boolean;
@@ -282,8 +282,8 @@ const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap, activ
               <TableCell align="center" sx={{ width: '12%' }}>
                 <ActivityRecordButton 
                   value={activityRecord.report1} 
-                  buttonTextOn="감상문" 
-                  buttonTextOff="감상문 완료" 
+                  buttonTextOn="독후감" 
+                  buttonTextOff="독후감 완료" 
                   onClick={() => handleWeeklyActivityRecordButtonClick({
                     activityId: activityRecord.id, 
                     activityKey: ActivityKey.REPORT1, 
@@ -310,9 +310,8 @@ const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap, activ
                   buttonTextOff="월간 완료"
                   onClick={() => {
                     const nextKey = monthlyProjectNextKey(activityRecord);
-                    const value = nextKey === 'monthlyProject' 
-                      ? (activityRecord.monthlyProject ? null : new Date().toISOString())
-                      : !activityRecord[nextKey];
+                    const current = nextKey === 'monthlyProject' ? activityRecord.monthlyProject : activityRecord[nextKey];
+                    const value = current ? null : new Date().toISOString();
                     handleMonthlyActivityRecordButtonClick({ activityId: activityRecord.id, activityKey: nextKey, value });
                   }}
                 />

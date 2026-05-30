@@ -44,9 +44,10 @@ export const ActivityRecordTab = ({ studentId }: Props) => {
                 </AppleTg>
                 <FlexBox gap={1}>
                   {record.attendance && <AppleTg sx={{ fontSize: '0.75rem', color: '#4caf50' }}>출석</AppleTg>}
-                  {record.report1 && <AppleTg sx={{ fontSize: '0.75rem', color: '#2196f3' }}>감상문</AppleTg>}
-                  {record.report2 && <AppleTg sx={{ fontSize: '0.75rem', color: '#2196f3' }}>주간레오</AppleTg>}
-                  {record.monthlyPreview && <AppleTg sx={{ fontSize: '0.75rem', color: '#9c27b0' }}>월간레오({record.monthlyReport ? '완료' : '개요 작성'})</AppleTg>}
+                  {record.report1 && <AppleTg sx={{ fontSize: '0.75rem', color: '#2196f3' }}>독후감</AppleTg>}
+                  {record.report2 && <AppleTg sx={{ fontSize: '0.75rem', color: '#2196f3' }}>주간</AppleTg>}
+                  {record.monthlyPreview && dayjs(record.monthlyPreview).format('YYYYMMDD') === record.date && <AppleTg sx={{ fontSize: '0.75rem', color: '#9c27b0' }}>월간 개요</AppleTg>}
+                  {record.monthlyReport && dayjs(record.monthlyReport).format('YYYYMMDD') === record.date && <AppleTg sx={{ fontSize: '0.75rem', color: '#9c27b0' }}>월간 완료</AppleTg>}
                 </FlexBox>
               </FlexBox>
             </FlexBox>
