@@ -2,7 +2,7 @@ import { hasErrorMessage } from '~/lib/error';
 import { RefreshProcessor } from './pending-request'
 import { BASE_URL } from '~/constants';
 import { tokenManager } from './token-manger';
-import { globalErrorHandler } from '~/providers/error-handler-provider';
+import { forbidenErrorHandler } from '~/providers/error-handler-provider';
 
 type BuildApiParams = {
   path: string;
@@ -70,9 +70,9 @@ export const buildApi = <T = unknown>({ path, method, credentials }: BuildApiPar
       if (data.message === 'token-expired') {
         return processRequestWithRefresh(() => api({ params, query, body, headers })) as Promise<T>;
       }
-      // if (data.message === 'level-too-low') {
-      //   globalErrorHandler({ message: '재로그인 후 다시 시도해주세요.', status: 401 });
-      // }
+      if (data.message === 'level-too-low') {
+        forbidenErrorHandler?.({ message: '권한이 없습니다.', status: 403 });
+      }
       throw { path, method, status: response.status, message: data.message };
     }
 

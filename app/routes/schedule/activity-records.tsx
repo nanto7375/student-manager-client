@@ -196,7 +196,7 @@ const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap, activ
     {...dropHandlers}
   >
     {!hideHeader && (
-    <FlexBox alignItems="center" gap={0.5}>
+    <FlexBox alignItems="center" gap={1.5}>
       <AppleTg sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#333', pl: 0.5, whiteSpace: 'nowrap', flexShrink: 0 }}>{classroom.name}</AppleTg>
       {records.some((r: any) => fixedMemosMap[r.student.id]) && (
         <FlexBox gap={0.5} sx={{ flexWrap: 'wrap' }}>

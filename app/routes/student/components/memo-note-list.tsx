@@ -104,7 +104,7 @@ const MemoContainer = ({ title, notes, type, createNote, deleteNote, toggleMemoN
             {isFixedMemo ? (
               <>
                 <AppleTg sx={{ color: '#888', fontSize: '0.5rem', px: 0.5 }}>●</AppleTg>
-                <AppleTg sx={{ flex: 1, padding: '0.25rem 0.5rem' }}>{note.value}</AppleTg>
+                <AppleTg sx={{ flex: 1, padding: '0.25rem 0.5rem', color: '#444' }}>{note.value}</AppleTg>
                 {!disabled && (
                   <IconButton size="small" onClick={() => handleDelete(note.id)} sx={{ color: '#bbb', '&:hover': { color: '#e57373' } }}>
                     <CloseIcon sx={{ fontSize: '1rem' }} />
@@ -114,7 +114,7 @@ const MemoContainer = ({ title, notes, type, createNote, deleteNote, toggleMemoN
             ) : (
               <>
                 <Checkbox size="small" checked={checked.has(note.id)} onChange={() => toggleCheck(note.id)} disabled={disabled} />
-                <AppleTg sx={{ textDecoration: checked.has(note.id) ? 'line-through' : 'none', color: checked.has(note.id) ? '#aaa' : 'inherit' }}>
+                <AppleTg sx={{ textDecoration: checked.has(note.id) ? 'line-through' : 'none', color: checked.has(note.id) ? '#aaa' : '#444' }}>
                   {note.value}
                 </AppleTg>
               </>

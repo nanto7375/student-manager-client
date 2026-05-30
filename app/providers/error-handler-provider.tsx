@@ -8,10 +8,15 @@ import { ROUTES } from '~/constants';
 
 type ErrorHandler = (error: any) => void;
 
-export let globalErrorHandler: ErrorHandler | null = null;
+export let logoutErrorHandler: ErrorHandler | null = null;
+export let forbidenErrorHandler: ErrorHandler | null = null;
 
-const setGlobalErrorHandler = (handler: ErrorHandler) => {
-  globalErrorHandler = handler;
+const setLogoutErrorHandler = (handler: ErrorHandler) => {
+  logoutErrorHandler = handler;
+};
+
+const setForbidenErrorHandler = (handler: ErrorHandler) => {
+  forbidenErrorHandler = handler;
 };
 
 interface ErrorHandlerContextType {
@@ -35,6 +40,11 @@ export const ErrorHandlerProvider: React.FC<{ children: React.ReactNode }> = ({ 
     navigate(ROUTES.SIGNIN, { replace: true });
   }, [navigate, showErrorToast]);
 
+  const handleForbidenError = useCallback((error: any) => {
+    const errorMessage = error?.message || '권한이 없습니다.';
+    showErrorToast(errorMessage);
+  }, [showErrorToast]);
+
   const handleError = useCallback((error: any) => {
     const status = error?.status || error?.code;
 
@@ -48,7 +58,8 @@ export const ErrorHandlerProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, [handleSignoutError, showErrorToast]);
 
   useEffect(() => {
-    setGlobalErrorHandler(handleSignoutError);
+    setLogoutErrorHandler(handleSignoutError);
+    setForbidenErrorHandler(handleForbidenError);
   }, [handleSignoutError]);
 
   return (

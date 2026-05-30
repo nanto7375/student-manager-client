@@ -1,4 +1,4 @@
-import { globalErrorHandler } from "~/providers/error-handler-provider";
+import { logoutErrorHandler } from "~/providers/error-handler-provider";
 import { tokenManager } from "./token-manger";
 import { Deferred, type DeferredType } from "./utils/deferred";
 
@@ -46,7 +46,7 @@ export const RefreshProcessor = () => {
     } catch (error) {
       isRefreshSuccess = false;
       const formattedError = { status: error.status || 401, code: error.code || 401, message: error.message || 'token expired' };
-      return globalErrorHandler(formattedError);
+      return logoutErrorHandler(formattedError);
     }
 
     try {
@@ -54,7 +54,7 @@ export const RefreshProcessor = () => {
     } catch (error: any) {
       const formattedError = { status: error.status || 401, code: error.code || 401, message: error.message || 'token expired' };
       if (error.status === 401 || error.status === 403) {
-        return globalErrorHandler(formattedError);
+        return logoutErrorHandler(formattedError);
       }
       throw formattedError;
     } finally {
