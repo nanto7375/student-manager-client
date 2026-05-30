@@ -166,7 +166,7 @@ const StudentCard = ({ student, onClick }: { student: StudentInListType; onClick
   return (
     <Card elevation={0} sx={studentCardSx} onClick={() => onClick(student.id)}>
       <div style={{ width: '6px', height: '100%', backgroundColor: levelColor, flexShrink: 0 }} />
-      <span style={{ padding: '0 0.5rem', fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <span style={{ padding: '0 0.5rem 0 1rem', fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
         {student.name}
         {schoolInfo && <span style={{ color: '#888', fontSize: '0.8rem', marginLeft: '0.3rem' }}>{schoolInfo}</span>}
       </span>
