@@ -1,6 +1,6 @@
 import React from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Card, CardContent } from "@mui/material";
+import { Card } from "@mui/material";
 import { useNavigate, useSearchParams } from "react-router";
 
 import { FlexContainer, FlexBox } from "~/components/styled-elements";
@@ -134,29 +134,38 @@ export default function Student() {
   );
 }
 
-const StudentCard = ({ student, onClick }: { student: StudentInListType; onClick: (id: number) => void }) => (
-  <Card
-    variant="outlined"
-    sx={{
-      width: '9rem',
-      height: '9rem',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      flexDirection: 'column',
-      cursor: 'pointer',
-      boxShadow: 2,
-      marginTop: '2px',
-      transition: 'all 0.2s ease-in-out',
-      '&:hover': { backgroundColor: 'action.hover', boxShadow: 6, transform: 'translateY(-2px)' },
-      '&:active': { transform: 'translateY(0)', boxShadow: 3 },
-    }}
-    onClick={() => onClick(student.id)}
-  >
-    <CardContent sx={{ '& > *': { margin: '0.25rem 0', textAlign: 'center' } }}>
-      <h2>{student.name}</h2>
-      {student.schoolName && <p>{student.schoolName}</p>}
-      {student.schoolGrade && <p>({student.schoolGrade}학년, {student.schoolLevel === 1 ? '초등' : student.schoolLevel === 2 ? '중등' : '고등'})</p>}
-    </CardContent>
-  </Card>
-);
+const SCHOOL_LEVEL_COLOR: Record<number, string> = {
+  1: '#4caf50',  // 초등
+  2: '#2196f3',  // 중등
+  3: '#ff9800',  // 고등
+};
+
+const studentCardSx = {
+  width: '12rem',
+  height: '3.2rem',
+  display: 'flex',
+  alignItems: 'center',
+  cursor: 'pointer',
+  borderRadius: '2px',
+  overflow: 'hidden',
+  transition: 'all 0.15s ease-in-out',
+  '&:hover': { boxShadow: 4, transform: 'translateY(-1px)' },
+  '&:active': { transform: 'translateY(0)' },
+} as const;
+
+const StudentCard = ({ student, onClick }: { student: StudentInListType; onClick: (id: number) => void }) => {
+  const levelColor = SCHOOL_LEVEL_COLOR[student.schoolLevel] ?? '#9e9e9e';
+  const schoolInfo = student.schoolName
+    ? `(${student.schoolName}${student.schoolGrade ? ` ${student.schoolGrade}학년` : ''})`
+    : null;
+
+  return (
+    <Card variant="outlined" sx={studentCardSx} onClick={() => onClick(student.id)}>
+      <div style={{ width: '6px', height: '100%', backgroundColor: levelColor, flexShrink: 0 }} />
+      <span style={{ padding: '0 0.5rem', fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        {student.name}
+        {schoolInfo && <span style={{ color: '#888', fontSize: '0.8rem', marginLeft: '0.3rem' }}>{schoolInfo}</span>}
+      </span>
+    </Card>
+  );
+};
