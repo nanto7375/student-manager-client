@@ -85,7 +85,10 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
   const setPage = (p: number) => setSearchParams(prev => { const params = new URLSearchParams(prev); p > 0 ? params.set('page', String(p)) : params.delete('page'); return params; }, { replace: true });
 
   // 이름 검색 debounce
+  const prevInputName = React.useRef(inputName);
   React.useEffect(() => {
+    if (prevInputName.current === inputName) return;
+    prevInputName.current = inputName;
     const timer = setTimeout(() => {
       updateParams(p => inputName ? p.set('name', inputName) : p.delete('name'));
     }, 700);
