@@ -29,7 +29,9 @@ export const createDragStartHandler = (studentId: number, classroomId: number) =
       const rect = row.getBoundingClientRect();
       e.dataTransfer.setDragImage(row, e.clientX - rect.left, e.clientY - rect.top);
       row.style.opacity = '0.4';
-      const restore = () => { row.style.opacity = ''; row.removeEventListener('dragend', restore); };
+      row.style.outline = '1px solid #036635';
+      row.style.outlineOffset = '-1px';
+      const restore = () => { row.style.opacity = ''; row.style.outline = ''; row.style.outlineOffset = ''; row.removeEventListener('dragend', restore); };
       row.addEventListener('dragend', restore);
     }
   };
