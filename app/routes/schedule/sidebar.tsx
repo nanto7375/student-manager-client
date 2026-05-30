@@ -105,13 +105,13 @@ export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setS
               borderRadius: '0.25rem',
               '&:hover': {
                 boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-                transform: 'scale(1)',
+                transform: 'scale(1.02)',
               }
             }}
           >
             <Link 
               to={`${ROUTES.SCHEDULE}/${schedule.id}?date=${selectedDate.format('YYYYMMDD')}`} 
-              style= {{width: '100%', height: '100%', display: 'flex', alignItems: 'center', paddingLeft: '1rem'}}
+              className="schedule-link"
             >
               <AppleTg 
                 sx={{
@@ -125,7 +125,7 @@ export default function ScheduleSidebar({ scheduleList, selectedScheduleId, setS
               {selectedScheduleId === schedule.id && <ArrowForwardIosIcon sx={{fontSize: '0.9rem', color: 'gray', marginLeft: '0.2rem'}} />}
             </Link>
           </FlexBox>
-        )) : <FlexBox height="3rem" alignItems="center" justifyContent="center"><span style={{color: 'gray', fontSize: '0.875rem'}}>수업이 없습니다</span></FlexBox>}
+        )) : <FlexBox height="3rem" alignItems="center" justifyContent="center"><span className="empty-schedule-text">수업이 없습니다</span></FlexBox>}
       </FlexBox>
 
     </FlexContainer>

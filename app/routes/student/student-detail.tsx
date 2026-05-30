@@ -19,6 +19,35 @@ import type { StudentNote as Note, NoteType } from "~/constants/student.type";
 export type { Note, NoteType };
 const studentQueryKey = (studentId: string) => ['student', studentId] as const;
 
+const INFO_POPUP_SX = {
+  position: 'absolute',
+  top: '100%',
+  marginTop: '0.5rem',
+  left: '50%',
+  transform: 'translateX(-50%)',
+  zIndex: 10,
+  backgroundColor: 'white',
+  border: '1px solid #e0e0e0',
+  borderRadius: '0.5rem',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+  padding: '0.75rem 1.25rem',
+  color: '#555',
+  whiteSpace: 'nowrap',
+} as const;
+
+const MEMO_SIDEBAR_SX = {
+  flex: 1,
+  overflowY: 'hidden',
+  height: 'calc(100% - 0.25rem)',
+  backgroundColor: '#f9f9f9',
+  backgroundImage: 'radial-gradient(circle, #ddd 1px, transparent 1px)',
+  backgroundSize: '12px 12px',
+  borderRadius: '0.5rem',
+  border: '1px solid #e0e0e0',
+  padding: '0.75rem',
+  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)',
+} as const;
+
 export const clientLoader = async ({ params }: { params: { studentId: string } }) => {
   return { studentId: params.studentId };
 }
@@ -114,21 +143,7 @@ export default function StudentDetail() {
             <FlexBox
               gap={2}
               alignItems="center"
-              sx={{
-                position: 'absolute',
-                top: '100%',
-                marginTop: '0.5rem',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                zIndex: 10,
-                backgroundColor: 'white',
-                border: '1px solid #e0e0e0',
-                borderRadius: '0.5rem',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                padding: '0.75rem 1.25rem',
-                color: '#555',
-                whiteSpace: 'nowrap',
-              }}
+              sx={INFO_POPUP_SX}
             >
               {student.birthYear && <AppleTg sx={{ fontSize: '0.85rem' }}>{student.birthYear}년생 {student.birthDate ? `${student.birthDate.slice(0,2)}/${student.birthDate.slice(2)}` : ''}</AppleTg>}
               {student.phone && <AppleTg sx={{ fontSize: '0.85rem' }}>📱 {student.phone}</AppleTg>}
@@ -163,7 +178,7 @@ export default function StudentDetail() {
             )}
           </FlexBox>
 
-          <FlexBox maxWidth="35rem" minWidth="25rem" flexDirection="column" sx={{ flex:1, overflowY: 'hidden', height: 'calc(100% - 0.25rem)', backgroundColor: '#f9f9f9', backgroundImage: 'radial-gradient(circle, #ddd 1px, transparent 1px)', backgroundSize: '12px 12px', borderRadius: '0.5rem', border: '1px solid #e0e0e0', padding: '0.75rem', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}>
+          <FlexBox maxWidth="35rem" minWidth="25rem" flexDirection="column" sx={MEMO_SIDEBAR_SX}>
             {(auth.getMyInfo()?.level ?? 0) >= 3 && <Button onClick={() => setMakeupOpen(true)} sx={{ mt: 1, mb: 3, width: '100%', height: '3.5rem', backgroundColor: 'white', border: '1px solid #ddd', boxShadow: '0 2px 4px rgba(0,0,0,0.08)', borderRadius: '0.5rem', color: '#666', '&:hover': { backgroundColor: '#fafafa', boxShadow: '0 3px 6px rgba(0,0,0,0.12)' } }}>
               보강 추가
             </Button>}

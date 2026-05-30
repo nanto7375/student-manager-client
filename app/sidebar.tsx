@@ -14,7 +14,7 @@ export const buttonHoverEffect = {
   borderRadius: '0.25rem',
   '&:hover': {
     boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-    transform: 'scale(1)',
+    transform: 'scale(1.02)',
   }
 }
 
@@ -83,11 +83,11 @@ export default function SideBar() {
     >
       {/* 로고 + 메뉴 */}
       <FlexBox alignItems="center" gap={0} fullHeight>
-        <Link to={ROUTES.HOME} style={{cursor: 'pointer', textDecoration: 'none', height: '100%', display: 'flex', alignItems: 'center', paddingRight: '1.5rem'}}>
+        <Link to={ROUTES.HOME} className="nav-link-logo">
           <AppleTg sx={{fontSize: '0.9rem', color: 'primary.main', fontWeight: '600'}}>{LEO_TITLE.kor}</AppleTg>
         </Link>
         {MENU_PAGE_LIST.filter(menu => myLevel >= menu.minLevel).map((menu) => (
-          <Link to={menu.path} key={menu.name} style={{textDecoration: 'none', height: '100%'}}>
+          <Link to={menu.path} key={menu.name} className="nav-link">
             <FlexBox fullHeight alignItems="center" sx={{padding: '0 1rem', ...buttonHoverEffect}}>
               <AppleTg
                 variant={selectedMenu === menu.name ? 'appleSDGothicNeoB' : 'appleSDGothicNeoM'}
@@ -108,7 +108,7 @@ export default function SideBar() {
           </AppleTg>
         </FlexBox>
         {myLevel >= ADMIN_PAGE.minLevel && (
-          <Link to={ADMIN_PAGE.path} style={{textDecoration: 'none', height: '100%'}}>
+          <Link to={ADMIN_PAGE.path} className="nav-link">
             <FlexBox fullHeight alignItems="center" sx={{padding: '0 1rem', ...buttonHoverEffect}}>
               <AppleTg sx={{fontSize: '0.85rem', color: selectedMenu === ADMIN_PAGE.name ? 'black' : 'gray'}}>
                 {ADMIN_PAGE.label}

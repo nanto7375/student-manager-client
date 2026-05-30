@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "@mui/material";
 import { FlexBox } from "~/components/styled-elements";
+import { useAutoResizeTextarea } from "~/hooks/use-auto-resize-textarea";
 
 type NoteEditBoxProps = {
   value: string;
@@ -19,15 +20,8 @@ export const NoteEditBox = ({
   placeholder,
   isInline = false
 }: NoteEditBoxProps) => {
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const textareaRef = useAutoResizeTextarea(value);
   const containerRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
-    }
-  }, [value]);
 
   React.useEffect(() => {
     if (textareaRef.current) {
@@ -56,23 +50,8 @@ export const NoteEditBox = ({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        style={{
-          width: '100%',
-          minHeight: '6.25rem',
-          padding: isInline ? '0' : '1rem',
-          margin: 0,
-          border: 'none',
-          borderRadius: '0.25rem',
-          resize: 'none',
-          fontFamily: 'inherit',
-          fontSize: 'inherit',
-          lineHeight: 'inherit',
-          letterSpacing: 'inherit',
-          wordSpacing: 'inherit',
-          whiteSpace: 'pre-wrap',
-          outline: 'none',
-          overflow: 'hidden',
-        }}
+        className="auto-resize-textarea"
+        style={{ padding: isInline ? '0' : '1rem' }}
       />
       <FlexBox alignItems='flex-end' justifyContent='flex-end' sx={{ gap: '1rem', height: '3rem' }}>
         <Button variant="contained" onClick={onSave} sx={{ width: '3rem', height: '2.5rem' }}>

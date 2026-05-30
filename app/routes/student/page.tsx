@@ -7,6 +7,8 @@ import { FlexContainer, FlexBox } from "~/components/styled-elements";
 import { getStudentListApi } from "~/lib/api/students.api";
 import { StudentSearchFilter } from "./components/student-search-filter";
 import { useGlobalToast } from "~/providers/toast-provider";
+import { useInfiniteScroll } from "~/hooks/use-infinite-scroll";
+import { useDebouncedValue } from "~/hooks/use-debounced-value";
 import type { StudentInList as StudentInListType } from "~/constants/student.type";
 
 const LIMIT = 40;
@@ -14,7 +16,6 @@ const LIMIT = 40;
 export default function Student() {
   const navigate = useNavigate();
   const [searchParam, setSearchParam] = useSearchParams();
-  const observerRef = React.useRef<HTMLDivElement>(null);
   const toast = useGlobalToast();
 
   const { schoolLevel, dayOfWeek, name } = React.useMemo(() => {
@@ -29,6 +30,7 @@ export default function Student() {
   }, [searchParam]);
 
   const [inputName, setInputName] = React.useState('');
+  const debouncedName = useDebouncedValue(inputName, 700);
 
   // 무한스크롤
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError } = useInfiniteQuery({
@@ -59,15 +61,7 @@ export default function Student() {
   }, [isError]);
 
   // IntersectionObserver로 하단 감지
-  React.useEffect(() => {
-    if (!observerRef.current) return;
-    const observer = new IntersectionObserver(
-      (entries) => { if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) fetchNextPage(); },
-      { threshold: 0.1 }
-    );
-    observer.observe(observerRef.current);
-    return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  const observerRef = useInfiniteScroll(fetchNextPage, !!hasNextPage, isFetchingNextPage);
 
   const handleStudentClick = React.useCallback((studentId: number) => {
     navigate(`/student/${studentId}`);
@@ -82,21 +76,15 @@ export default function Student() {
     }, { replace: true });
   }, [setSearchParam]);
 
-  // 입력이 끝난 후 자동 검색 (debounce)
-  const prevInputName = React.useRef(inputName);
+  // debounce된 이름으로 검색 파라미터 업데이트
   React.useEffect(() => {
-    if (prevInputName.current === inputName) return;
-    prevInputName.current = inputName;
-    const timer = setTimeout(() => {
-      setSearchParam((prev) => {
-        const params = new URLSearchParams(prev);
-        if (inputName) params.set('name', inputName);
-        else params.delete('name');
-        return params.toString();
-      }, { replace: true });
-    }, 700);
-    return () => clearTimeout(timer);
-  }, [inputName, setSearchParam]);
+    setSearchParam((prev) => {
+      const params = new URLSearchParams(prev);
+      if (debouncedName) params.set('name', debouncedName);
+      else params.delete('name');
+      return params.toString();
+    }, { replace: true });
+  }, [debouncedName, setSearchParam]);
 
   if (isLoading) return <FlexContainer fullHeight fullWidth center />;
   return (
@@ -141,7 +129,7 @@ export default function Student() {
             <StudentCard key={student.id} student={student} onClick={handleStudentClick} />
           ))}
           {/* 무한스크롤 감지 영역 */}
-          <div ref={observerRef} style={{ width: '100%', height: '1px' }} />
+          <div ref={observerRef} style={{ height: '1px' }} />
         </FlexBox>
       </FlexBox>
     </FlexContainer>
@@ -177,10 +165,10 @@ const StudentCard = ({ student, onClick }: { student: StudentInListType; onClick
 
   return (
     <Card elevation={0} sx={studentCardSx} onClick={() => onClick(student.id)}>
-      <div style={{ width: '6px', height: '100%', backgroundColor: levelColor, flexShrink: 0 }} />
-      <span style={{ padding: '0 0.5rem 0 1rem', fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <div className="student-card-level-bar" style={{ backgroundColor: levelColor }} />
+      <span className="student-card-name">
         {student.name}
-        {schoolInfo && <span style={{ color: '#888', fontSize: '0.8rem', marginLeft: '0.3rem' }}>{schoolInfo}</span>}
+        {schoolInfo && <span className="student-card-school-info">{schoolInfo}</span>}
       </span>
     </Card>
   );

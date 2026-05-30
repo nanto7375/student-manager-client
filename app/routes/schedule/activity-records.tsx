@@ -5,7 +5,7 @@ import { TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Butto
 import dayjs from "dayjs";
 
 import { getActivityRecordsApi, updateWeeklyActivityRecordApi, updateMonthlyActivityRecordApi, borrowBookApi, returnBookApi } from "~/lib/api/activities.api";
-import { createNoteApi } from "~/lib/api/students.api";
+import { createNoteApi, changeClassroomApi } from "~/lib/api/students.api";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import { AppleTg } from "~/components/typography";
 import { useGlobalToast } from "~/providers/toast-provider";
@@ -13,6 +13,7 @@ import { MakeupScheduleDialog } from "~/components/makeup-schedule-dialog";
 import { StudentActionPopup } from "~/components/student-action-popup";
 import { auth } from "~/lib/auth";
 import { TABLE_STYLE } from "~/constants/styles";
+import { useClassroomDrop, createDragStartHandler } from "~/hooks/use-classroom-drop";
 
 import type { ActivityCheck, ActivityRecordType } from "./activity-records.type";
 import { ActivityKey, monthlyProjectStatusText, monthlyProjectNextKey, activityRecordsQueryKey } from "./activity-records.type";
@@ -75,18 +76,19 @@ export default function StudentActivityRecords() {
     placeholderData: keepPreviousData,
   });
 
+  const buildMemoMap = (type: 'fixed-memo' | 'temporary-memo') =>
+    Object.fromEntries(
+      activityRecords.map(r => [r.student.id, r.student.notes.filter(n => n.type === type).map(n => n.value.trim().replace(/\.$/, '')).join('. ')])
+    );
+
   const fixedMemosMap = React.useMemo(() => {
     if (!activityRecords) return {};
-    return Object.fromEntries(
-      activityRecords.map(r => [r.student.id, r.student.notes.filter(n => n.type === 'fixed-memo').map(n => n.value.trim().replace(/\.$/, '')).join('. ')])
-    );
+    return buildMemoMap('fixed-memo');
   }, [activityRecords]);
 
   const tempMemosMap = React.useMemo(() => {
     if (!activityRecords) return {};
-    return Object.fromEntries(
-      activityRecords.map(r => [r.student.id, r.student.notes.filter(n => n.type === 'temporary-memo').map(n => n.value.trim().replace(/\.$/, '')).join('. ')])
-    );
+    return buildMemoMap('temporary-memo');
   }, [activityRecords]);
 
   const recordsByClassroom = React.useMemo(() => {
@@ -115,13 +117,19 @@ export default function StudentActivityRecords() {
       '책 대여/반납 처리에 실패했습니다.'
     );
 
+  const handleClassroomDrop = (studentId: number, classroomId: number) =>
+    withUpdating(
+      () => changeClassroomApi({ params: { studentId }, body: { classroomId } }),
+      '강의실 변경에 실패했습니다.'
+    );
+
   if (isLoading || !activityRecords) {
     return <FlexContainer padding="1rem" fullHeight fullWidth center></FlexContainer>;
   }
   return (
     <FlexContainer padding="1rem" fullWidth fullHeight flexDirection="column" gap={3.5} sx={{ '&::after': { content: '""', minHeight: '0.01px', flexShrink: 0 } }} onClick={() => setActivePopup(null)}>
       {recordsByClassroom.map(({ classroom, records }) => (
-        <ClassroomTable key={classroom.id} classroom={classroom} records={records} fixedMemosMap={fixedMemosMap} tempMemosMap={tempMemosMap} activePopup={activePopup} setActivePopup={setActivePopup} setMemoInput={setMemoInput} navigate={navigate} setMakeupTarget={setMakeupTarget} setMemoTargetStudentId={setMemoTargetStudentId} setMemoType={setMemoType} handleWeeklyActivityRecordButtonClick={handleWeeklyActivityRecordButtonClick} handleMonthlyActivityRecordButtonClick={handleMonthlyActivityRecordButtonClick} handleBookRentalButtonClick={handleBookRentalButtonClick} fullWidth showNotes />
+        <ClassroomTable key={classroom.id} classroom={classroom} records={records} fixedMemosMap={fixedMemosMap} tempMemosMap={tempMemosMap} activePopup={activePopup} setActivePopup={setActivePopup} setMemoInput={setMemoInput} navigate={navigate} setMakeupTarget={setMakeupTarget} setMemoTargetStudentId={setMemoTargetStudentId} setMemoType={setMemoType} handleWeeklyActivityRecordButtonClick={handleWeeklyActivityRecordButtonClick} handleMonthlyActivityRecordButtonClick={handleMonthlyActivityRecordButtonClick} handleBookRentalButtonClick={handleBookRentalButtonClick} handleClassroomDrop={handleClassroomDrop} fullWidth showNotes />
       ))}
 
       {/* 변동 메모 추가 모달 */}
@@ -135,9 +143,7 @@ export default function StudentActivityRecords() {
               value={memoInput}
               onChange={(e) => setMemoInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && memoTargetStudentId) handleAddTempMemo(memoTargetStudentId); }}
-              onFocus={(e) => { e.target.style.border = '1px solid #036635'; e.target.style.outline = 'none'; }}
-              onBlur={(e) => { e.target.style.border = '1px solid #ddd'; }}
-              style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: '0.25rem', fontSize: '0.9rem' }}
+              className="memo-input"
             />
             <FlexBox justifyContent="flex-end" gap={0.5}>
               <Button size="small" onClick={() => { setMemoTargetStudentId(null); setMemoInput(''); }}>취소</Button>
@@ -179,8 +185,16 @@ const ActivityRecordButton = ({ value, buttonTextOn, buttonTextOff, onClick, mai
   </Button>
 );
 
-const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap, activePopup, setActivePopup, setMemoInput, navigate, setMakeupTarget, setMemoTargetStudentId, setMemoType, handleWeeklyActivityRecordButtonClick, handleMonthlyActivityRecordButtonClick, handleBookRentalButtonClick, showNotes = false, showNotesBelow = false, fullWidth = false, hideHeader = false }: any) => (
-  <FlexBox flexDirection="column" gap={0.5} sx={{ width: fullWidth ? '100%' : 'auto' }}>
+const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap, activePopup, setActivePopup, setMemoInput, navigate, setMakeupTarget, setMemoTargetStudentId, setMemoType, handleWeeklyActivityRecordButtonClick, handleMonthlyActivityRecordButtonClick, handleBookRentalButtonClick, handleClassroomDrop, showNotes = false, showNotesBelow = false, fullWidth = false, hideHeader = false }: any) => {
+  const { dragOver, dropHandlers } = useClassroomDrop(classroom.id, handleClassroomDrop);
+
+  return (
+  <FlexBox
+    flexDirection="column"
+    gap={0.5}
+    sx={{ width: fullWidth ? '100%' : 'auto', outline: dragOver ? '2px dashed #036635' : 'none', borderRadius: '0.5rem', transition: 'outline 0.15s' }}
+    {...dropHandlers}
+  >
     {!hideHeader && (
     <FlexBox alignItems="center" gap={0.5}>
       <AppleTg sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#333', pl: 0.5, whiteSpace: 'nowrap', flexShrink: 0 }}>{classroom.name}</AppleTg>
@@ -198,7 +212,6 @@ const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap, activ
     <TableContainer className='non-overflow-scroll' sx={{
       border: '1px solid #e0e0e0',
       borderRadius: hideHeader ? '0.5rem 0 0 0.5rem' : showNotesBelow ? '0.5rem 0.5rem 0 0' : '0.5rem',
-      borderBottom: showNotesBelow ? '1px solid #e0e0e0' : '1px solid #e0e0e0',
       overflow: 'visible',
       boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
       width: fullWidth ? '100%' : 'fit-content',
@@ -210,6 +223,13 @@ const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap, activ
             const tempMemos = activityRecord.student.notes.filter((n: any) => n.type === 'temporary-memo').map((n: any) => n.value.trim().replace(/\.$/, '')).join('. ');
             return (
             <TableRow key={activityRecord.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+              <TableCell align="center" sx={{ width: '2%', px: 0, py: 0 }}>
+                <span
+                  draggable
+                  onDragStart={createDragStartHandler(activityRecord.student.id, classroom.id)}
+                  className="drag-handle"
+                >⠿</span>
+              </TableCell>
               <TableCell align="center" sx={{ width: '12%' }}>
                 <FlexBox sx={{ position: 'relative', justifyContent: 'center' }}>
                   <AppleTg component="div" sx={{fontSize: '0.9rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '2lh'}} onClick={(e: React.MouseEvent) => { e.stopPropagation(); setActivePopup(activePopup === activityRecord.id ? null : activityRecord.id); setMemoInput(''); }}>
@@ -314,4 +334,5 @@ const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap, activ
       </FlexBox>
     )}
   </FlexBox>
-);
+  );
+};

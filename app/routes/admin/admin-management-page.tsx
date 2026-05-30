@@ -6,7 +6,7 @@ import { AdminRoleType } from "~/constants/type";
 import { useGlobalToast } from "~/providers/toast-provider";
 import { getAdminListApi } from "~/lib/api/admins.api";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { TABLE_STYLE, TABLE_CONTAINER_STYLE } from "~/constants/styles";
+import { TABLE_STYLE, TABLE_CONTAINER_STYLE, ADMIN_SELECT_SX } from "~/constants/styles";
 import { AppleTg } from "~/components/typography";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Drawer, IconButton, TablePagination, Select, MenuItem } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
@@ -110,12 +110,12 @@ export const AdminManagementPage = ({ registerOpen, onRegisterClose, showDeleted
             labelDisplayedRows={({ from, to, count }) => `${from}-${to} of ${count}`}
             sx={{ '& .MuiTablePagination-displayedRows': { fontSize: '1rem' } }}
           />
-          <Select size="small" value={sort} onChange={(e) => updateParams(p => p.set('sort', e.target.value))} sx={{ width: '9rem', textAlign: 'center', '& .MuiSelect-select': { py: '0.4rem' }, '& .MuiOutlinedInput-notchedOutline': { top: 0, legend: { display: 'none' } } }}>
+          <Select size="small" value={sort} onChange={(e) => updateParams(p => p.set('sort', e.target.value))} sx={{ width: '9rem', ...ADMIN_SELECT_SX }}>
             <MenuItem value="createdAt-asc" sx={{ justifyContent: 'center' }}>오래된 등록순</MenuItem>
             <MenuItem value="createdAt-desc" sx={{ justifyContent: 'center' }}>최근 등록순</MenuItem>
             <MenuItem value="name-asc" sx={{ justifyContent: 'center' }}>이름순</MenuItem>
           </Select>
-          <Select size="small" value={rowsPerPage} onChange={(e) => updateParams(p => p.set('limit', String(e.target.value)))} sx={{ minWidth: '7rem', textAlign: 'center', '& .MuiSelect-select': { py: '0.4rem' }, '& .MuiOutlinedInput-notchedOutline': { top: 0, legend: { display: 'none' } } }}>
+          <Select size="small" value={rowsPerPage} onChange={(e) => updateParams(p => p.set('limit', String(e.target.value)))} sx={{ minWidth: '7rem', ...ADMIN_SELECT_SX }}>
             {ROWS_PER_PAGE_OPTIONS.map(n => <MenuItem key={n} value={n} sx={{ justifyContent: 'center' }}>{n}개</MenuItem>)}
           </Select>
         </FlexBox>

@@ -10,13 +10,14 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { getStudentListForManagementApi, changeScheduleApi, cancelReservedScheduleApi } from "~/lib/api/students.api";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { StudentSearchFilter } from "../student/components/student-search-filter";
-import { TABLE_STYLE, TABLE_CONTAINER_STYLE } from "~/constants/styles";
+import { TABLE_STYLE, TABLE_CONTAINER_STYLE, ADMIN_SELECT_SX } from "~/constants/styles";
 import { useScheduleList } from "../schedule/page";
 import { formatTime12Hour, mapNumberToDayOfWeek } from "~/lib/utils/time.util";
 import { FormSelect } from "~/components/form/form-components";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import dayjs, { type Dayjs } from "dayjs";
 import { useConfirmModal } from "~/hooks/use-confirm-modal";
+import { useDebouncedValue } from "~/hooks/use-debounced-value";
 import { DrawerTitle } from "./components/drawer-title";
 
 // --- Types ---
@@ -72,6 +73,7 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
   const sort = searchParams.get('sort') || 'name-asc';
 
   const [inputName, setInputName] = React.useState(searchName);
+  const debouncedName = useDebouncedValue(inputName, 700);
 
   // querystring 업데이트 헬퍼 (page 자동 리셋)
   const updateParams = (updater: (p: URLSearchParams) => void) => {
@@ -84,16 +86,10 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
   };
   const setPage = (p: number) => setSearchParams(prev => { const params = new URLSearchParams(prev); p > 0 ? params.set('page', String(p)) : params.delete('page'); return params; }, { replace: true });
 
-  // 이름 검색 debounce
-  const prevInputName = React.useRef(inputName);
+  // debounce된 이름으로 검색 파라미터 업데이트
   React.useEffect(() => {
-    if (prevInputName.current === inputName) return;
-    prevInputName.current = inputName;
-    const timer = setTimeout(() => {
-      updateParams(p => inputName ? p.set('name', inputName) : p.delete('name'));
-    }, 700);
-    return () => clearTimeout(timer);
-  }, [inputName]);
+    updateParams(p => debouncedName ? p.set('name', debouncedName) : p.delete('name'));
+  }, [debouncedName]);
 
   // Filter handlers
   const handleClearName = () => { setInputName(''); updateParams(p => p.delete('name')); };
@@ -208,12 +204,12 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
               labelDisplayedRows={({ from, to, count }) => `${from}-${to} of ${count}`}
               sx={{ '& .MuiTablePagination-displayedRows': { fontSize: '1rem' } }}
             />
-            <Select size="small" value={sort} onChange={(e) => updateParams(p => p.set('sort', e.target.value))} sx={{ width: '9rem', textAlign: 'center', '& .MuiSelect-select': { py: '0.4rem' }, '& .MuiOutlinedInput-notchedOutline': { top: 0, legend: { display: 'none' } } }}>
+            <Select size="small" value={sort} onChange={(e) => updateParams(p => p.set('sort', e.target.value))} sx={{ width: '9rem', ...ADMIN_SELECT_SX }}>
               <MenuItem value="name-asc" sx={{ justifyContent: 'center' }}>이름순</MenuItem>
               <MenuItem value="registeredAt-asc" sx={{ justifyContent: 'center' }}>오래된 등록순</MenuItem>
               <MenuItem value="registeredAt-desc" sx={{ justifyContent: 'center' }}>최근 등록순</MenuItem>
             </Select>
-            <Select size="small" value={rowsPerPage} onChange={handleRowsPerPageChange} sx={{ minWidth: '7rem', textAlign: 'center', '& .MuiSelect-select': { py: '0.4rem' }, '& .MuiOutlinedInput-notchedOutline': { top: 0, legend: { display: 'none' } } }}>
+            <Select size="small" value={rowsPerPage} onChange={handleRowsPerPageChange} sx={{ minWidth: '7rem', ...ADMIN_SELECT_SX }}>
               {ROWS_PER_PAGE_OPTIONS.map(n => <MenuItem key={n} value={n} sx={{ justifyContent: 'center' }}>{n}개</MenuItem>)}
             </Select>
           </FlexBox>

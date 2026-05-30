@@ -154,6 +154,97 @@ a {
   text-decoration: none;
 }
 
+/* Sidebar nav links */
+.nav-link {
+  text-decoration: none;
+  height: 100%;
+}
+
+.nav-link-logo {
+  cursor: pointer;
+  text-decoration: none;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-right: 1.5rem;
+}
+
+/* Schedule sidebar link */
+.schedule-link {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-left: 1rem;
+}
+
+/* Memo input focus style */
+.memo-input {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 0.25rem;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.memo-input:focus {
+  border-color: #036635;
+}
+
+/* Auto-resize textarea */
+.auto-resize-textarea {
+  width: 100%;
+  min-height: 6.25rem;
+  margin: 0;
+  border: none;
+  border-radius: 0.25rem;
+  resize: none;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  word-spacing: inherit;
+  white-space: pre-wrap;
+  outline: none;
+  overflow: hidden;
+}
+
+/* Student card elements */
+.student-card-level-bar {
+  width: 6px;
+  height: 100%;
+  flex-shrink: 0;
+}
+
+.student-card-name {
+  padding: 0 0.5rem 0 1rem;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.student-card-school-info {
+  color: #888;
+  font-size: 0.8rem;
+  margin-left: 0.3rem;
+}
+
+/* Empty schedule text */
+.empty-schedule-text {
+  color: gray;
+  font-size: 0.875rem;
+}
+
+/* Drag handle */
+.drag-handle {
+  cursor: grab;
+  color: #bbb;
+  font-size: 0.85rem;
+  user-select: none;
+  padding: 0.8rem 0.5rem;
+}
+
 /* 스크롤바 gutter 전역 적용 */
 * {
   scrollbar-gutter: stable;

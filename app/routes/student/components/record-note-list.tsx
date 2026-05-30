@@ -93,9 +93,6 @@ export const RecordNoteList = ({ notes, deleteNote, createNote, updateNote, sele
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setRecordingNote(prev => ({ ...prev, value: e.target.value }));
-    // 자동으로 높이 조절
-    e.target.style.height = 'auto';
-    e.target.style.height = e.target.scrollHeight + 'px';
   };
   
 
