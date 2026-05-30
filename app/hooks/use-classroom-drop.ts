@@ -28,5 +28,8 @@ export const createDragStartHandler = (studentId: number, classroomId: number) =
     if (row) {
       const rect = row.getBoundingClientRect();
       e.dataTransfer.setDragImage(row, e.clientX - rect.left, e.clientY - rect.top);
+      row.style.opacity = '0.4';
+      const restore = () => { row.style.opacity = ''; row.removeEventListener('dragend', restore); };
+      row.addEventListener('dragend', restore);
     }
   };
