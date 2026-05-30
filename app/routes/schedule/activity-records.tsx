@@ -174,11 +174,11 @@ type ActivityRecordButtonProps = {
   disabledBgColor?: string;
   fontColor?: string;
 }
-const ActivityRecordButton = ({ value, buttonTextOn, buttonTextOff, onClick, mainBgColor='white', disabledBgColor='grey.500', fontColor='black' }: ActivityRecordButtonProps) => (
+const ActivityRecordButton = ({ value, buttonTextOn, buttonTextOff, onClick, mainBgColor='transparent', disabledBgColor='grey.500', fontColor='black' }: ActivityRecordButtonProps) => (
   <Button 
     variant="contained" 
     size="small" 
-    sx={{ minWidth: 0, px: 1, py: 0.8, width: '100%', backgroundColor: value ? disabledBgColor : mainBgColor, color: fontColor }} 
+    sx={{ minWidth: 0, px: 1, py: 0, width: '100%', height: '100%', borderRadius: 0, boxShadow: 'none', backgroundColor: value ? disabledBgColor : mainBgColor, color: fontColor, '&:hover': { boxShadow: 'none' } }} 
     onClick={onClick}
   >
     <AppleTg sx={{fontSize: '0.8rem', whiteSpace: 'nowrap'}}>{value ? buttonTextOff : buttonTextOn}</AppleTg>
@@ -217,20 +217,20 @@ const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap, activ
       width: fullWidth ? '100%' : 'fit-content',
       minHeight: '4rem',
     }}>
-      <Table sx={{ ...TABLE_STYLE, '& td': { px: 1.5, py: 1.5 }, ...(!fullWidth && { width: 'auto' }) }}>
+      <Table sx={{ ...TABLE_STYLE, borderCollapse: 'collapse', '& td': { px: 0, py: 0, height: '3.5rem', borderTop: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', borderLeft: '1px dashed #e0e0e0', borderRight: '1px dashed #e0e0e0' }, '& td:first-of-type': { borderLeft: '1px solid #e0e0e0' }, '& td:last-of-type': { borderRight: '1px solid #e0e0e0' }, '& tbody tr:last-of-type td': { borderBottom: '1px solid #e0e0e0', borderLeft: '1px dashed #e0e0e0', borderRight: '1px dashed #e0e0e0' }, '& tbody tr:last-of-type td:first-of-type': { borderLeft: '1px solid #e0e0e0' }, '& tbody tr:last-of-type td:last-of-type': { borderRight: '1px solid #e0e0e0' }, ...(!fullWidth && { width: 'auto' }) }}>
         <TableBody>
           {records.map((activityRecord: any) => {
             const tempMemos = activityRecord.student.notes.filter((n: any) => n.type === 'temporary-memo').map((n: any) => n.value.trim().replace(/\.$/, '')).join('. ');
             return (
             <TableRow key={activityRecord.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-              <TableCell align="center" sx={{ width: '2%', px: 0, py: 0 }}>
+              <TableCell align="center" sx={{ width: '2%', px: 0, py: 0, borderRight: 'none !important' }}>
                 <span
                   draggable
                   onDragStart={createDragStartHandler(activityRecord.student.id, classroom.id)}
                   className="drag-handle"
                 >⠿</span>
               </TableCell>
-              <TableCell align="center" sx={{ width: '10%' }}>
+              <TableCell align="center" sx={{ width: '10%', borderLeft: 'none !important' }}>
                 <FlexBox sx={{ position: 'relative', justifyContent: 'center' }}>
                   <AppleTg component="div" sx={{fontSize: '0.9rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '2lh'}} onClick={(e: React.MouseEvent) => { e.stopPropagation(); setActivePopup(activePopup === activityRecord.id ? null : activityRecord.id); setMemoInput(''); }}>
                     <div>{activityRecord.student.name}{activityRecord.isMakeup && <span style={{ color: '#e65100' }}> (보강)</span>}</div>
@@ -305,7 +305,7 @@ const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap, activ
                   buttonTextOn="책 대여"
                   buttonTextOff="책 반납"
                   onClick={() => handleBookRentalButtonClick(activityRecord)}
-                  mainBgColor="white"
+                  mainBgColor="transparent"
                   disabledBgColor="grey.200" 
                   fontColor='black'
                 />
