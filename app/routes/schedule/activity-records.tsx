@@ -127,7 +127,7 @@ export default function StudentActivityRecords() {
     return <FlexContainer padding="1rem" fullHeight fullWidth center></FlexContainer>;
   }
   return (
-    <FlexContainer padding="1rem" fullWidth fullHeight flexDirection="column" gap={3.5} sx={{ '&::after': { content: '""', minHeight: '0.01px', flexShrink: 0 } }} onClick={() => setActivePopup(null)}>
+    <FlexContainer padding="1rem" fullWidth fullHeight flexDirection="column" gap={3} sx={{ '&::after': { content: '""', minHeight: '0.01px', flexShrink: 0 } }} onClick={() => setActivePopup(null)}>
       {recordsByClassroom.map(({ classroom, records }) => (
         <ClassroomTable key={classroom.id} classroom={classroom} records={records} fixedMemosMap={fixedMemosMap} tempMemosMap={tempMemosMap} activePopup={activePopup} setActivePopup={setActivePopup} setMemoInput={setMemoInput} navigate={navigate} setMakeupTarget={setMakeupTarget} setMemoTargetStudentId={setMemoTargetStudentId} setMemoType={setMemoType} handleWeeklyActivityRecordButtonClick={handleWeeklyActivityRecordButtonClick} handleMonthlyActivityRecordButtonClick={handleMonthlyActivityRecordButtonClick} handleBookRentalButtonClick={handleBookRentalButtonClick} handleClassroomDrop={handleClassroomDrop} fullWidth showNotes />
       ))}
@@ -230,7 +230,7 @@ const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap, activ
                   className="drag-handle"
                 >⠿</span>
               </TableCell>
-              <TableCell align="center" sx={{ width: '12%' }}>
+              <TableCell align="center" sx={{ width: '10%' }}>
                 <FlexBox sx={{ position: 'relative', justifyContent: 'center' }}>
                   <AppleTg component="div" sx={{fontSize: '0.9rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '2lh'}} onClick={(e: React.MouseEvent) => { e.stopPropagation(); setActivePopup(activePopup === activityRecord.id ? null : activityRecord.id); setMemoInput(''); }}>
                     <div>{activityRecord.student.name}{activityRecord.isMakeup && <span style={{ color: '#e65100' }}> (보강)</span>}</div>
@@ -299,7 +299,7 @@ const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap, activ
                   }}
                 />
               </TableCell>
-              <TableCell align="center" sx={{ width: '9%' }}>
+              <TableCell align="center" sx={{ width: '12%' }}>
                 <ActivityRecordButton
                   value={!!activityRecord.borrowedBook}
                   buttonTextOn="책 대여"
@@ -311,7 +311,7 @@ const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap, activ
                 />
               </TableCell>
               {showNotes && activityRecord === records[0] && (
-                <TableCell rowSpan={records.length} sx={{ width: '20%', verticalAlign: 'top', borderLeft: '1px solid #e0e0e0 !important', padding: '1.2rem 0.75rem !important' }}>
+                <TableCell rowSpan={records.length} sx={{ width: '20%', verticalAlign: 'top', borderLeft: '1px dashed #e0e0e0 !important', padding: '1.2rem 0.75rem !important' }}>
                   {records.filter((r: any) => tempMemosMap[r.student.id]).map((r: any, i: number) => (
                     <FlexBox key={r.student.id} sx={{ color: '#666', mt: i > 0 ? 1.5 : 0 }}>
                       <AppleTg sx={{ whiteSpace: 'nowrap', flexShrink: 0, fontSize: '0.8rem' }}>· {r.student.name}:</AppleTg>
