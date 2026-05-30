@@ -64,7 +64,7 @@ export default function Schedule() {
           </FlexBox>
         } */}
 
-        <FlexBox fullHeight fullWidth>
+        <FlexBox fullHeight fullWidth sx={{ overflow: 'auto' }}>
           <Outlet />
         </FlexBox>
       </FlexContainer>

@@ -16,6 +16,7 @@ import { TABLE_STYLE } from "~/constants/styles";
 
 import type { ActivityCheck, ActivityRecordType } from "./activity-records.type";
 import { ActivityKey, monthlyProjectStatusText, monthlyProjectNextKey, activityRecordsQueryKey } from "./activity-records.type";
+import { CLASSROOMS } from "~/constants/student.type";
 
 export { activityRecordsQueryKey } from "./activity-records.type";
 
@@ -81,13 +82,26 @@ export default function StudentActivityRecords() {
     );
   }, [activityRecords]);
 
+  const tempMemosMap = React.useMemo(() => {
+    if (!activityRecords) return {};
+    return Object.fromEntries(
+      activityRecords.map(r => [r.student.id, r.student.notes.filter(n => n.type === 'temporary-memo').map(n => n.value.trim().replace(/\.$/, '')).join('. ')])
+    );
+  }, [activityRecords]);
+
+  const recordsByClassroom = React.useMemo(() => {
+    if (!activityRecords) return [];
+    return CLASSROOMS
+      .map(c => ({ classroom: c, records: activityRecords.filter(r => r.student.classroom.id === c.id) }));
+  }, [activityRecords]);
+
   const handleWeeklyActivityRecordButtonClick = ({activityId, activityKey, value}: {activityId: number; activityKey: keyof ActivityCheck; value: boolean}) =>
     withUpdating(
       () => updateWeeklyActivityRecordApi({ params: { activityId }, body: { [activityKey]: value } }),
       '활동 기록 업데이트에 실패했습니다.'
     );
 
-  const handleMonthlyActivityRecordButtonClick = ({activityId, activityKey, value}: {activityId: number; activityKey: keyof ActivityCheck; value: boolean}) =>
+  const handleMonthlyActivityRecordButtonClick = ({activityId, activityKey, value}: {activityId: number; activityKey: keyof ActivityCheck | 'monthlyProject'; value: boolean | string | null}) =>
     withUpdating(
       () => updateMonthlyActivityRecordApi({ params: { activityId }, body: { [activityKey]: value } }),
       '활동 기록 업데이트에 실패했습니다.'
@@ -105,126 +119,10 @@ export default function StudentActivityRecords() {
     return <FlexContainer padding="1rem" fullHeight fullWidth center></FlexContainer>;
   }
   return (
-    <FlexContainer padding="1rem" fullWidth fullHeight flexDirection="column" gap={1}>
-      {/* 학생별 고정 메모 */}
-      {Object.entries(fixedMemosMap).some(([, memo]) => memo) && (
-        <FlexBox justifyContent="flex-end" gap={0.5} sx={{ flexWrap: 'wrap' }}>
-          {activityRecords.filter((r, i, arr) => fixedMemosMap[r.student.id] && arr.findIndex(a => a.student.id === r.student.id) === i).map(r => (
-            <AppleTg key={r.id} sx={{ fontSize: '0.75rem', color: '#555', border: '1px solid #ddd', borderRadius: '1rem', padding: '0.2rem 0.6rem' }}>
-              <strong>{r.student.name}</strong> {fixedMemosMap[r.student.id]}
-            </AppleTg>
-          ))}
-        </FlexBox>
-      )}
-
-      <TableContainer className='non-overflow-scroll' sx={{
-        border: '1px solid #ddd',
-        borderRadius: '0.25rem',
-        overflow: 'visible',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-      }}>
-        <Table sx={TABLE_STYLE}>
-          <TableHead>
-            <TableRow>
-              <TableCell width="14%" align="center" sx={{ py: 1 }}><AppleTg>이름</AppleTg></TableCell>
-              <TableCell width="12%" align="center" sx={{ py: 1 }}><AppleTg>출석</AppleTg></TableCell>
-              <TableCell width="12%" align="center" sx={{ py: 1 }}><AppleTg>감상문</AppleTg></TableCell>
-              <TableCell width="12%" align="center" sx={{ py: 1 }}><AppleTg>주간 레오</AppleTg></TableCell>
-              <TableCell width="12%" align="center" sx={{ py: 1 }}><AppleTg>월간 레오</AppleTg></TableCell>
-              <TableCell width="12%" align="center" sx={{ py: 1 }}><AppleTg>책 대여</AppleTg></TableCell>
-              <TableCell align="center" sx={{ py: 1 }}><AppleTg>비고</AppleTg></TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {activityRecords.map((activityRecord) => {
-              const tempMemos = activityRecord.student.notes.filter(n => n.type === 'temporary-memo').map(n => n.value.trim().replace(/\.$/, '')).join('. ');
-              return (
-              <TableRow key={activityRecord.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                <TableCell align="center">
-                  <FlexBox sx={{ position: 'relative', justifyContent: 'center' }}>
-                    <AppleTg component="div" sx={{fontSize: '0.9rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '2lh'}} onClick={() => { setActivePopup(activePopup === activityRecord.id ? null : activityRecord.id); setMemoInput(''); }}>
-                      <div>{activityRecord.student.name}{activityRecord.isMakeup && <span style={{ color: '#e65100' }}> (보강)</span>}</div>
-                      {activityRecord.student.schoolName && <div>({activityRecord.student.schoolName.replace('초등학교', '초').replace('중학교', '중').replace('고등학교', '고')} {activityRecord.student.schoolGrade}학년)</div>}
-                    </AppleTg>
-                    {activePopup === activityRecord.id && (
-                      <StudentActionPopup
-                        myLevel={auth.getMyInfo()?.level ?? 0}
-                        onNavigateDetail={() => { navigate(`/student/${activityRecord.student.id}`); setActivePopup(null); }}
-                        onAddMakeup={() => { setMakeupTarget({ studentId: activityRecord.student.id }); setActivePopup(null); }}
-                        onAddFixedMemo={() => { setMemoTargetStudentId(activityRecord.student.id); setMemoType('fixed-memo'); setActivePopup(null); }}
-                        onAddTempMemo={() => { setMemoTargetStudentId(activityRecord.student.id); setMemoType('temporary-memo'); setActivePopup(null); }}
-                      />
-                    )}
-                  </FlexBox>
-                </TableCell>
-                <TableCell align="center">
-                  <ActivityRecordButton 
-                    value={activityRecord.attendance} 
-                    buttonTextOn={`출석${activityRecord.isMakeup ? ' (보강)' : ''}`} 
-                    buttonTextOff={`${activityRecord.isMakeup ? '보강' : '출석'} 완료`}
-                    onClick={() => handleWeeklyActivityRecordButtonClick({
-                      activityId: activityRecord.id, 
-                      activityKey: ActivityKey.ATTENDANCE, 
-                      value: !activityRecord.attendance
-                    })} 
-                  />
-                </TableCell>
-                <TableCell align="center">
-                  <ActivityRecordButton 
-                    value={activityRecord.report1} 
-                    buttonTextOn="제출" 
-                    buttonTextOff="제출 완료" 
-                    onClick={() => handleWeeklyActivityRecordButtonClick({
-                      activityId: activityRecord.id, 
-                      activityKey: ActivityKey.REPORT1, 
-                      value: !activityRecord.report1
-                    })} 
-                  />
-                </TableCell>
-                <TableCell align="center">
-                  <ActivityRecordButton 
-                    value={activityRecord.report2} 
-                    buttonTextOn="제출" 
-                    buttonTextOff="제출 완료" 
-                    onClick={() => handleWeeklyActivityRecordButtonClick({
-                      activityId: activityRecord.id, 
-                      activityKey: ActivityKey.REPORT2, 
-                      value: !activityRecord.report2
-                    })} 
-                  />
-                </TableCell>
-                <TableCell align="center">
-                  <ActivityRecordButton 
-                    value={activityRecord.monthlyProject && activityRecord.monthlyPreview && activityRecord.monthlyReport} 
-                    buttonTextOn={monthlyProjectStatusText(activityRecord)} 
-                    buttonTextOff="참여 완료"
-                    onClick={() => handleMonthlyActivityRecordButtonClick({
-                      activityId: activityRecord.id, 
-                      activityKey: monthlyProjectNextKey(activityRecord), 
-                      value: !activityRecord[monthlyProjectNextKey(activityRecord)]
-                    })}
-                  />
-                </TableCell>
-                <TableCell align="center">
-                  <ActivityRecordButton
-                    value={!!activityRecord.borrowedBook}
-                    buttonTextOn="대여하기"
-                    buttonTextOff="반납"
-                    onClick={() => handleBookRentalButtonClick(activityRecord)}
-                    mainBgColor="white"
-                    disabledBgColor="grey.200" 
-                    fontColor='black'
-                  />
-                </TableCell>
-                <TableCell>
-                  {tempMemos && <AppleTg sx={{ fontSize: '0.75rem', color: '#666' }}>{tempMemos}</AppleTg>}
-                </TableCell>
-              </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
+    <FlexContainer padding="1rem" fullWidth fullHeight flexDirection="column" gap={3.5} sx={{ '&::after': { content: '""', minHeight: '0.01px', flexShrink: 0 } }} onClick={() => setActivePopup(null)}>
+      {recordsByClassroom.map(({ classroom, records }) => (
+        <ClassroomTable key={classroom.id} classroom={classroom} records={records} fixedMemosMap={fixedMemosMap} tempMemosMap={tempMemosMap} activePopup={activePopup} setActivePopup={setActivePopup} setMemoInput={setMemoInput} navigate={navigate} setMakeupTarget={setMakeupTarget} setMemoTargetStudentId={setMemoTargetStudentId} setMemoType={setMemoType} handleWeeklyActivityRecordButtonClick={handleWeeklyActivityRecordButtonClick} handleMonthlyActivityRecordButtonClick={handleMonthlyActivityRecordButtonClick} handleBookRentalButtonClick={handleBookRentalButtonClick} fullWidth showNotes />
+      ))}
 
       {/* 변동 메모 추가 모달 */}
       <Modal open={!!memoTargetStudentId} onClose={() => { setMemoTargetStudentId(null); setMemoInput(''); }}>
@@ -249,6 +147,8 @@ export default function StudentActivityRecords() {
         </FlexBox>
       </Modal>
 
+      <div style={{ minHeight: '0.01px', flexShrink: 0 }} />
+
       <MakeupScheduleDialog
         open={!!makeupTarget}
         onClose={() => setMakeupTarget(null)}
@@ -272,9 +172,146 @@ const ActivityRecordButton = ({ value, buttonTextOn, buttonTextOff, onClick, mai
   <Button 
     variant="contained" 
     size="small" 
-    sx={{ width: '100%', backgroundColor: value ? disabledBgColor : mainBgColor, color: fontColor }} 
+    sx={{ minWidth: 0, px: 1, py: 0.8, width: '100%', backgroundColor: value ? disabledBgColor : mainBgColor, color: fontColor }} 
     onClick={onClick}
   >
-    <AppleTg sx={{fontSize: '0.9rem'}}>{value ? buttonTextOff : buttonTextOn}</AppleTg>
+    <AppleTg sx={{fontSize: '0.8rem', whiteSpace: 'nowrap'}}>{value ? buttonTextOff : buttonTextOn}</AppleTg>
   </Button>
+);
+
+const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap, activePopup, setActivePopup, setMemoInput, navigate, setMakeupTarget, setMemoTargetStudentId, setMemoType, handleWeeklyActivityRecordButtonClick, handleMonthlyActivityRecordButtonClick, handleBookRentalButtonClick, showNotes = false, showNotesBelow = false, fullWidth = false, hideHeader = false }: any) => (
+  <FlexBox flexDirection="column" gap={0.5} sx={{ width: fullWidth ? '100%' : 'auto' }}>
+    {!hideHeader && (
+    <FlexBox alignItems="center" gap={0.5}>
+      <AppleTg sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#333', pl: 0.5, whiteSpace: 'nowrap', flexShrink: 0 }}>{classroom.name}</AppleTg>
+      {records.some((r: any) => fixedMemosMap[r.student.id]) && (
+        <FlexBox gap={0.5} sx={{ flexWrap: 'wrap' }}>
+          {records.filter((r: any, i: number, arr: any[]) => fixedMemosMap[r.student.id] && arr.findIndex(a => a.student.id === r.student.id) === i).map((r: any) => (
+            <AppleTg key={r.id} sx={{ fontSize: '0.75rem', color: '#555', border: '1px solid #ddd', borderRadius: '1rem', padding: '0.2rem 0.6rem' }}>
+              <strong>{r.student.name}</strong> {fixedMemosMap[r.student.id]}
+            </AppleTg>
+          ))}
+        </FlexBox>
+      )}
+    </FlexBox>
+    )}
+    <TableContainer className='non-overflow-scroll' sx={{
+      border: '1px solid #e0e0e0',
+      borderRadius: hideHeader ? '0.5rem 0 0 0.5rem' : showNotesBelow ? '0.5rem 0.5rem 0 0' : '0.5rem',
+      borderBottom: showNotesBelow ? '1px solid #e0e0e0' : '1px solid #e0e0e0',
+      overflow: 'visible',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+      width: fullWidth ? '100%' : 'fit-content',
+      minHeight: '4rem',
+    }}>
+      <Table sx={{ ...TABLE_STYLE, '& td': { px: 1.5, py: 1.5 }, ...(!fullWidth && { width: 'auto' }) }}>
+        <TableBody>
+          {records.map((activityRecord: any) => {
+            const tempMemos = activityRecord.student.notes.filter((n: any) => n.type === 'temporary-memo').map((n: any) => n.value.trim().replace(/\.$/, '')).join('. ');
+            return (
+            <TableRow key={activityRecord.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+              <TableCell align="center" sx={{ width: '12%' }}>
+                <FlexBox sx={{ position: 'relative', justifyContent: 'center' }}>
+                  <AppleTg component="div" sx={{fontSize: '0.9rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '2lh'}} onClick={(e: React.MouseEvent) => { e.stopPropagation(); setActivePopup(activePopup === activityRecord.id ? null : activityRecord.id); setMemoInput(''); }}>
+                    <div>{activityRecord.student.name}{activityRecord.isMakeup && <span style={{ color: '#e65100' }}> (보강)</span>}</div>
+                    {activityRecord.student.schoolName && <div>({activityRecord.student.schoolName.replace('초등학교', '초').replace('중학교', '중').replace('고등학교', '고')} {activityRecord.student.schoolGrade}학년)</div>}
+                  </AppleTg>
+                  {activePopup === activityRecord.id && (
+                    <StudentActionPopup
+                      myLevel={auth.getMyInfo()?.level ?? 0}
+                      onNavigateDetail={() => { navigate(`/student/${activityRecord.student.id}`); setActivePopup(null); }}
+                      onAddMakeup={() => { setMakeupTarget({ studentId: activityRecord.student.id }); setActivePopup(null); }}
+                      onAddFixedMemo={() => { setMemoTargetStudentId(activityRecord.student.id); setMemoType('fixed-memo'); setActivePopup(null); }}
+                      onAddTempMemo={() => { setMemoTargetStudentId(activityRecord.student.id); setMemoType('temporary-memo'); setActivePopup(null); }}
+                    />
+                  )}
+                </FlexBox>
+              </TableCell>
+              <TableCell align="center" sx={{ width: '12%' }}>
+                <ActivityRecordButton 
+                  value={activityRecord.attendance} 
+                  buttonTextOn={`출석${activityRecord.isMakeup ? ' (보강)' : ''}`} 
+                  buttonTextOff={`${activityRecord.isMakeup ? '보강' : '출석'} 완료`}
+                  onClick={() => handleWeeklyActivityRecordButtonClick({
+                    activityId: activityRecord.id, 
+                    activityKey: ActivityKey.ATTENDANCE, 
+                    value: !activityRecord.attendance
+                  })} 
+                />
+              </TableCell>
+              <TableCell align="center" sx={{ width: '12%' }}>
+                <ActivityRecordButton 
+                  value={activityRecord.report1} 
+                  buttonTextOn="감상문" 
+                  buttonTextOff="감상문 완료" 
+                  onClick={() => handleWeeklyActivityRecordButtonClick({
+                    activityId: activityRecord.id, 
+                    activityKey: ActivityKey.REPORT1, 
+                    value: !activityRecord.report1
+                  })} 
+                />
+              </TableCell>
+              <TableCell align="center" sx={{ width: '12%' }}>
+                {!(activityRecord.monthlyProject && activityRecord.date >= dayjs(activityRecord.monthlyProject).format('YYYYMMDD')) && (
+                <ActivityRecordButton 
+                  value={activityRecord.report2} 
+                  buttonTextOn="주간 레오" 
+                  buttonTextOff="주간 완료" 
+                  onClick={() => handleWeeklyActivityRecordButtonClick({
+                    activityId: activityRecord.id, 
+                    activityKey: ActivityKey.REPORT2, 
+                    value: !activityRecord.report2
+                  })} 
+                />
+                )}
+              </TableCell>
+              <TableCell align="center" sx={{ width: '12%' }}>
+                <ActivityRecordButton 
+                  value={!!(activityRecord.monthlyProject && activityRecord.monthlyPreview && activityRecord.monthlyReport)} 
+                  buttonTextOn={`월간 ${monthlyProjectStatusText(activityRecord)}`} 
+                  buttonTextOff="월간 완료"
+                  onClick={() => {
+                    const nextKey = monthlyProjectNextKey(activityRecord);
+                    const value = nextKey === 'monthlyProject' 
+                      ? (activityRecord.monthlyProject ? null : new Date().toISOString())
+                      : !activityRecord[nextKey];
+                    handleMonthlyActivityRecordButtonClick({ activityId: activityRecord.id, activityKey: nextKey, value });
+                  }}
+                />
+              </TableCell>
+              <TableCell align="center" sx={{ width: '9%' }}>
+                <ActivityRecordButton
+                  value={!!activityRecord.borrowedBook}
+                  buttonTextOn="책 대여"
+                  buttonTextOff="책 반납"
+                  onClick={() => handleBookRentalButtonClick(activityRecord)}
+                  mainBgColor="white"
+                  disabledBgColor="grey.200" 
+                  fontColor='black'
+                />
+              </TableCell>
+              {showNotes && activityRecord === records[0] && (
+                <TableCell rowSpan={records.length} sx={{ width: '20%', verticalAlign: 'top', borderLeft: '1px solid #e0e0e0 !important', padding: '1.2rem 0.75rem !important' }}>
+                  {records.filter((r: any) => tempMemosMap[r.student.id]).map((r: any, i: number) => (
+                    <FlexBox key={r.student.id} sx={{ color: '#666', mt: i > 0 ? 1.5 : 0 }}>
+                      <AppleTg sx={{ whiteSpace: 'nowrap', flexShrink: 0, fontSize: '0.8rem' }}>· {r.student.name}:</AppleTg>
+                      <AppleTg sx={{ ml: 0.5, fontSize: '0.8rem' }}>{tempMemosMap[r.student.id]}</AppleTg>
+                    </FlexBox>
+                  ))}
+                </TableCell>
+              )}
+            </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </TableContainer>
+    {showNotesBelow && (
+      <FlexBox sx={{ border: '1px solid #e0e0e0', borderTop: 'none', borderRadius: '0 0 0.5rem 0.5rem', padding: '0.75rem 1rem', minHeight: '2.5rem', mt: '-0.5rem' }}>
+        <AppleTg sx={{ fontSize: '0.75rem', color: '#666', whiteSpace: 'pre-line' }}>
+          {records.filter((r: any) => tempMemosMap[r.student.id]).map((r: any) => `${r.student.name}: ${tempMemosMap[r.student.id]}`).join('\n')}
+        </AppleTg>
+      </FlexBox>
+    )}
+  </FlexBox>
 );

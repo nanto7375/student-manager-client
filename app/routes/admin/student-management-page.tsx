@@ -168,8 +168,8 @@ export const StudentManagementPage = ({ registerOpen, onRegisterClose, showDelet
     if (!scheduleForm.scheduleId || !scheduleDialogStudent) return;
     try {
       await changeScheduleApi({
-        params: { studentId: scheduleDialogStudent.id, scheduleId: scheduleForm.scheduleId },
-        body: { dateForChange: scheduleForm.dateForChange.format('YYYYMMDD') },
+        params: { studentId: scheduleDialogStudent.id },
+        body: { scheduleId: scheduleForm.scheduleId, dateForChange: scheduleForm.dateForChange.format('YYYYMMDD') },
       });
       const isFuture = scheduleForm.dateForChange.isAfter(dayjs(), 'day');
       showSuccess(isFuture ? '스케줄 변경이 예약되었습니다.' : '스케줄이 변경되었습니다.');

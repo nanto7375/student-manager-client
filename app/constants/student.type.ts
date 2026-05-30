@@ -13,6 +13,20 @@ export type ScheduleReserved = {
   date: string; // YYYYMMDD
 };
 
+// --- 반 타입 ---
+
+export type Classroom = {
+  id: number;
+  name: string;
+};
+
+export const CLASSROOMS = [
+  { id: 1, name: '1강의실' },
+  { id: 2, name: '2강의실' },
+  { id: 3, name: '3강의실' },
+  { id: 4, name: '자습실' },
+] as const satisfies readonly Classroom[];
+
 // --- 학생 타입 (API 응답별) ---
 
 /** 학생 목록 카드용 (student/page) */
@@ -24,6 +38,7 @@ export type StudentInList = {
   schoolGrade: number | null;
   schoolLevel: number;
   schoolName: string | null;
+  classroom: Classroom;
 };
 
 /** 학생 관리 테이블용 (admin/student-management) */
@@ -37,6 +52,7 @@ export type StudentInManagement = {
   scheduleId: number;
   schedule?: Schedule;
   scheduleReserved?: ScheduleReserved;
+  classroom: Classroom;
   registeredAt: Date;
   deletedAt: Date;
 };
@@ -54,6 +70,7 @@ export type StudentDetail = {
   parentPhone: string;
   schedule: Schedule;
   scheduleReserved?: ScheduleReserved;
+  classroom: Classroom;
   notes: StudentNote[];
   registeredAt: Date;
   deletedAt: Date | null;
@@ -66,6 +83,7 @@ export type StudentInActivity = {
   schoolName: string | null;
   schoolLevel: number;
   schoolGrade: number | null;
+  classroom: Classroom;
   notes: { id: number; type: 'fixed-memo' | 'temporary-memo'; value: string }[];
   deletedAt: Date | null;
 };

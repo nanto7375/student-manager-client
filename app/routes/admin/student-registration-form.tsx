@@ -169,6 +169,7 @@ export const StudentRegistrationForm = ({ showError, showSuccess, editData, onCo
             phone: formatPhone(form.phone),
             parentPhone: formatPhone(form.parentPhone),
             scheduleId: Number(form.scheduleId),
+            classroomId: 1,
             note: form.note || null,
           },
         });
