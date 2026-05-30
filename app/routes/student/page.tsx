@@ -123,12 +123,14 @@ export default function Student() {
         />
       </FlexBox>
 
-      <FlexBox gap={1} sx={{ flexWrap: 'wrap', overflow: 'auto', flex: 1, alignContent: 'flex-start' }}>
-        {studentList.map(student => (
-          <StudentCard key={student.id} student={student} onClick={handleStudentClick} />
-        ))}
-        {/* 무한스크롤 감지 영역 */}
-        <div ref={observerRef} style={{ width: '100%', height: '1px' }} />
+      <FlexBox sx={{ overflow: 'auto', flex: 1, justifyContent: 'center' }}>
+        <FlexBox gap={2} sx={{ flexWrap: 'wrap', alignContent: 'flex-start', width: '100%', rowGap: 3 }}>
+          {studentList.map(student => (
+            <StudentCard key={student.id} student={student} onClick={handleStudentClick} />
+          ))}
+          {/* 무한스크롤 감지 영역 */}
+          <div ref={observerRef} style={{ width: '100%', height: '1px' }} />
+        </FlexBox>
       </FlexBox>
     </FlexContainer>
   );
@@ -141,16 +143,18 @@ const SCHOOL_LEVEL_COLOR: Record<number, string> = {
 };
 
 const studentCardSx = {
-  width: '12rem',
-  height: '3.2rem',
+  width: '13rem',
+  height: '3.5rem',
   display: 'flex',
   alignItems: 'center',
   cursor: 'pointer',
-  borderRadius: '2px',
+  borderRadius: '8px',
   overflow: 'hidden',
+  border: '1px solid rgba(0,0,0,0.08)',
+  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
   transition: 'all 0.15s ease-in-out',
-  '&:hover': { boxShadow: 4, transform: 'translateY(-1px)' },
-  '&:active': { transform: 'translateY(0)' },
+  '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,0.18)', transform: 'translateY(-2px)' },
+  '&:active': { transform: 'translateY(0)', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' },
 } as const;
 
 const StudentCard = ({ student, onClick }: { student: StudentInListType; onClick: (id: number) => void }) => {
@@ -160,7 +164,7 @@ const StudentCard = ({ student, onClick }: { student: StudentInListType; onClick
     : null;
 
   return (
-    <Card variant="outlined" sx={studentCardSx} onClick={() => onClick(student.id)}>
+    <Card elevation={0} sx={studentCardSx} onClick={() => onClick(student.id)}>
       <div style={{ width: '6px', height: '100%', backgroundColor: levelColor, flexShrink: 0 }} />
       <span style={{ padding: '0 0.5rem', fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
         {student.name}
