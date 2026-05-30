@@ -2,15 +2,18 @@ import React from "react";
 import { Checkbox, IconButton } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import CheckIcon from "@mui/icons-material/Check";
+import CloseIcon from "@mui/icons-material/Close";
 import type { Note, NoteType } from "../student-detail";
 import { FlexBox, FlexContainer } from "~/components/styled-elements";
 import { AppleTg } from "~/components/typography";
+import { useConfirmModal } from "~/hooks/use-confirm-modal";
 
 // --- Types ---
 
 type MemoNoteListProps = {
   notes: Note[];
   createNote: (params: { value: string; type: string }) => Promise<Note>;
+  deleteNote: (noteId: number) => Promise<void>;
   toggleMemoNoteStatus: (noteId: number) => Promise<void>;
   disabled?: boolean;
 };
@@ -20,28 +23,33 @@ type MemoContainerProps = {
   notes: Note[];
   type: NoteType;
   createNote: (params: { value: string; type: string }) => Promise<Note>;
-  toggleMemoNoteStatus: (noteId: number) => Promise<void>;
+  deleteNote?: (noteId: number) => Promise<void>;
+  toggleMemoNoteStatus?: (noteId: number) => Promise<void>;
   disabled?: boolean;
 };
 
 // --- Components ---
 
-export const MemoNoteList = ({ notes, createNote, toggleMemoNoteStatus, disabled }: MemoNoteListProps) => {
+export const MemoNoteList = ({ notes, createNote, deleteNote, toggleMemoNoteStatus, disabled }: MemoNoteListProps) => {
   const fixedMemoNotes = notes.filter(note => note.type === 'fixed-memo');
   const temporaryMemoNotes = notes.filter(note => note.type === 'temporary-memo');
 
   return (
     <FlexContainer fullHeight fullWidth gap={1} flexDirection="column">
-      <MemoContainer title="고정 메모" notes={fixedMemoNotes} type="fixed-memo" createNote={createNote} toggleMemoNoteStatus={toggleMemoNoteStatus} disabled={disabled} />
+      <MemoContainer title="고정 메모" notes={fixedMemoNotes} type="fixed-memo" createNote={createNote} deleteNote={deleteNote} disabled={disabled} />
       <MemoContainer title="변동 메모" notes={temporaryMemoNotes} type="temporary-memo" createNote={createNote} toggleMemoNoteStatus={toggleMemoNoteStatus} disabled={disabled} />
     </FlexContainer>
   );
 };
 
-const MemoContainer = ({ title, notes, type, createNote, toggleMemoNoteStatus, disabled }: MemoContainerProps) => {
+const MemoContainer = ({ title, notes, type, createNote, deleteNote, toggleMemoNoteStatus, disabled }: MemoContainerProps) => {
   const [checked, setChecked] = React.useState<Set<number>>(new Set());
   const [adding, setAdding] = React.useState(false);
   const [inputValue, setInputValue] = React.useState('');
+  const [deleteTargetId, setDeleteTargetId] = React.useState<number | null>(null);
+  const { ConfirmModal, openConfirmModal, closeConfirmModal } = useConfirmModal();
+
+  const isFixedMemo = type === 'fixed-memo';
 
   // 체크 토글: UI 상태 변경 + API 호출 (fire-and-forget)
   const toggleCheck = (id: number) => {
@@ -50,7 +58,20 @@ const MemoContainer = ({ title, notes, type, createNote, toggleMemoNoteStatus, d
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
-    toggleMemoNoteStatus(id);
+    toggleMemoNoteStatus?.(id);
+  };
+
+  const handleDelete = (noteId: number) => {
+    setDeleteTargetId(noteId);
+    openConfirmModal();
+  };
+
+  const confirmDelete = async () => {
+    if (deleteTargetId !== null) {
+      await deleteNote?.(deleteTargetId);
+      setDeleteTargetId(null);
+      closeConfirmModal();
+    }
   };
 
   const handleAdd = async () => {
@@ -80,10 +101,24 @@ const MemoContainer = ({ title, notes, type, createNote, toggleMemoNoteStatus, d
       <FlexBox flexDirection="column" sx={{ overflowY: 'auto', flex: 1, py: 0.5 }}>
         {notes.map(note => (
           <FlexBox key={note.id} alignItems="center" padding="0 0.5rem" sx={{ '&:hover': { backgroundColor: '#f9f9f9' } }}>
-            <Checkbox size="small" checked={checked.has(note.id)} onChange={() => toggleCheck(note.id)} disabled={disabled} />
-            <AppleTg sx={{ textDecoration: checked.has(note.id) ? 'line-through' : 'none', color: checked.has(note.id) ? '#aaa' : 'inherit' }}>
-              {note.value}
-            </AppleTg>
+            {isFixedMemo ? (
+              <>
+                <AppleTg sx={{ color: '#888', fontSize: '0.5rem', px: 0.5 }}>●</AppleTg>
+                <AppleTg sx={{ flex: 1, padding: '0.25rem 0.5rem' }}>{note.value}</AppleTg>
+                {!disabled && (
+                  <IconButton size="small" onClick={() => handleDelete(note.id)} sx={{ color: '#bbb', '&:hover': { color: '#e57373' } }}>
+                    <CloseIcon sx={{ fontSize: '1rem' }} />
+                  </IconButton>
+                )}
+              </>
+            ) : (
+              <>
+                <Checkbox size="small" checked={checked.has(note.id)} onChange={() => toggleCheck(note.id)} disabled={disabled} />
+                <AppleTg sx={{ textDecoration: checked.has(note.id) ? 'line-through' : 'none', color: checked.has(note.id) ? '#aaa' : 'inherit' }}>
+                  {note.value}
+                </AppleTg>
+              </>
+            )}
           </FlexBox>
         ))}
       </FlexBox>
@@ -112,6 +147,8 @@ const MemoContainer = ({ title, notes, type, createNote, toggleMemoNoteStatus, d
           )}
         </FlexBox>
       )}
+
+      <ConfirmModal bodyText="이 메모를 삭제하시겠습니까?" onConfirm={confirmDelete} />
     </FlexBox>
   );
 };

@@ -48,10 +48,10 @@ html, body {
 }
 
 body {
-  /* -webkit-user-select:none;
+  -webkit-user-select:none;
   -moz-user-select:none;
   -ms-user-select:none;
-  user-select:none; */
+  user-select:none;
 
   /* iOS 웹뷰에서 폰트 렌더링 개선 */
   -webkit-font-smoothing: antialiased;

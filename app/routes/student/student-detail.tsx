@@ -170,6 +170,7 @@ export default function StudentDetail() {
             <MemoNoteList 
               notes={notes} 
               createNote={createNote} 
+              deleteNote={deleteNote}
               toggleMemoNoteStatus={toggleMemoNoteStatus}
               disabled={!!student.deletedAt}
             />
