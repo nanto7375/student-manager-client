@@ -23,8 +23,11 @@ export default function GlobalToast({ toasts, onRemove }: GlobalToastProps) {
           onClose={() => onRemove(toast.id)}
           anchorOrigin={{ vertical: 'top', horizontal: toast.autoHideDuration >= 5000 ? 'right' : 'center' }}
           slots={{transition: SlideTransition}}
+          disableWindowBlurListener
+          ClickAwayListenerProps={{ onClickAway: () => {} }}
           sx={{
             top: `${(index * 3.75) + 1.25}rem`,
+            pointerEvents: 'none',
             '& .MuiSnackbarContent-root': {
               minWidth: 'auto',
               fontSize: '0.875rem',
@@ -35,7 +38,7 @@ export default function GlobalToast({ toasts, onRemove }: GlobalToastProps) {
             onClose={() => onRemove(toast.id)}
             variant="filled"
             severity={toast.type}
-            sx={{ padding: '0.5rem 1rem' }}
+            sx={{ padding: '0.5rem 1rem', pointerEvents: 'auto' }}
           >
             {toast.message}
           </Alert>
