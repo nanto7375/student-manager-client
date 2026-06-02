@@ -97,20 +97,38 @@ export default function StudentActivityRecords() {
       .map(c => ({ classroom: c, records: activityRecords.filter(r => r.student.classroom.id === c.id) }));
   }, [activityRecords]);
 
+  const optimisticUpdate = async (updater: (prev: ActivityRecordType[]) => ActivityRecordType[], fn: () => Promise<unknown>, errorMsg: string) => {
+    const qk = activityRecordsQueryKey(scheduleId, date);
+    const prev = queryClient.getQueryData<ActivityRecordType[]>(qk);
+    queryClient.setQueryData(qk, (old: ActivityRecordType[] | undefined) => old ? updater(old) : old);
+    try {
+      await fn();
+      invalidateRecords();
+    } catch (error: any) {
+      queryClient.setQueryData(qk, prev);
+      toast.error(error.status >= 500 ? `서버에 문제가 발생했습니다.(${error.message})` : errorMsg);
+    }
+  };
+
   const handleWeeklyActivityRecordButtonClick = ({activityId, activityKey, value}: {activityId: number; activityKey: keyof ActivityCheck; value: boolean}) =>
-    withUpdating(
+    optimisticUpdate(
+      records => records.map(r => r.id === activityId ? { ...r, [activityKey]: value } : r),
       () => updateWeeklyActivityRecordApi({ params: { activityId }, body: { [activityKey]: value } }),
       '활동 기록 업데이트에 실패했습니다.'
     );
 
   const handleMonthlyActivityRecordButtonClick = ({activityId, activityKey, value}: {activityId: number; activityKey: keyof ActivityCheck | 'monthlyProject'; value: string | null}) =>
-    withUpdating(
+    optimisticUpdate(
+      records => records.map(r => r.id === activityId ? { ...r, [activityKey]: value } : r),
       () => updateMonthlyActivityRecordApi({ params: { activityId }, body: { [activityKey]: value } }),
       '활동 기록 업데이트에 실패했습니다.'
     );
 
   const handleBookRentalButtonClick = (record: ActivityRecordType) =>
-    withUpdating(
+    optimisticUpdate(
+      records => records.map(r => r.id === record.id
+        ? { ...r, borrowedBook: record.borrowedBook ? null : { id: -1 } as any }
+        : r),
       () => record.borrowedBook
         ? returnBookApi({ params: { bookRentalId: record.borrowedBook.id } })
         : borrowBookApi({ body: { studentId: record.student.id } }),
@@ -175,12 +193,12 @@ type ActivityRecordButtonProps = {
   fontColor?: string;
   activeEffect?: boolean;
 }
-const ActivityRecordButton = ({ value, buttonTextOn, buttonTextOff, onClick, mainBgColor='transparent', disabledBgColor='grey.500', fontColor='black', activeEffect=true }: ActivityRecordButtonProps) => (
+const ActivityRecordButton = ({ value, buttonTextOn, buttonTextOff, onClick, mainBgColor='transparent', disabledBgColor='grey.500', fontColor='black', activeEffect=false }: ActivityRecordButtonProps) => (
   <Button 
     variant="contained" 
     size="small" 
     disableRipple
-    sx={{ minWidth: 0, px: 1, py: 0, width: '100%', height: '100%', borderRadius: 0, boxShadow: 'none', backgroundColor: value ? disabledBgColor : mainBgColor, color: fontColor, cursor: 'default', '&:hover': { boxShadow: 'none' }, ...(activeEffect && { transition: 'transform 0.1s, opacity 0.1s', '&:active': { transform: 'scale(0.9)', opacity: 0.8 } }) }} 
+    sx={{ minWidth: 0, px: 1, py: 0, width: '100%', height: '100%', borderRadius: 0, boxShadow: 'none', backgroundColor: value ? disabledBgColor : mainBgColor, color: fontColor, cursor: 'default', '&:hover': { boxShadow: 'none' }, ...(activeEffect && { transition: 'transform 0.15s, opacity 0.15s', '&:active': { transform: 'scale(0.9)', opacity: 0.8 } }) }} 
     onClick={onClick}
   >
     <AppleTg sx={{fontSize: '0.9rem', whiteSpace: 'nowrap'}}>{value ? buttonTextOff : buttonTextOn}</AppleTg>
