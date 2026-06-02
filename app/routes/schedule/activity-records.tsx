@@ -180,7 +180,7 @@ const ActivityRecordButton = ({ value, buttonTextOn, buttonTextOff, onClick, mai
     variant="contained" 
     size="small" 
     disableRipple
-    sx={{ minWidth: 0, px: 1, py: 0, width: '100%', height: '100%', borderRadius: 0, boxShadow: 'none', backgroundColor: value ? disabledBgColor : mainBgColor, color: fontColor, cursor: 'default', '&:hover': { boxShadow: 'none' }, ...(activeEffect && { transition: 'transform 0.1s, opacity 0.1s', '&:active': { transform: 'scale(0.9)', opacity: 0.5 } }) }} 
+    sx={{ minWidth: 0, px: 1, py: 0, width: '100%', height: '100%', borderRadius: 0, boxShadow: 'none', backgroundColor: value ? disabledBgColor : mainBgColor, color: fontColor, cursor: 'default', '&:hover': { boxShadow: 'none' }, ...(activeEffect && { transition: 'transform 0.1s, opacity 0.1s', '&:active': { transform: 'scale(0.9)', opacity: 0.8 } }) }} 
     onClick={onClick}
   >
     <AppleTg sx={{fontSize: '0.9rem', whiteSpace: 'nowrap'}}>{value ? buttonTextOff : buttonTextOn}</AppleTg>
