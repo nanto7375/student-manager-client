@@ -173,15 +173,17 @@ type ActivityRecordButtonProps = {
   mainBgColor?: string;
   disabledBgColor?: string;
   fontColor?: string;
+  activeEffect?: boolean;
 }
-const ActivityRecordButton = ({ value, buttonTextOn, buttonTextOff, onClick, mainBgColor='transparent', disabledBgColor='grey.500', fontColor='black' }: ActivityRecordButtonProps) => (
+const ActivityRecordButton = ({ value, buttonTextOn, buttonTextOff, onClick, mainBgColor='transparent', disabledBgColor='grey.500', fontColor='black', activeEffect=true }: ActivityRecordButtonProps) => (
   <Button 
     variant="contained" 
     size="small" 
-    sx={{ minWidth: 0, px: 1, py: 0, width: '100%', height: '100%', borderRadius: 0, boxShadow: 'none', backgroundColor: value ? disabledBgColor : mainBgColor, color: fontColor, cursor: 'default', '&:hover': { boxShadow: 'none' } }} 
+    disableRipple
+    sx={{ minWidth: 0, px: 1, py: 0, width: '100%', height: '100%', borderRadius: 0, boxShadow: 'none', backgroundColor: value ? disabledBgColor : mainBgColor, color: fontColor, cursor: 'default', '&:hover': { boxShadow: 'none' }, ...(activeEffect && { transition: 'transform 0.1s, opacity 0.1s', '&:active': { transform: 'scale(0.9)', opacity: 0.5 } }) }} 
     onClick={onClick}
   >
-    <AppleTg sx={{fontSize: '0.8rem', whiteSpace: 'nowrap'}}>{value ? buttonTextOff : buttonTextOn}</AppleTg>
+    <AppleTg sx={{fontSize: '0.9rem', whiteSpace: 'nowrap'}}>{value ? buttonTextOff : buttonTextOn}</AppleTg>
   </Button>
 );
 
@@ -308,6 +310,7 @@ const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap, activ
                   value={!!(activityRecord.monthlyProject && activityRecord.monthlyPreview && activityRecord.monthlyReport)} 
                   buttonTextOn={`월간 ${monthlyProjectStatusText(activityRecord)}`} 
                   buttonTextOff="월간 완료"
+                  activeEffect
                   onClick={() => {
                     const nextKey = monthlyProjectNextKey(activityRecord);
                     const current = nextKey === 'monthlyProject' ? activityRecord.monthlyProject : activityRecord[nextKey];

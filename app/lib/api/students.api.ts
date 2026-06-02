@@ -10,7 +10,7 @@ export const updateStudentApi = buildApi({ path: '/students/:id', method: 'PATCH
 export const deleteStudentApi = buildApi({ path: '/students/:id', method: 'DELETE' });
 
 // --- 스케줄 변경 ---
-export const changeScheduleApi = buildApi({ path: '/students/:studentId/schedule', method: 'PATCH' });
+export const changeScheduleApi = buildApi<boolean>({ path: '/students/:studentId/schedule', method: 'PATCH' });
 export const cancelReservedScheduleApi = buildApi({ path: '/schedules/reserved/:reservedId', method: 'DELETE' });
 export const createMakeupScheduleApi = buildApi<void>({ path: '/students/:studentId/makeup', method: 'POST' });
 
