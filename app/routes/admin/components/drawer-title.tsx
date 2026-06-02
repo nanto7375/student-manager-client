@@ -22,9 +22,9 @@ export const DrawerTitle = ({ editData, onEditSchedule, onCancelReserved, onClos
   <FlexBox justifyContent="space-between" alignItems="flex-start" fullWidth sx={{ mb: 1 }}>
     <FlexBox flexDirection="column">
       <AppleTg sx={{ fontSize: '1.2rem', fontWeight: 600, mb: 0.75 }}>{editData ? editData.name : '학생 등록'}</AppleTg>
-      {editData?.schedule && (
+      {editData && (
         <FlexBox alignItems="center" gap={0.5}>
-          <AppleTg sx={{ fontSize: '0.85rem', color: '#666' }}>{formatSchedule(editData.schedule)}</AppleTg>
+          <AppleTg sx={{ fontSize: '0.85rem', color: '#666' }}>{formatSchedule(editData.schedule) ?? '스케줄 없음'}</AppleTg>
           <IconButton size="small" onClick={(e) => { (e.currentTarget as HTMLElement).blur(); onEditSchedule(editData); }}>
             <EditIcon style={{ fontSize: '1rem' }} htmlColor="#999" />
           </IconButton>
