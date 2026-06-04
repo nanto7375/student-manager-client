@@ -140,8 +140,8 @@ const studentCardSx = {
 
 const StudentCard = ({ student, onClick }: { student: StudentInListType; onClick: (id: number) => void }) => {
   const levelColor = SCHOOL_LEVEL_COLOR[student.schoolLevel] ?? '#9e9e9e';
-  const schoolInfo = student.schoolName
-    ? `(${student.schoolName}${student.schoolGrade ? ` ${student.schoolGrade}학년` : ''})`
+  const schoolInfo = (student.schoolName || student.schoolGrade)
+    ? `(${student.schoolName ? `${student.schoolName} ` : ''}${student.schoolGrade ? `${student.schoolGrade}학년` : ''})`
     : null;
 
   return (

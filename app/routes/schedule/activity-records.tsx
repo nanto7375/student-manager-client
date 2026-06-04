@@ -10,7 +10,6 @@ import { AppleTg } from "~/components/typography";
 import { MakeupScheduleDialog } from "~/components/makeup-schedule-dialog";
 import { CLASSROOMS } from "~/constants/student.type";
 
-import type { ActivityRecordType } from "./activity-records.type";
 import { activityRecordsQueryKey } from "./activity-records.type";
 import { ClassroomTable } from "./components/classroom-table";
 import { useMemoModal } from "./use-memo-modal";
@@ -60,7 +59,26 @@ export default function StudentActivityRecords() {
   return (
     <FlexContainer padding="1rem" fullWidth fullHeight flexDirection="column" gap={3} sx={{ '&::after': { content: '""', minHeight: '0.01px', flexShrink: 0 } }} onClick={() => setActivePopup(null)}>
       {recordsByClassroom.map(({ classroom, records }) => (
-        <ClassroomTable key={classroom.id} classroom={classroom} records={records} fixedMemosMap={fixedMemosMap} tempMemosMap={tempMemosMap} activePopup={activePopup} setActivePopup={setActivePopup} setMemoInput={setMemoInput} navigate={navigate} setMakeupTarget={setMakeupTarget} setMemoTargetStudentId={setMemoTargetStudentId} setMemoType={setMemoType} handleWeeklyActivityRecordButtonClick={handleWeeklyActivityRecordButtonClick} handleMonthlyActivityRecordButtonClick={handleMonthlyActivityRecordButtonClick} handleBookRentalButtonClick={handleBookRentalButtonClick} handleClassroomDrop={handleClassroomDrop} fullWidth showNotes />
+        <ClassroomTable 
+          key={classroom.id} 
+          classroom={classroom} 
+          records={records} 
+          fixedMemosMap={fixedMemosMap} 
+          tempMemosMap={tempMemosMap} 
+          activePopup={activePopup} 
+          setActivePopup={setActivePopup} 
+          setMemoInput={setMemoInput} 
+          navigate={navigate} 
+          setMakeupTarget={setMakeupTarget} 
+          setMemoTargetStudentId={setMemoTargetStudentId} 
+          setMemoType={setMemoType} 
+          handleWeeklyActivityRecordButtonClick={handleWeeklyActivityRecordButtonClick} 
+          handleMonthlyActivityRecordButtonClick={handleMonthlyActivityRecordButtonClick} 
+          handleBookRentalButtonClick={handleBookRentalButtonClick} 
+          handleClassroomDrop={handleClassroomDrop} 
+          fullWidth 
+          showNotes 
+        />
       ))}
 
       {/* 메모 추가 모달 */}
