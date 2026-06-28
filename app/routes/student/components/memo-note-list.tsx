@@ -90,7 +90,7 @@ const MemoContainer = ({ title, notes, type, createNote, deleteNote, toggleMemoN
     <FlexBox
       flexDirection="column"
       fullWidth
-      sx={{ borderRadius: '0.5rem', border: '1px solid #ddd', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', overflow: 'hidden', height: '30%', minHeight: 0, backgroundColor: 'white' }}
+      sx={{ borderRadius: '0.5rem', border: '1px solid #ddd', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', overflow: 'hidden', height: '45%', minHeight: 0, backgroundColor: 'white' }}
     >
       {/* 타이틀 */}
       <FlexBox padding="0.5rem 1rem" sx={{ borderBottom: '1px solid #eee' }}>
