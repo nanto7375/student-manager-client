@@ -1,6 +1,6 @@
 import React from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { updateWeeklyActivityRecordApi, updateMonthlyActivityRecordApi, borrowBookApi, returnBookApi } from "~/lib/api/activities.api";
+import { updateWeeklyActivityRecordApi, borrowBookApi, returnBookApi } from "~/lib/api/activities.api";
 import { changeClassroomApi } from "~/lib/api/students.api";
 import { useGlobalToast } from "~/providers/toast-provider";
 
@@ -41,17 +41,10 @@ export const useActivityRecordActions = (scheduleId: string, date: string) => {
     }
   };
 
-  const handleWeeklyActivityRecordButtonClick = ({ activityId, activityKey, value }: { activityId: number; activityKey: keyof ActivityCheck; value: boolean }) =>
+  const handleWeeklyActivityRecordButtonClick = ({ activityId, activityKey, value }: { activityId: number; activityKey: keyof ActivityCheck; value: string }) =>
     optimisticUpdate(
       records => records.map(r => r.id === activityId ? { ...r, [activityKey]: value } : r),
       () => updateWeeklyActivityRecordApi({ params: { activityId }, body: { [activityKey]: value } }),
-      '활동 기록 업데이트에 실패했습니다.'
-    );
-
-  const handleMonthlyActivityRecordButtonClick = ({ activityId, activityKey, value }: { activityId: number; activityKey: keyof ActivityCheck | 'monthlyProject'; value: string | null }) =>
-    optimisticUpdate(
-      records => records.map(r => r.id === activityId ? { ...r, [activityKey]: value } : r),
-      () => updateMonthlyActivityRecordApi({ params: { activityId }, body: { [activityKey]: value } }),
       '활동 기록 업데이트에 실패했습니다.'
     );
 
@@ -70,5 +63,5 @@ export const useActivityRecordActions = (scheduleId: string, date: string) => {
       '강의실 변경에 실패했습니다.'
     );
 
-  return { invalidateRecords, handleWeeklyActivityRecordButtonClick, handleMonthlyActivityRecordButtonClick, handleBookRentalButtonClick, handleClassroomDrop };
+  return { invalidateRecords, handleWeeklyActivityRecordButtonClick, handleBookRentalButtonClick, handleClassroomDrop };
 };

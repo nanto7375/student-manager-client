@@ -8,7 +8,7 @@ import { TABLE_STYLE } from "~/constants/styles";
 import { useClassroomDrop, createDragStartHandler } from "~/hooks/use-classroom-drop";
 
 import type { ActivityCheck, ActivityRecordType } from "../activity-records.type";
-import { ActivityKey, monthlyProjectStatusText, monthlyProjectNextKey } from "../activity-records.type";
+import { ActivityKey, nextStatus, nextMonthlyStatus, ACTIVITY_BUTTON_TEXT, MONTHLY_BUTTON_TEXT } from "../activity-records.type";
 import { ActivityRecordButton } from "./activity-record-button";
 import type { Classroom } from "~/constants/student.type";
 
@@ -24,8 +24,7 @@ export type ClassroomTableProps = {
   setMakeupTarget: (target: { studentId: number } | null) => void;
   setMemoTargetStudentId: (id: number | null) => void;
   setMemoType: (type: 'fixed-memo' | 'temporary-memo') => void;
-  handleWeeklyActivityRecordButtonClick: (params: { activityId: number; activityKey: keyof ActivityCheck; value: boolean }) => void;
-  handleMonthlyActivityRecordButtonClick: (params: { activityId: number; activityKey: keyof ActivityCheck | 'monthlyProject'; value: string | null }) => void;
+  handleWeeklyActivityRecordButtonClick: (params: { activityId: number; activityKey: keyof ActivityCheck; value: string }) => void;
   handleBookRentalButtonClick: (record: ActivityRecordType) => void;
   handleClassroomDrop: (studentId: number, classroomId: number) => void;
   showNotes?: boolean;
@@ -34,7 +33,7 @@ export type ClassroomTableProps = {
   hideHeader?: boolean;
 };
 
-export const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap, activePopup, setActivePopup, setMemoInput, navigate, setMakeupTarget, setMemoTargetStudentId, setMemoType, handleWeeklyActivityRecordButtonClick, handleMonthlyActivityRecordButtonClick, handleBookRentalButtonClick, handleClassroomDrop, showNotes = false, showNotesBelow = false, fullWidth = false, hideHeader = false }: ClassroomTableProps) => {
+export const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap, activePopup, setActivePopup, setMemoInput, navigate, setMakeupTarget, setMemoTargetStudentId, setMemoType, handleWeeklyActivityRecordButtonClick, handleBookRentalButtonClick, handleClassroomDrop, showNotes = false, showNotesBelow = false, fullWidth = false, hideHeader = false }: ClassroomTableProps) => {
   const { dragOver, dropHandlers } = useClassroomDrop(classroom.id, handleClassroomDrop);
 
   return (
@@ -96,51 +95,38 @@ export const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap
                 </TableCell>
                 <TableCell align="center" sx={{ width: '12%' }}>
                   <ActivityRecordButton
-                    value={activityRecord.attendance}
-                    buttonTextOn={`출석${activityRecord.isMakeup ? ' (보강)' : ''}`}
-                    buttonTextOff={`${activityRecord.isMakeup ? '보강' : '출석'} 완료`}
-                    onClick={() => handleWeeklyActivityRecordButtonClick({ activityId: activityRecord.id, activityKey: ActivityKey.ATTENDANCE, value: !activityRecord.attendance })}
+                    status={activityRecord.attendance}
+                    label={`${ACTIVITY_BUTTON_TEXT.attendance[activityRecord.attendance]}${activityRecord.isMakeup && activityRecord.attendance === 'pending' ? ' (보강)' : ''}`}
+                    onClick={() => handleWeeklyActivityRecordButtonClick({ activityId: activityRecord.id, activityKey: ActivityKey.ATTENDANCE, value: nextStatus(activityRecord.attendance) })}
                   />
                 </TableCell>
                 <TableCell align="center" sx={{ width: '12%' }}>
                   <ActivityRecordButton
-                    value={activityRecord.report1}
-                    buttonTextOn="독후감"
-                    buttonTextOff="독후감 완료"
-                    onClick={() => handleWeeklyActivityRecordButtonClick({ activityId: activityRecord.id, activityKey: ActivityKey.REPORT1, value: !activityRecord.report1 })}
+                    status={activityRecord.report1}
+                    label={ACTIVITY_BUTTON_TEXT.report1[activityRecord.report1]}
+                    onClick={() => handleWeeklyActivityRecordButtonClick({ activityId: activityRecord.id, activityKey: ActivityKey.REPORT1, value: nextStatus(activityRecord.report1) })}
                   />
                 </TableCell>
                 <TableCell align="center" sx={{ width: '12%' }}>
                   <ActivityRecordButton
-                    value={activityRecord.report2}
-                    buttonTextOn="주간 레오"
-                    buttonTextOff="주간 완료"
-                    onClick={() => handleWeeklyActivityRecordButtonClick({ activityId: activityRecord.id, activityKey: ActivityKey.REPORT2, value: !activityRecord.report2 })}
+                    status={activityRecord.report2}
+                    label={ACTIVITY_BUTTON_TEXT.report2[activityRecord.report2]}
+                    onClick={() => handleWeeklyActivityRecordButtonClick({ activityId: activityRecord.id, activityKey: ActivityKey.REPORT2, value: nextStatus(activityRecord.report2) })}
                   />
                 </TableCell>
                 <TableCell align="center" sx={{ width: '12%' }}>
                   <ActivityRecordButton
-                    value={!!(activityRecord.monthlyProject && activityRecord.monthlyPreview && activityRecord.monthlyReport)}
-                    buttonTextOn={`월간 ${monthlyProjectStatusText(activityRecord)}`}
-                    buttonTextOff="월간 완료"
+                    status={activityRecord.monthlyProject === 'completed' ? 'completed' : activityRecord.monthlyProject === 'failed' || activityRecord.monthlyProject === 'none' ? 'failed' : 'pending'}
+                    label={MONTHLY_BUTTON_TEXT[activityRecord.monthlyProject]}
                     activeEffect
-                    onClick={() => {
-                      const nextKey = monthlyProjectNextKey(activityRecord);
-                      const current = nextKey === 'monthlyProject' ? activityRecord.monthlyProject : activityRecord[nextKey];
-                      const value = current ? null : new Date().toISOString();
-                      handleMonthlyActivityRecordButtonClick({ activityId: activityRecord.id, activityKey: nextKey, value });
-                    }}
+                    onClick={() => handleWeeklyActivityRecordButtonClick({ activityId: activityRecord.id, activityKey: ActivityKey.MONTHLY_PROJECT, value: nextMonthlyStatus(activityRecord.monthlyProject) })}
                   />
                 </TableCell>
                 <TableCell align="center" sx={{ width: '12%' }}>
                   <ActivityRecordButton
-                    value={!!activityRecord.borrowedBook}
-                    buttonTextOn="책 대여"
-                    buttonTextOff="책 반납"
+                    status={activityRecord.borrowedBook ? 'completed' : 'pending'}
+                    label={activityRecord.borrowedBook ? '책 반납' : '책 대여'}
                     onClick={() => handleBookRentalButtonClick(activityRecord)}
-                    mainBgColor="transparent"
-                    disabledBgColor="grey.200"
-                    fontColor='black'
                   />
                 </TableCell>
                 {showNotes && activityRecord === records[0] && (

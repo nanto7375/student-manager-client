@@ -1,20 +1,13 @@
 import type { StudentInActivity as StudentInActivityDto } from "~/constants/student.type";
 
-/**
- * isMakeup: 보충 수업 여부
- * attendance: 출석 여부
- * report1: 독후감 제출 여부
- * report2: 주간 레오 제출 여부
- * monthlyProject: 월간 레오 참여 날짜
- * monthlyPreview: 월간 레오 개요 제출 날짜
- * monthlyReport: 월간 레오 독후감 제출 날짜
- */
+export type ActivityStatus = 'pending' | 'completed' | 'failed';
+export type MonthlyStatus = 'pending' | 'participated' | 'preview' | 'completed' | 'failed' | 'none';
+
 export type ActivityCheck = {
-  attendance: boolean;
-  report1: boolean;
-  report2: boolean;
-  monthlyPreview: Date | null;
-  monthlyReport: Date | null;
+  attendance: ActivityStatus;
+  report1: ActivityStatus;
+  report2: ActivityStatus;
+  monthlyProject: MonthlyStatus;
 };
 
 export type BookRental = {
@@ -28,7 +21,6 @@ export type ActivityRecordType = ActivityCheck & {
   student: StudentInActivityDto;
   date: string;
   isMakeup: boolean;
-  monthlyProject: Date | null;
   borrowedBook: BookRental | null;
 };
 
@@ -36,23 +28,29 @@ export const ActivityKey: Record<string, keyof ActivityCheck> = {
   ATTENDANCE: 'attendance',
   REPORT1: 'report1',
   REPORT2: 'report2',
-  MONTHLY_PREVIEW: 'monthlyPreview',
-  MONTHLY_REPORT: 'monthlyReport',
-};
-
-export const monthlyProjectStatusText = (record: ActivityRecordType) => {
-  if (!record.monthlyProject) return '참여';
-  if (!record.monthlyPreview) return '개요 제출';
-  if (!record.monthlyReport) return '독후감 제출';
-  return '완료';
-};
-
-export const monthlyProjectNextKey = (record: ActivityRecordType): keyof ActivityCheck | 'monthlyProject' => {
-  if (!record.monthlyProject) return 'monthlyProject';
-  if (!record.monthlyPreview) return ActivityKey.MONTHLY_PREVIEW;
-  if (!record.monthlyReport) return ActivityKey.MONTHLY_REPORT;
-  return 'monthlyProject';
+  MONTHLY_PROJECT: 'monthlyProject',
 };
 
 export const activityRecordsQueryKey = (scheduleId: string, date: string | null) =>
   ['activityRecords', scheduleId, date] as const;
+
+const STATUS_CYCLE: Record<ActivityStatus, ActivityStatus> = { pending: 'completed', completed: 'failed', failed: 'pending' };
+export const nextStatus = (current: ActivityStatus): ActivityStatus => STATUS_CYCLE[current];
+
+const MONTHLY_CYCLE: Record<MonthlyStatus, MonthlyStatus> = { pending: 'participated', participated: 'preview', preview: 'completed', completed: 'failed', failed: 'none', none: 'pending' };
+export const nextMonthlyStatus = (current: MonthlyStatus): MonthlyStatus => MONTHLY_CYCLE[current];
+
+export const ACTIVITY_BUTTON_TEXT: Record<'attendance' | 'report1' | 'report2', Record<ActivityStatus, string>> = {
+  attendance: { pending: '출석', completed: '출석 완료', failed: '결석' },
+  report1: { pending: '감상문', completed: '감상문 완료', failed: '감상문 미제출' },
+  report2: { pending: '주간 레오', completed: '주간 완료', failed: '주간 미제출' },
+};
+
+export const MONTHLY_BUTTON_TEXT: Record<MonthlyStatus, string> = {
+  pending: '월간',
+  participated: '월간 참여',
+  preview: '개요 제출',
+  completed: '월간 완료',
+  failed: '월간 포기',
+  none: '월간 미참여',
+};

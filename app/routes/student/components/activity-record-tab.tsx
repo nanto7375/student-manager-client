@@ -43,11 +43,16 @@ export const ActivityRecordTab = ({ studentId }: Props) => {
                   {record.isMakeup && <span style={{ color: '#e65100' }}> (보강)</span>}
                 </AppleTg>
                 <FlexBox gap={1}>
-                  {record.attendance && <AppleTg sx={{ fontSize: '0.75rem', color: '#4caf50' }}>출석</AppleTg>}
-                  {record.report1 && <AppleTg sx={{ fontSize: '0.75rem', color: '#2196f3' }}>독후감</AppleTg>}
-                  {record.report2 && <AppleTg sx={{ fontSize: '0.75rem', color: '#2196f3' }}>주간</AppleTg>}
-                  {record.monthlyPreview && dayjs(record.monthlyPreview).format('YYYYMMDD') === record.date && <AppleTg sx={{ fontSize: '0.75rem', color: '#9c27b0' }}>월간 개요</AppleTg>}
-                  {record.monthlyReport && dayjs(record.monthlyReport).format('YYYYMMDD') === record.date && <AppleTg sx={{ fontSize: '0.75rem', color: '#9c27b0' }}>월간 완료</AppleTg>}
+                  {record.attendance === 'completed' && <AppleTg sx={{ fontSize: '0.75rem', color: '#4caf50' }}>출석</AppleTg>}
+                  {record.attendance === 'failed' && <AppleTg sx={{ fontSize: '0.75rem', color: '#f44336' }}>결석</AppleTg>}
+                  {record.report1 === 'completed' && <AppleTg sx={{ fontSize: '0.75rem', color: '#2196f3' }}>독후감</AppleTg>}
+                  {record.report1 === 'failed' && <AppleTg sx={{ fontSize: '0.75rem', color: '#f44336' }}>독후감 미제출</AppleTg>}
+                  {record.report2 === 'completed' && <AppleTg sx={{ fontSize: '0.75rem', color: '#2196f3' }}>주간</AppleTg>}
+                  {record.report2 === 'failed' && <AppleTg sx={{ fontSize: '0.75rem', color: '#f44336' }}>주간 미제출</AppleTg>}
+                  {record.monthlyProject === 'participated' && <AppleTg sx={{ fontSize: '0.75rem', color: '#9c27b0' }}>월간 참여</AppleTg>}
+                  {record.monthlyProject === 'preview' && <AppleTg sx={{ fontSize: '0.75rem', color: '#9c27b0' }}>개요 제출</AppleTg>}
+                  {record.monthlyProject === 'completed' && <AppleTg sx={{ fontSize: '0.75rem', color: '#9c27b0' }}>월간 완료</AppleTg>}
+                  {record.monthlyProject === 'failed' && <AppleTg sx={{ fontSize: '0.75rem', color: '#f44336' }}>월간 포기</AppleTg>}
                 </FlexBox>
               </FlexBox>
             </FlexBox>
