@@ -32,7 +32,7 @@ export const BookRentalPopover = ({ record, onBorrow, onReturn, onClose }: BookR
         <FlexBox key={book.id} alignItems="center" justifyContent="space-between" sx={{ py: 0.25 }}>
           <AppleTg sx={{ fontSize: '0.7rem', color: '#999', flexShrink: 0 }}>{formatDate(book.borrowedAt)}</AppleTg>
           <AppleTg sx={{ fontSize: '0.75rem', color: '#444', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', ml: 0.5 }}>{book.bookTitle}</AppleTg>
-          <AppleTg sx={{ fontSize: '0.7rem', color: '#e57373', cursor: 'pointer', flexShrink: 0, ml: 0.5 }} onClick={() => onReturn(record, book.id)}>반납</AppleTg>
+          <AppleTg sx={{ fontSize: '0.7rem', color: '#e57373', cursor: 'pointer', flexShrink: 0, ml: 0.5 }} onClick={() => { onReturn(record, book.id); onClose(); }}>반납</AppleTg>
         </FlexBox>
       ))}
       <FlexBox gap={0.5}>
