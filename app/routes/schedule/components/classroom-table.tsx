@@ -25,7 +25,8 @@ export type ClassroomTableProps = {
   setMemoTargetStudentId: (id: number | null) => void;
   setMemoType: (type: 'fixed-memo' | 'temporary-memo') => void;
   handleWeeklyActivityRecordButtonClick: (params: { activityId: number; activityKey: keyof ActivityCheck; value: string }) => void;
-  handleBookRentalButtonClick: (record: ActivityRecordType) => void;
+  handleBookRentalButtonClick: (record: ActivityRecordType, bookTitle?: string) => void;
+  handleBookReturnButtonClick: (record: ActivityRecordType, bookRentalId: number) => void;
   handleClassroomDrop: (studentId: number, classroomId: number) => void;
   showNotes?: boolean;
   showNotesBelow?: boolean;
@@ -33,14 +34,17 @@ export type ClassroomTableProps = {
   hideHeader?: boolean;
 };
 
-export const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap, activePopup, setActivePopup, setMemoInput, navigate, setMakeupTarget, setMemoTargetStudentId, setMemoType, handleWeeklyActivityRecordButtonClick, handleBookRentalButtonClick, handleClassroomDrop, showNotes = false, showNotesBelow = false, fullWidth = false, hideHeader = false }: ClassroomTableProps) => {
+export const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap, activePopup, setActivePopup, setMemoInput, navigate, setMakeupTarget, setMemoTargetStudentId, setMemoType, handleWeeklyActivityRecordButtonClick, handleBookRentalButtonClick, handleBookReturnButtonClick, handleClassroomDrop, showNotes = false, showNotesBelow = false, fullWidth = false, hideHeader = false }: ClassroomTableProps) => {
   const { dragOver, dropHandlers } = useClassroomDrop(classroom.id, handleClassroomDrop);
+  const [bookInputTarget, setBookInputTarget] = React.useState<number | null>(null);
+  const [bookTitleInput, setBookTitleInput] = React.useState('');
 
   return (
     <FlexBox
       flexDirection="column"
       gap={0.5}
       sx={{ width: fullWidth ? '100%' : 'auto', outline: dragOver ? '2px dashed #036635' : 'none', borderRadius: '0.5rem', transition: 'outline 0.15s' }}
+      onClick={() => setBookInputTarget(null)}
       {...dropHandlers}
     >
       {!hideHeader && (
@@ -78,7 +82,7 @@ export const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap
                 </TableCell>
                 <TableCell align="center" sx={{ width: '10%', borderLeft: 'none !important' }}>
                   <FlexBox sx={{ position: 'relative', justifyContent: 'center' }}>
-                    <AppleTg component="div" sx={{ fontSize: '0.9rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '2lh' }} onClick={(e: React.MouseEvent) => { e.stopPropagation(); setActivePopup(activePopup === activityRecord.id ? null : activityRecord.id); setMemoInput(''); }}>
+                    <AppleTg component="div" sx={{ fontSize: '0.9rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '2lh' }} onClick={(e: React.MouseEvent) => { e.stopPropagation(); setActivePopup(activePopup === activityRecord.id ? null : activityRecord.id); setBookInputTarget(null); setMemoInput(''); }}>
                       <div style={{ fontWeight: 600 }}>{activityRecord.student.name}{activityRecord.isMakeup && <span style={{ color: '#e65100' }}> (보강)</span>}</div>
                       {(activityRecord.student.schoolName || activityRecord.student.schoolGrade) && <div style={{ fontSize: '0.75rem', color: '#999' }}>({activityRecord.student.schoolName ? `${activityRecord.student.schoolName.replace('초등학교', '초').replace('중학교', '중').replace('고등학교', '고')} ` : ''}{activityRecord.student.schoolGrade}학년)</div>}
                     </AppleTg>
@@ -122,12 +126,65 @@ export const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap
                     onClick={() => handleWeeklyActivityRecordButtonClick({ activityId: activityRecord.id, activityKey: ActivityKey.MONTHLY_PROJECT, value: nextMonthlyStatus(activityRecord.monthlyProject) })}
                   />
                 </TableCell>
-                <TableCell align="center" sx={{ width: '12%' }}>
+                <TableCell align="center" sx={{ width: '12%', position: 'relative' }}>
                   <ActivityRecordButton
-                    status={activityRecord.borrowedBook ? 'completed' : 'pending'}
-                    label={activityRecord.borrowedBook ? '책 반납' : '책 대여'}
-                    onClick={() => handleBookRentalButtonClick(activityRecord)}
+                    status={activityRecord.borrowedBooks.length > 0 ? 'completed' : 'pending'}
+                    label={(() => {
+                      if (activityRecord.borrowedBooks.length === 0) return '책 대여';
+                      const today = new Date(); const hasToday = activityRecord.borrowedBooks.some(b => { const d = new Date(b.borrowedAt); return d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate(); });
+                      return hasToday ? <>● 대여 {activityRecord.borrowedBooks.length}권</> : `대여 ${activityRecord.borrowedBooks.length}권`;
+                    })()}
+                    onClick={(e: React.MouseEvent) => {
+                      e.stopPropagation();
+                      setBookInputTarget(bookInputTarget === activityRecord.id ? null : activityRecord.id);
+                      setBookTitleInput('');
+                      setActivePopup(null);
+                    }}
                   />
+                  {bookInputTarget === activityRecord.id && (
+                    <FlexBox
+                      flexDirection="column"
+                      gap={0.5}
+                      onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                      sx={{ position: 'absolute', top: '100%', right: 0, zIndex: 20, backgroundColor: 'white', border: '1px solid #e0e0e0', borderRadius: '0.5rem', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', padding: '0.5rem', width: '14rem' }}
+                    >
+                      {activityRecord.borrowedBooks.map(book => (
+                        <FlexBox key={book.id} alignItems="center" justifyContent="space-between" sx={{ fontSize: '0.75rem', color: '#444', py: 0.25 }}>
+                          <AppleTg sx={{ fontSize: '0.7rem', color: '#999', flexShrink: 0 }}>{new Date(book.borrowedAt).getMonth() + 1}/{new Date(book.borrowedAt).getDate()}</AppleTg>
+                          <AppleTg sx={{ fontSize: '0.75rem', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', ml: 0.5 }}>{book.bookTitle}</AppleTg>
+                          <AppleTg sx={{ fontSize: '0.7rem', color: '#e57373', cursor: 'pointer', flexShrink: 0, ml: 0.5 }} onClick={() => { handleBookReturnButtonClick(activityRecord, book.id); }}>반납</AppleTg>
+                        </FlexBox>
+                      ))}
+                      <FlexBox gap={0.5}>
+                        <input
+                          autoFocus
+                          placeholder="책 이름"
+                          value={bookTitleInput}
+                          onChange={(e) => setBookTitleInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && bookTitleInput.trim()) {
+                              e.preventDefault();
+                              handleBookRentalButtonClick(activityRecord, bookTitleInput.trim());
+                              setBookTitleInput('');
+                              setBookInputTarget(null);
+                            }
+                            if (e.key === 'Escape') setBookInputTarget(null);
+                          }}
+                          style={{ flex: 1, padding: '0.3rem 0.5rem', border: '1px solid #ddd', borderRadius: '0.25rem', fontSize: '0.8rem', outline: 'none' }}
+                        />
+                        <AppleTg
+                          sx={{ fontSize: '0.75rem', color: bookTitleInput.trim() ? '#036635' : '#ccc', cursor: bookTitleInput.trim() ? 'pointer' : 'default', fontWeight: 600, flexShrink: 0, alignSelf: 'center' }}
+                          onClick={() => {
+                            if (bookTitleInput.trim()) {
+                              handleBookRentalButtonClick(activityRecord, bookTitleInput.trim());
+                              setBookTitleInput('');
+                              setBookInputTarget(null);
+                            }
+                          }}
+                        >확인</AppleTg>
+                      </FlexBox>
+                    </FlexBox>
+                  )}
                 </TableCell>
                 {showNotes && activityRecord === records[0] && (
                   <TableCell rowSpan={records.length} sx={{ width: '20%', verticalAlign: 'top', borderLeft: '1px dashed #e0e0e0 !important', padding: '1.2rem 0.75rem !important' }}>

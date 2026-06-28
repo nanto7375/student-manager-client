@@ -21,7 +21,7 @@ export type ActivityRecordType = ActivityCheck & {
   student: StudentInActivityDto;
   date: string;
   isMakeup: boolean;
-  borrowedBook: BookRental | null;
+  borrowedBooks: BookRental[];
 };
 
 export const ActivityKey: Record<string, keyof ActivityCheck> = {

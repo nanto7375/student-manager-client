@@ -36,7 +36,7 @@ export default function StudentActivityRecords() {
     placeholderData: keepPreviousData,
   });
 
-  const { invalidateRecords, handleWeeklyActivityRecordButtonClick, handleBookRentalButtonClick, handleClassroomDrop } = useActivityRecordActions(scheduleId, date);
+  const { invalidateRecords, handleWeeklyActivityRecordButtonClick, handleBookRentalButtonClick, handleBookReturnButtonClick, handleClassroomDrop } = useActivityRecordActions(scheduleId, date);
   const { memoInput, setMemoInput, memoTargetStudentId, setMemoTargetStudentId, memoType, setMemoType, closeMemoModal, handleAddMemo } = useMemoModal(invalidateRecords);
 
   const buildMemoMap = (type: 'fixed-memo' | 'temporary-memo') =>
@@ -73,7 +73,8 @@ export default function StudentActivityRecords() {
           setMemoTargetStudentId={setMemoTargetStudentId} 
           setMemoType={setMemoType} 
           handleWeeklyActivityRecordButtonClick={handleWeeklyActivityRecordButtonClick} 
-          handleBookRentalButtonClick={handleBookRentalButtonClick} 
+          handleBookRentalButtonClick={handleBookRentalButtonClick}
+          handleBookReturnButtonClick={handleBookReturnButtonClick} 
           handleClassroomDrop={handleClassroomDrop} 
           fullWidth 
           showNotes 

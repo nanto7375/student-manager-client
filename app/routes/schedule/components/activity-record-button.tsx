@@ -5,8 +5,8 @@ import type { ActivityStatus } from "../activity-records.type";
 
 type ActivityRecordButtonProps = {
   status: ActivityStatus;
-  label: string;
-  onClick: () => void;
+  label: React.ReactNode;
+  onClick: (e: React.MouseEvent) => void;
   activeEffect?: boolean;
 };
 

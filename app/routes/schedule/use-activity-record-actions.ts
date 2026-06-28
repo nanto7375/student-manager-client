@@ -48,13 +48,18 @@ export const useActivityRecordActions = (scheduleId: string, date: string) => {
       '활동 기록 업데이트에 실패했습니다.'
     );
 
-  const handleBookRentalButtonClick = (record: ActivityRecordType) =>
+  const handleBookRentalButtonClick = (record: ActivityRecordType, bookTitle?: string) =>
     optimisticUpdate(
-      records => records.map(r => r.id === record.id ? { ...r, borrowedBook: record.borrowedBook ? null : { id: -1 } as any } : r),
-      () => record.borrowedBook
-        ? returnBookApi({ params: { bookRentalId: record.borrowedBook.id } })
-        : borrowBookApi({ body: { studentId: record.student.id } }),
-      '책 대여/반납 처리에 실패했습니다.'
+      records => records.map(r => r.id === record.id ? { ...r, borrowedBooks: [...r.borrowedBooks, { id: -1, bookTitle: bookTitle ?? null, borrowedAt: new Date() }] } : r),
+      () => borrowBookApi({ body: { studentId: record.student.id, bookTitle } }),
+      '책 대여 처리에 실패했습니다.'
+    );
+
+  const handleBookReturnButtonClick = (record: ActivityRecordType, bookRentalId: number) =>
+    optimisticUpdate(
+      records => records.map(r => r.id === record.id ? { ...r, borrowedBooks: r.borrowedBooks.filter(b => b.id !== bookRentalId) } : r),
+      () => returnBookApi({ params: { bookRentalId } }),
+      '책 반납 처리에 실패했습니다.'
     );
 
   const handleClassroomDrop = (studentId: number, classroomId: number) =>
@@ -63,5 +68,5 @@ export const useActivityRecordActions = (scheduleId: string, date: string) => {
       '강의실 변경에 실패했습니다.'
     );
 
-  return { invalidateRecords, handleWeeklyActivityRecordButtonClick, handleBookRentalButtonClick, handleClassroomDrop };
+  return { invalidateRecords, handleWeeklyActivityRecordButtonClick, handleBookRentalButtonClick, handleBookReturnButtonClick, handleClassroomDrop };
 };
