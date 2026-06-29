@@ -47,7 +47,7 @@ export const ACTIVITY_BUTTON_TEXT: Record<'attendance' | 'report1' | 'report2', 
 };
 
 export const MONTHLY_BUTTON_TEXT: Record<MonthlyStatus, string> = {
-  pending: '월간',
+  pending: '월간 레오',
   participated: '월간 참여',
   preview: '개요 제출',
   completed: '월간 완료',
