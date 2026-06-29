@@ -147,15 +147,6 @@ export const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap
                   />
                 </TableCell>
 
-                {/* 감상문 */}
-                <TableCell align="center" sx={{ width: '12%' }}>
-                  <ActivityRecordButton
-                    status={record.report1}
-                    label={ACTIVITY_BUTTON_TEXT.report1[record.report1]}
-                    onClick={() => handleWeeklyActivityRecordButtonClick({ activityId: record.id, activityKey: ActivityKey.REPORT1, value: nextStatus(record.report1) })}
-                  />
-                </TableCell>
-
                 {/* 주간 레오 */}
                 <TableCell align="center" sx={{ width: '12%' }}>
                   <ActivityRecordButton
@@ -165,13 +156,12 @@ export const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap
                   />
                 </TableCell>
 
-                {/* 월간 프로젝트 */}
+                {/* 감상문 */}
                 <TableCell align="center" sx={{ width: '12%' }}>
                   <ActivityRecordButton
-                    status={monthlyStatusToButtonStatus(record.monthlyProject)}
-                    label={MONTHLY_BUTTON_TEXT[record.monthlyProject]}
-                    activeEffect
-                    onClick={() => handleWeeklyActivityRecordButtonClick({ activityId: record.id, activityKey: ActivityKey.MONTHLY_PROJECT, value: nextMonthlyStatus(record.monthlyProject) })}
+                    status={record.report1}
+                    label={ACTIVITY_BUTTON_TEXT.report1[record.report1]}
+                    onClick={() => handleWeeklyActivityRecordButtonClick({ activityId: record.id, activityKey: ActivityKey.REPORT1, value: nextStatus(record.report1) })}
                   />
                 </TableCell>
 
@@ -190,6 +180,16 @@ export const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap
                       onClose={() => setBookInputTarget(null)}
                     />
                   )}
+                </TableCell>
+
+                {/* 월간 레오 */}
+                <TableCell align="center" sx={{ width: '12%' }}>
+                  <ActivityRecordButton
+                    status={monthlyStatusToButtonStatus(record.monthlyProject)}
+                    label={MONTHLY_BUTTON_TEXT[record.monthlyProject]}
+                    activeEffect
+                    onClick={() => handleWeeklyActivityRecordButtonClick({ activityId: record.id, activityKey: ActivityKey.MONTHLY_PROJECT, value: nextMonthlyStatus(record.monthlyProject) })}
+                  />
                 </TableCell>
 
                 {/* 변동 메모 */}
