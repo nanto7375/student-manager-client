@@ -21,7 +21,7 @@ export const buttonHoverEffect = {
 const MENU_PAGE_LIST = [
   {
     name: "schedule",
-    label: "스케쥴",
+    label: "스케줄",
     path: ROUTES.SCHEDULE,
     minLevel: 1,
   },
