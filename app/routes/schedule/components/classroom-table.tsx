@@ -186,6 +186,7 @@ export const ClassroomTable = ({ classroom, records, fixedMemosMap, tempMemosMap
                 <TableCell align="center" sx={{ width: '12%' }}>
                   <ActivityRecordButton
                     status={monthlyStatusToButtonStatus(record.monthlyProject)}
+                    monthlyStatus={record.monthlyProject}
                     label={MONTHLY_BUTTON_TEXT[record.monthlyProject]}
                     activeEffect
                     onClick={() => handleWeeklyActivityRecordButtonClick({ activityId: record.id, activityKey: ActivityKey.MONTHLY_PROJECT, value: nextMonthlyStatus(record.monthlyProject) })}
