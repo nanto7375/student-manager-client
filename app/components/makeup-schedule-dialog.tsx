@@ -4,7 +4,7 @@ import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import dayjs, { type Dayjs } from "dayjs";
 
 import { FlexBox } from "~/components/styled-elements";
-import { createMakeupScheduleApi } from "~/lib/api/students.api";
+import { createMakeupScheduleApi, DUPLICATE_ACTIVITY_RECORD_ERROR } from "~/lib/api/students.api";
 import { useGlobalToast } from "~/providers/toast-provider";
 import { useScheduleList } from "~/routes/schedule/page";
 import { formatTime12Hour, mapNumberToDayOfWeek } from "~/lib/utils/time.util";
@@ -40,8 +40,12 @@ export const MakeupScheduleDialog = ({ open, onClose, studentId, onSuccess }: Pr
       setMakeupScheduleId(undefined);
       onClose();
       onSuccess?.();
-    } catch (e) {
-      console.error(e);
+    } catch (error: any) {
+      if (error?.status === 409 && error?.message === DUPLICATE_ACTIVITY_RECORD_ERROR) {
+        toast.warning('해당 날짜와 시간에는 이미 수업이 등록되어 있습니다.');
+        return;
+      }
+      console.error(error);
       toast.error('보강 추가에 실패했습니다.');
     }
   };

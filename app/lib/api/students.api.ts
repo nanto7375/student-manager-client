@@ -1,6 +1,8 @@
 import { buildApi } from "~/lib/api-builder";
 import type { StudentInList, StudentInManagement, StudentDetail, StudentNote } from "~/constants/student.type";
 
+export const DUPLICATE_ACTIVITY_RECORD_ERROR = 'duplicate-activity-record';
+
 // --- 학생 CRUD ---
 export const getStudentListApi = buildApi<{ list: StudentInList[]; count: number }>({ path: '/students', method: 'GET' });
 export const getStudentListForManagementApi = buildApi<{ list: StudentInManagement[]; count: number }>({ path: '/students', method: 'GET' });
