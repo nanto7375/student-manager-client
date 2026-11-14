@@ -1,0 +1,46 @@
+@font-face {
+  font-family: Leo;
+  src: url('/fonts/AppleSDGothicNeoR.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: Leo;
+  src: url('/fonts/AppleSDGothicNeoB.ttf') format('truetype');
+  font-weight: 700;
+  font-display: swap;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: #fcfcf9;
+  color: #24322b;
+  font: 1.0625rem/1.75 Leo, system-ui, sans-serif;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.wrap { width: min(46rem, calc(100% - 3rem)); margin-inline: auto; }
+header { background: white; border-bottom: 1px solid #dce3dc; }
+header .wrap { display: flex; align-items: baseline; flex-wrap: wrap; gap: .4rem 1rem; padding-block: 1rem; }
+.brand { color: #036635; font-size: 1.3rem; font-weight: 700; text-decoration: none; }
+.product, small { font-size: .875rem; color: #536259; }
+main { padding-block: clamp(2.5rem, 8vw, 5rem); }
+h1, h2, p, dl, dd { margin: 0; }
+h1 { font-size: clamp(2.25rem, 6vw, 3.5rem); letter-spacing: -.04em; line-height: 1.18; }
+.intro { margin-top: 1rem; font-size: 1.2rem; color: #425449; }
+.facts { margin-top: 2rem; display: grid; grid-template-columns: repeat(3, 1fr); padding: 1.25rem; gap: 1rem; background: #edf3ed; border-top: 2px solid #036635; }
+dt { color: #485b4e; font-size: .875rem; }
+dd { font-size: 1.35rem; font-weight: 700; }
+small { font-weight: 400; white-space: nowrap; }
+section { margin-top: 2rem; }
+h2 { margin-bottom: .5rem; font-size: 1.35rem; line-height: 1.4; }
+p + p { margin-top: .65rem; }
+a { color: #036635; text-underline-offset: .2em; }
+a:focus-visible { outline: 2px solid currentColor; outline-offset: .25rem; }
+footer { border-top: 1px solid #dce3dc; }
+nav { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; padding-block: 1.25rem; font-size: .95rem; }
+nav [aria-current] { font-weight: 700; }
+@media (max-width: 32rem) {
+  .facts { grid-template-columns: 1fr; gap: .5rem; }
+  .facts div { display: flex; align-items: baseline; justify-content: space-between; }
+}
